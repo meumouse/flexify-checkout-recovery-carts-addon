@@ -1,0 +1,18 @@
+{
+   "name": "meumouse/fc-recovery-carts",
+   "description": "Addon para o Flexify Checkout que permite recuperar carrinhos abandonados no WooCommerce.",
+   "type": "wordpress-plugin",
+   "license": "GPL-2.0-or-later",
+   "require": {
+       "php": ">=7.4",
+       "composer/installers": "^2.0"
+   },
+   "autoload": {
+       "psr-4": {
+           "MeuMouse\\Flexify_Checkout_Recovery_Carts\\": "inc/"
+       }
+   },
+   "config": {
+       "optimize-autoloader": true
+   }
+}
