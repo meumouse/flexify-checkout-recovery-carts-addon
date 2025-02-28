@@ -106,4 +106,13 @@ return array(
     'Composer\\Installers\\YawikInstaller' => $vendorDir . '/composer/installers/src/Composer/Installers/YawikInstaller.php',
     'Composer\\Installers\\ZendInstaller' => $vendorDir . '/composer/installers/src/Composer/Installers/ZendInstaller.php',
     'Composer\\Installers\\ZikulaInstaller' => $vendorDir . '/composer/installers/src/Composer/Installers/ZikulaInstaller.php',
+    'MeuMouse\\Flexify_Checkout\\Recovery_Carts\\Admin\\Admin' => $baseDir . '/inc/Admin/Admin.php',
+    'MeuMouse\\Flexify_Checkout\\Recovery_Carts\\Admin\\Components' => $baseDir . '/inc/Admin/Components.php',
+    'MeuMouse\\Flexify_Checkout\\Recovery_Carts\\Core\\Ajax' => $baseDir . '/inc/Core/Ajax.php',
+    'MeuMouse\\Flexify_Checkout\\Recovery_Carts\\Core\\Assets' => $baseDir . '/inc/Core/Assets.php',
+    'MeuMouse\\Flexify_Checkout\\Recovery_Carts\\Core\\Carts_Table' => $baseDir . '/inc/Core/Carts_Table.php',
+    'MeuMouse\\Flexify_Checkout\\Recovery_Carts\\Core\\Compatibility' => $baseDir . '/inc/Core/Compatibility.php',
+    'MeuMouse\\Flexify_Checkout\\Recovery_Carts\\Core\\Helpers' => $baseDir . '/inc/Core/Helpers.php',
+    'MeuMouse\\Flexify_Checkout\\Recovery_Carts\\Core\\Init' => $baseDir . '/inc/Core/Init.php',
+    'MeuMouse\\Flexify_Checkout\\Recovery_Carts\\Core\\Updater' => $baseDir . '/inc/Core/Updater.php',
 );

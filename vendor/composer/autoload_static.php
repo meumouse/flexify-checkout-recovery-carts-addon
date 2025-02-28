@@ -129,6 +129,15 @@ class ComposerStaticInit2d0d8e5718943d4e0f4f7aa59d79d9d9
         'Composer\\Installers\\YawikInstaller' => __DIR__ . '/..' . '/composer/installers/src/Composer/Installers/YawikInstaller.php',
         'Composer\\Installers\\ZendInstaller' => __DIR__ . '/..' . '/composer/installers/src/Composer/Installers/ZendInstaller.php',
         'Composer\\Installers\\ZikulaInstaller' => __DIR__ . '/..' . '/composer/installers/src/Composer/Installers/ZikulaInstaller.php',
+        'MeuMouse\\Flexify_Checkout\\Recovery_Carts\\Admin\\Admin' => __DIR__ . '/../..' . '/inc/Admin/Admin.php',
+        'MeuMouse\\Flexify_Checkout\\Recovery_Carts\\Admin\\Components' => __DIR__ . '/../..' . '/inc/Admin/Components.php',
+        'MeuMouse\\Flexify_Checkout\\Recovery_Carts\\Core\\Ajax' => __DIR__ . '/../..' . '/inc/Core/Ajax.php',
+        'MeuMouse\\Flexify_Checkout\\Recovery_Carts\\Core\\Assets' => __DIR__ . '/../..' . '/inc/Core/Assets.php',
+        'MeuMouse\\Flexify_Checkout\\Recovery_Carts\\Core\\Carts_Table' => __DIR__ . '/../..' . '/inc/Core/Carts_Table.php',
+        'MeuMouse\\Flexify_Checkout\\Recovery_Carts\\Core\\Compatibility' => __DIR__ . '/../..' . '/inc/Core/Compatibility.php',
+        'MeuMouse\\Flexify_Checkout\\Recovery_Carts\\Core\\Helpers' => __DIR__ . '/../..' . '/inc/Core/Helpers.php',
+        'MeuMouse\\Flexify_Checkout\\Recovery_Carts\\Core\\Init' => __DIR__ . '/../..' . '/inc/Core/Init.php',
+        'MeuMouse\\Flexify_Checkout\\Recovery_Carts\\Core\\Updater' => __DIR__ . '/../..' . '/inc/Core/Updater.php',
     );
 
     public static function getInitializer(ClassLoader $loader)
