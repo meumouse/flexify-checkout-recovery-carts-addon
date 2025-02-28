@@ -20,8 +20,11 @@ class Assets {
      * @return void
      */
     public function __construct() {
-        // register scripts and styles
+        // register settings scripts
         add_action( 'admin_enqueue_scripts', array( $this, 'settings_scripts' ) );
+
+        // register frontend scripts
+        add_action( 'wp_enqueue_scripts', array( $this, 'frontend_scripts' ) );
     }
 
 
@@ -37,8 +40,8 @@ class Assets {
         if ( Helpers::check_admin_page('fc-recovery-carts-settings') ) {
             // check if Flexify Dashboard is active for prevent duplicate Bootstrap files
 			if ( ! class_exists('Flexify_Dashboard') ) {
-				wp_enqueue_style( 'bootstrap-styles', FC_RECOVERY_CARTS_ASSETS . 'vendor/bootstrap/css/bootstrap.min.css', array(), '5.3.3' );
-				wp_enqueue_script( 'bootstrap-bundle', FC_RECOVERY_CARTS_ASSETS . 'vendor/bootstrap/js/bootstrap.bundle.min.js', array(), '5.3.3' );
+                wp_enqueue_style( 'bootstrap-grid', FC_RECOVERY_CARTS_ASSETS . 'vendor/bootstrap/bootstrap-grid.min.css', array(), '5.3.3' );
+                wp_enqueue_style( 'bootstrap-utilities', FC_RECOVERY_CARTS_ASSETS . 'vendor/bootstrap/bootstrap-utilities.min.css', array(), '5.3.3' );
 			}
 
             // settings scripts
@@ -52,8 +55,31 @@ class Assets {
 				'ajax_url' => admin_url('admin-ajax.php'),
 				'i18n' => array(
 					'toast_aria_label' => esc_html__( 'Fechar', 'fc-recovery-carts' ),
+                    'confirm_delete_follow_up' => esc_html__( 'Tem certeza que deseja excluir este evento?', 'fc-recovery-carts' ),
 				),
 			));
+        }
+    }
+
+
+    /**
+     * Register frontend scripts
+     * 
+     * @since 1.0.0
+     * @return void
+     */
+    public function frontend_scripts() {
+        $min_file = FC_RECOVERY_CARTS_DEBUG_MODE ? '' : '.min';
+
+        if ( is_cart() || is_checkout() || is_shop() ) {
+            wp_enqueue_script( 'fc-recovery-cart', plugin_dir_url( __FILE__ ) . '../assets/js/recovery-cart.js', array( 'jquery' ), '1.0.0', true );
+
+            wp_localize_script( 'fc-recovery-cart', 'fc_recovery_cart_params', array(
+                'ajax_url' => admin_url('admin-ajax.php'),
+                'nonces' => array(
+                    'fc_recovery_carts_nonce' => wp_create_nonce('fc_recovery_carts_nonce'),
+                )
+            ));
         }
     }
 }

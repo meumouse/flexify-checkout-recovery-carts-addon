@@ -35,6 +35,7 @@ class Init {
 			'\MeuMouse\Flexify_Checkout\Recovery_Carts\Core\Compatibility',
             '\MeuMouse\Flexify_Checkout\Recovery_Carts\Admin\Admin',
             '\MeuMouse\Flexify_Checkout\Recovery_Carts\Core\Assets',
+            '\MeuMouse\Flexify_Checkout\Recovery_Carts\Core\Ajax',
         ));
 
         foreach ( $classes as $class ) {

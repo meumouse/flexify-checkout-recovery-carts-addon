@@ -7,7 +7,7 @@
 	 * @since 1.0.0
 	 * @return Object
 	 */
-	const params = fcrc_settings_params
+	const params = fcrc_settings_params;
 
 	/**
 	 * Flexify Checkout Recovery Carts settings object variable
@@ -16,10 +16,17 @@
 	 * @package MeuMouse.com
 	 */
 	const Settings = {
+		/**
+		 * Initialize object functions
+		 * 
+		 * @since 1.0.0
+		 */
 		init: function() {
 			this.activateTabs();
 			this.saveOptions();
-		//	this.resetSettings();
+			this.addNewFollowUp();
+			this.editFollowUp();
+			this.deleteFollowUp();
 		},
 
 		/**
@@ -132,6 +139,35 @@
 		},
 
 		/**
+		 * Display modal component
+		 * 
+		 * @since 1.0.0
+		 * @param {string} trigger | Trigger for display popup
+		 * @param {string} container | Container for display content
+		 * @param {string} close | Close button popup
+		 */
+		displayModal: function(trigger, container, close) {
+			// open modal using event delegation
+			$(document).on('click', '#' + trigger.attr('id'), function(e) {
+				e.preventDefault();
+				$('#' + container.attr('id')).addClass('show');
+			});
+		
+			// close modal on click outside container using event delegation 
+			$(document).on('click', '#' + container.attr('id'), function(e) {
+				if (e.target === this) {
+					$(this).removeClass('show');
+				}
+			});
+		
+			// close modal on click close button using event delegation
+			$(document).on('click', '#' + close.attr('id'), function(e) {
+				e.preventDefault();
+				$('#' + container.attr('id')).removeClass('show');
+			});
+		},
+
+		/**
 		 * Keep button width and height state
 		 * 
 		 * @since 1.0.0
@@ -217,27 +253,40 @@
 
 
 		/**
-		 * Reset plugin settings
+		 * Add new follow up item
 		 * 
 		 * @since 1.0.0
 		 */
-	/*	resetSettings: function() {
+		addNewFollowUp: function() {
+			let container = $('#fcrc_add_new_follow_up_container');
+
 			// display reset modal
-			display_popup( $('#fc_recovery_carts_reset_settings_trigger'), $('#fc_recovery_carts_reset_settings_container'), $('#fc_recovery_carts_reset_settings_close') );
+			Settings.displayModal( $('#fcrc_add_new_follow_up_trigger'), container, $('#fcrc_add_new_follow_up_close') );
 				
-			// Reset plugin settings
-			$(document).on('click', '#confirm_reset_settings', function(e) {
+			// Add new follow up on click button
+			$(document).on('click', '#fcrc_add_new_follow_up_save', function(e) {
 				e.preventDefault();
 				
 				let btn = $(this);
 				let btn_state = Settings.keepButtonState(btn);
+				let follow_up_title = $('#fcrc_add_new_follow_up_title');
+				let follow_up_message = $('#fcrc_add_new_follow_up_message');
+				let follow_up_delay_time = $('#fcrc_add_new_follow_up_delay_time');
+				let follow_up_delay_type = $('#fcrc_add_new_follow_up_delay_type');
+				let whatsapp_channel = $('#fcrc_add_new_follow_up_channels_whatsapp');
 
 				// send request
 				$.ajax({
 					url: params.ajax_url,
 					type: 'POST',
 					data: {
-						action: 'fc_recovery_carts_reset_plugin_action',
+						action: 'fcrc_add_new_follow_up',
+						title: follow_up_title.val(),
+						message: follow_up_message.val(),
+						delay_time: follow_up_delay_time.val(),
+						delay_type: follow_up_delay_type.val(),
+						whatsapp: whatsapp_channel.prop('checked') ? 'yes' : 'no',
+						email: '',
 					},
 					beforeSend: function() {
 						btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm"></span>');
@@ -245,7 +294,107 @@
 					success: function(response) {
 						try {
 							if (response.status === 'success') {
-								$('#fc_recovery_carts_reset_settings_container').removeClass('show');
+								$('#follow_up').find('ul.fcrc-follow-up-list').replaceWith(response.follow_up_list);
+								$('#fcrc_add_new_follow_up_container').removeClass('show');
+								
+								Settings.displayToast('success', response.toast_header_title, response.toast_body_title);
+
+								// reset options
+								follow_up_title.val('');
+								follow_up_message.val('');
+								follow_up_delay_time.val('');
+								follow_up_delay_type.val('');
+								whatsapp_channel.prop('checked', false);
+							} else {
+								Settings.displayToast('error', response.toast_header_title, response.toast_body_title);
+							}
+						} catch (error) {
+							console.log(error);
+						}
+					},
+					error: function(xhr, status, error) {
+						console.error('Error on AJAX request:', xhr.responseText);
+					},
+					complete: function() {
+						btn.prop('disabled', false).html(btn_state.html);
+					},
+				});
+			});
+		},
+
+		/**
+		 * Edit follow up item
+		 * 
+		 * @since 1.0.0
+		 */
+		editFollowUp: function() {
+			// display edit follow up modal
+			$(document).on('click', '.edit-follow-up-item', function(e) {
+				e.preventDefault();
+				
+				var trigger = $(this);
+				var container = trigger.siblings('.edit-follow-up-container');
+				var close = trigger.siblings('.edit-follow-up-close');
+				
+				// Show modal immediately
+				$('#' + container.attr('id')).addClass('show');
+				
+				// Set up close handlers
+				$(document).on('click', '#' + container.attr('id'), function(e) {
+					if (e.target === this) {
+						$(this).removeClass('show');
+					}
+				});
+				
+				$(document).on('click', '#' + close.attr('id'), function(e) {
+					e.preventDefault();
+					$('#' + container.attr('id')).removeClass('show');
+				});
+			});
+
+			// update list item on change title
+			$(document).on('change keyup input', '.get-follow-up-title', function() {
+				let value = $(this).val();
+				var get_item = $('.edit-follow-up-container.show').data('follow-up-item');
+
+				console.log(get_item);
+				$('.list-group-item[data-follow-up-item="' + get_item + '"]').find('.fcrc-follow-up-item-title').text(value);
+			});
+		},
+
+		/**
+		 * Delete follow up item
+		 * 
+		 * @since 1.0.0
+		 */
+		deleteFollowUp: function() {
+			// delete follow up item on click delete button
+			$(document).on('click', '.delete-follow-up-item', function(e) {
+				e.preventDefault();
+
+				var btn = $(this);
+				var btn_state = Settings.keepButtonState(btn);
+				var get_item = btn.data('follow-up-item');
+
+				if ( ! confirm(params.i18n.confirm_delete_follow_up) ) {
+					return;
+				}
+
+				// send request
+				$.ajax({
+					url: params.ajax_url,
+					type: 'POST',
+					data: {
+						action: 'fcrc_delete_follow_up',
+						event_key: get_item,
+					},
+					beforeSend: function() {
+						btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm"></span>');
+					},
+					success: function(response) {
+						try {
+							if (response.status === 'success') {
+								$('#follow_up').find('ul.fcrc-follow-up-list').replaceWith(response.follow_up_list);
 								Settings.displayToast('success', response.toast_header_title, response.toast_body_title);
 							} else {
 								Settings.displayToast('error', response.toast_header_title, response.toast_body_title);
@@ -262,7 +411,7 @@
 					},
 				});
 			});
-		},*/
+		},
 	};
 
 	// Initialize the Settings object on ready event

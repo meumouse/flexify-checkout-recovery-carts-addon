@@ -110,8 +110,61 @@ class Admin {
      */
     public static function set_default_options() {
         return apply_filters( 'Flexify_Checkout/Recovery_Carts/Set_Default_Options', array(
+            'default_time_for_lost_orders' => 10,
             'toggle_switchs' => array(
-                'enable_auto_updates' => 'no',
+                
+            ),
+            'follow_up_events' => array(
+                'mensagem_em_1_hora' => array(
+                    'title' => 'Mensagem em 1 hora',
+                    'message' => "*{{ first_name }}, você esqueceu algo no carrinho?*\n\nOi {{ first_name }}, vimos que você adicionou produtos ao carrinho, mas não finalizou a compra. Eles ainda estão reservados para você! 😊\n\nFinalize seu pedido agora: {{ recovery_link }}\n\nSe precisar de ajuda, estamos por aqui!",
+                    'delay_time' => 1,
+                    'delay_type' => 'hours',
+                    'channels' => array(
+                        'email' => 'no',
+                        'whatsapp' => 'yes',
+                    ),
+                ),
+                'mensagem_em_3_horas' => array(
+                    'title' => 'Mensagem em 3 horas',
+                    'message' => "*🔥 Seus itens ainda estão disponíveis!* \n\n{{ first_name }}, seu carrinho ainda está esperando por você! Mas não podemos garantir que os estoques durem muito tempo. \n\nAproveite e finalize sua compra agora: {{ recovery_link }}\n\nQualquer dúvida, estamos à disposição!",
+                    'delay_time' => 3,
+                    'delay_type' => 'hours',
+                    'channels' => array(
+                        'email' => 'no',
+                        'whatsapp' => 'yes',
+                    ),
+                ),
+                'mensagem_em_5_horas' => array(
+                    'title' => 'Mensagem em 5 horas',
+                    'message' => "*🛍️ Não perca essa chance, {{ first_name }}!* \n\nAinda está interessado nos produtos do seu carrinho? Para te dar um empurrãozinho, conseguimos um *cupom especial de 5% de desconto* para você finalizar sua compra.\n\nUse o código *RECUPERA5* e garanta já: {{ recovery_link }}\n\nMas corra, pois esse desconto expira em breve! ⏳",
+                    'delay_time' => 5,
+                    'delay_type' => 'hours',
+                    'channels' => array(
+                        'email' => 'no',
+                        'whatsapp' => 'yes',
+                    ),
+                ),
+                'mensagem_em_8_horas' => array(
+                    'title' => 'Mensagem em 8 horas',
+                    'message' => "*🚀 Última chance antes do estoque acabar!* \n\n{{ first_name }}, alguns itens do seu carrinho estão com *baixa disponibilidade*! Não deixe para depois.\n\nSe precisar de ajuda para concluir sua compra, estamos aqui para te auxiliar.\n\n🔗 Finalize agora: {{ recovery_link }}",
+                    'delay_time' => 8,
+                    'delay_type' => 'hours',
+                    'channels' => array(
+                        'email' => 'no',
+                        'whatsapp' => 'yes',
+                    ),
+                ),
+                'mensagem_em_24_horas' => array(
+                    'title' => 'Mensagem em 24 horas',
+                    'message' => "*🎁 Oferta exclusiva para você, {{ first_name }}!* \n\nNotamos que você não finalizou sua compra e queremos te ajudar! Como um incentivo, liberamos um *cupom especial de 10% de desconto*.\n\nUse o código *ULTIMACHANCE10* antes que ele expire e conclua sua compra agora: {{ recovery_link }}\n\n📌 Estamos à disposição para qualquer dúvida!",
+                    'delay_time' => 24,
+                    'delay_type' => 'hours',
+                    'channels' => array(
+                        'email' => 'no',
+                        'whatsapp' => 'yes',
+                    ),
+                ),
             ),
         ));
     }
