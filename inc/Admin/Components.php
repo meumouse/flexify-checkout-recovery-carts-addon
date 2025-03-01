@@ -35,6 +35,12 @@ class Components {
                 'icon' => '<svg class="fc-recovery-carts-tab-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M22 7.999a1 1 0 0 0-.516-.874l-9.022-5a1.003 1.003 0 0 0-.968 0l-8.978 4.96a1 1 0 0 0-.003 1.748l9.022 5.04a.995.995 0 0 0 .973.001l8.978-5A1 1 0 0 0 22 7.999zm-9.977 3.855L5.06 7.965l6.917-3.822 6.964 3.859-6.918 3.852z"></path><path d="M20.515 11.126 12 15.856l-8.515-4.73-.971 1.748 9 5a1 1 0 0 0 .971 0l9-5-.97-1.748z"></path><path d="M20.515 15.126 12 19.856l-8.515-4.73-.971 1.748 9 5a1 1 0 0 0 .971 0l9-5-.97-1.748z"></path></svg>',
                 'file' => FC_RECOVERY_CARTS_INC . 'Views/Settings/Tabs/FollowUp.php',
             ),
+            'coupons' => array(
+                'id' => 'coupons',
+                'label' => esc_html__('Cupons', 'fc-recovery-carts'),
+                'icon' => '<svg class="fc-recovery-carts-tab-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><g stroke-width="0"></g><g stroke-linecap="round" stroke-linejoin="round"></g><g> <path fill-rule="evenodd" d="M15,6 C15,6.55228475 14.5522847,7 14,7 C13.4477153,7 13,6.55228475 13,6 L3,6 L3,7.99946819 C4.2410063,8.93038753 5,10.3994926 5,12 C5,13.6005074 4.2410063,15.0696125 3,16.0005318 L3,18 L13,18 C13,17.4477153 13.4477153,17 14,17 C14.5522847,17 15,17.4477153 15,18 L21,18 L21,16.0005318 C19.7589937,15.0696125 19,13.6005074 19,12 C19,10.3994926 19.7589937,8.93038753 21,7.99946819 L21,6 L15,6 Z M23,18 C23,19.1045695 22.1045695,20 21,20 L3,20 C1.8954305,20 1,19.1045695 1,18 L1,14.8880798 L1.49927404,14.5992654 C2.42112628,14.0660026 3,13.0839642 3,12 C3,10.9160358 2.42112628,9.93399737 1.49927404,9.40073465 L1,9.11192021 L1,6 C1,4.8954305 1.8954305,4 3,4 L21,4 C22.1045695,4 23,4.8954305 23,6 L23,9.11192021 L22.500726,9.40073465 C21.5788737,9.93399737 21,10.9160358 21,12 C21,13.0839642 21.5788737,14.0660026 22.500726,14.5992654 L23,14.8880798 L23,18 Z M14,16 C13.4477153,16 13,15.5522847 13,15 C13,14.4477153 13.4477153,14 14,14 C14.5522847,14 15,14.4477153 15,15 C15,15.5522847 14.5522847,16 14,16 Z M14,13 C13.4477153,13 13,12.5522847 13,12 C13,11.4477153 13.4477153,11 14,11 C14.5522847,11 15,11.4477153 15,12 C15,12.5522847 14.5522847,13 14,13 Z M14,10 C13.4477153,10 13,9.55228475 13,9 C13,8.44771525 13.4477153,8 14,8 C14.5522847,8 15,8.44771525 15,9 C15,9.55228475 14.5522847,10 14,10 Z"></path></g></svg>',
+                'file' => FC_RECOVERY_CARTS_INC . 'Views/Settings/Tabs/Coupons.php',
+            ),
             'integrations' => array(
                 'id' => 'integrations',
                 'label' => esc_html__('Integrações', 'fc-recovery-carts'),
@@ -94,6 +100,8 @@ class Components {
                                                     </div>
                                                 </div>
 
+                                                <?php echo self::render_coupon_form(); ?>
+
                                                 <div class="mb-4">
                                                     <label class="form-label text-left"><?php esc_html_e( 'Atraso: *', 'fc-recovery-carts' ); ?></label>
 
@@ -150,6 +158,76 @@ class Components {
                     <span class="fs-sm mt-1"><?php esc_html_e( $title ) ?></span>
                 </div>
             <?php endforeach; ?>
+        </div>
+
+        <?php return ob_get_clean();
+    }
+
+
+    /**
+     * Render  coupon form component
+     * 
+     * @since 1.0.0
+     * @param array $settings | Current coupon settings
+     * @return string
+     */
+    public static function render_coupon_form( $settings = array() ) {
+        ob_start(); ?>
+
+        <div class="coupon-form-wrapper">
+            <div class="coupon-prefix-wrapper mb-4">
+                <label class="form-label text-left mb-3"><?php esc_html_e( 'Prefixo do cupom: *', 'fc-recovery-carts' ); ?></label>
+                <input type="text" class="form-control get-coupon-prefix" name="coupon_prefix" placeholder="<?php esc_attr_e( 'CUPOM_', 'fc-recovery-carts' ); ?>" value="<?php esc_attr_e( $settings['coupon_prefix'] ?? '' ); ?>">
+            </div>
+
+            <div class="discount-type-wrapper mb-4">
+                <label class="form-label text-left mb-3"><?php esc_html_e( 'Tipo do desconto: *', 'fc-recovery-carts' ); ?></label>
+
+                <select class="form-select get-coupon-type" name="coupon_type">
+                    <option value="fixed_cart" <?php selected( $settings[''] ?? '', 'fixed_cart' ); ?>><?php esc_html_e( 'Valor fixo', 'fc-recovery-carts' ); ?></option>
+                    <option value="percent" <?php selected( $settings[''] ?? '', 'percent' ); ?>><?php esc_html_e( 'Percentual', 'fc-recovery-carts' ); ?></option>
+                </select>
+            </div>
+
+            <div class="coupon-value-wrapper mb-4">
+                <label class="form-label text-left mb-3"><?php esc_html_e( 'Valor do cupom: *', 'fc-recovery-carts' ); ?></label>
+                <input type="number" class="form-control get-coupon-value" value="<?php esc_attr_e( $settings[''] ?? '' ); ?>">
+            </div>
+
+            <div class="coupon-allow-free-shipping-wrapper mb-4 d-flex align-items-center">
+                <label class="form-label text-left me-3"><?php esc_html_e( 'Permitir frete grátis:', 'fc-recovery-carts' ); ?></label>
+                <input type="checkbox" class="toggle-switch toggle-switch-sm get-coupon-allow-free-shipping" <?php checked( $settings[''] ?? '', 'yes' ); ?>>
+            </div>
+
+            <div class="coupon-expire-time-wrapper mb-4">
+                <label class="form-label text-left mb-3"><?php esc_html_e( 'Tempo de expiração do cupom: *', 'fc-recovery-carts' ); ?></label>
+
+                <div class="input-group">
+                    <input type="number" class="form-control get-coupon-expire-time" value="<?php esc_attr_e( $settings[''] ?? '' ); ?>">
+                    
+                    <select class="form-select get-coupon-expire-time-type">
+                        <option value="minutes" <?php selected( $settings[''] ?? '', 'minutes' ); ?>><?php esc_html_e( 'Minutos', 'fc-recovery-carts' ); ?></option>
+                        <option value="hours" <?php selected( $settings[''] ?? '', 'hours' ); ?>><?php esc_html_e( 'Horas', 'fc-recovery-carts' ); ?></option>
+                        <option value="days" <?php selected( $settings[''] ?? '', 'days' ); ?>><?php esc_html_e( 'Dias', 'fc-recovery-carts' ); ?></option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="container-separator"></div>
+
+            <div class="restrictions-wrapper mb-4">
+                <span class="d-block text-left mb-4 fs-6"><?php esc_html_e( 'Restrições:', 'fc-recovery-carts' ); ?></span>
+
+                <div class="mb-3">
+                    <label class="form-label text-left mb-3"><?php esc_html_e( 'Limite de uso por cupom:', 'fc-recovery-carts' ); ?></label>
+                    <input type="number" class="get-coupon-limit-usage form-control" value="<?php esc_attr_e( $settings[''] ?? '' ); ?>">
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label text-left mb-3"><?php esc_html_e( 'Limite de uso por cliente:', 'fc-recovery-carts' ); ?></label>
+                    <input type="number" class="get-coupon-limit-usage form-control" value="<?php esc_attr_e( $settings[''] ?? '' ); ?>">
+                </div>
+            </div>
         </div>
 
         <?php return ob_get_clean();

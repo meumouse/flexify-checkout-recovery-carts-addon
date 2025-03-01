@@ -38,6 +38,39 @@ class Helpers {
             '{{ first_name }}' => esc_html__( 'Primeiro nome', 'fc-recovery-carts' ),
             '{{ last_name }}' => esc_html__( 'Sobrenome', 'fc-recovery-carts' ),
             '{{ recovery_link }}' => esc_html__( 'Link de recuperação do carrinho', 'fc-recovery-carts' ),
+            '{{ coupon_code }}' => esc_html__( 'Código do cupom (Gerado automaticamente)', 'fc-recovery-carts' ),
+            '{{ coupon_expire_time }}' => esc_html__( 'Tempo de expiração do cupom (Gerado automaticamente)', 'fc-recovery-carts' ),
         ));
+    }
+
+
+    /**
+     * Check if is product
+     * 
+     * @since 1.0.0
+     * @return bool
+     */
+    public static function is_product() {
+        $page_id = get_queried_object_id();
+        $is_product_page = false;
+        $is_shop_page = false;
+        $has_product = false;
+    
+        // Verifica se é uma página de produto individual
+        if ( is_singular('product') ) {
+            return true;
+        }
+    
+        // Verifica se é a página da loja
+        if ( function_exists('wc_get_page_id') && $page_id === wc_get_page_id('shop') ) {
+            return true;
+        }
+    
+        // Verifica se a página contém produtos (como arquivos de categoria ou busca)
+        if ( is_post_type_archive('product') || is_tax('product_cat') || is_tax('product_tag') || is_search() ) {
+            return true;
+        }
+
+        return false;
     }
 }

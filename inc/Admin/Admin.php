@@ -47,29 +47,40 @@ class Admin {
             'manage_options', // capatibilities
             'fc-recovery-carts', // slug
             array( $this, 'carts_table_page' ), // callback
-            'data:image/svg+xml;base64,' . base64_encode('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 703 882.5"><path d="M908.66,248V666a126.5,126.5,0,0,1-207.21,97.41l-16.7-16.7L434.08,496.07l-62-62a47.19,47.19,0,0,0-72,30.86V843.36a47.52,47.52,0,0,0,69.57,35.22l19.3-19.3,56-56,81.19-81.19,10.44-10.44a47.65,47.65,0,0,1,67.63,65.05l-13,13L428.84,952.12l-9.59,9.59a128,128,0,0,1-213.59-95.18V413.17a124.52,124.52,0,0,1,199.78-82.54l22.13,22.13L674.45,599.64l46.22,46.22,17,17a47.8,47.8,0,0,0,71-31.44V270.19a48.19,48.19,0,0,0-75-40.05L720.43,243.4l-68.09,68.09L575.7,388.13a48.39,48.39,0,0,1-67.43-67.93L680,148.46A136,136,0,0,1,908.66,248Z" transform="translate(-205.66 -112.03)" style="fill:#fff"/></svg>'),
+            'data:image/svg+xml;base64,' . base64_encode('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 848.15 848.15"><defs><style>.cls-1{fill:#fff;}</style></defs><path class="cls-1" d="M514,116.38c-234.22,0-424.08,189.87-424.08,424.07S279.74,964.53,514,964.53,938,774.67,938,540.45,748.17,116.38,514,116.38Zm171.38,426.1c-141.76.37-257.11,117.69-257.4,259.45H339.72c0-191.79,153.83-347.42,345.62-347.42Zm0-176.64c-141.76.19-266.84,69.9-346,176.13V410.6C431,328.12,551.92,277.5,685.34,277.5Z" transform="translate(-89.88 -116.38)"/></svg>'),
             5, // menu priority
         );
 
-        // Main page as first submenu item with a different name
-        add_submenu_page(
-            'fc-recovery-carts', // parent page slug
-            esc_html__( 'Todos os carrinhos', 'fc-recovery-carts' ), // page title
-            esc_html__( 'Todos os carrinhos', 'fc-recovery-carts' ), // submenu title
-            'manage_options', // user capabilities
-            'fc-recovery-carts', // page slug (same as the main menu page)
-            array( $this, 'carts_table_page' ) // callback
-        );
+        if ( self::is_pro() ) {
+            // Main page as first submenu item with a different name
+            add_submenu_page(
+                'fc-recovery-carts', // parent page slug
+                esc_html__( 'Todos os carrinhos', 'fc-recovery-carts' ), // page title
+                esc_html__( 'Todos os carrinhos', 'fc-recovery-carts' ), // submenu title
+                'manage_options', // user capabilities
+                'fc-recovery-carts', // page slug (same as the main menu page)
+                array( $this, 'carts_table_page' ) // callback
+            );
 
-        // settings page
-        add_submenu_page(
-            'fc-recovery-carts', // parent page slug
-            esc_html__( 'Configurações', 'fc-recovery-carts' ), // page title
-            esc_html__( 'Configurações', 'fc-recovery-carts' ), // submenu title
-            'manage_options', // user capabilities
-            'fc-recovery-carts-settings', // page slug
-            array( $this, 'render_settings_page' ) // callback
-        );
+            // settings page
+            add_submenu_page(
+                'fc-recovery-carts', // parent page slug
+                esc_html__( 'Configurações', 'fc-recovery-carts' ), // page title
+                esc_html__( 'Configurações', 'fc-recovery-carts' ), // submenu title
+                'manage_options', // user capabilities
+                'fc-recovery-carts-settings', // page slug
+                array( $this, 'render_settings_page' ) // callback
+            );
+        } else {
+            add_submenu_page(
+                'fc-recovery-carts', // parent page slug
+                esc_html__( 'Configurações', 'fc-recovery-carts' ), // page title
+                esc_html__( 'Configurações', 'fc-recovery-carts' ), // submenu title
+                'manage_options', // user capabilities
+                'fc-recovery-carts-settings', // page slug
+                array( $this, 'render_settings_page_required_license' ) // callback
+            );
+        }
     }
 
 
@@ -81,6 +92,17 @@ class Admin {
      */
     public function render_settings_page() {
         include FC_RECOVERY_CARTS_INC . 'Views/Settings.php';
+    }
+
+
+    /**
+     * Render settings page for not Pro users
+     * 
+     * @since 1.0.0
+     * @return void
+     */
+    public function render_settings_page_required_license() {
+        include FC_RECOVERY_CARTS_INC . 'Views/Settings_Info.php';
     }
 
 
@@ -111,8 +133,11 @@ class Admin {
     public static function set_default_options() {
         return apply_filters( 'Flexify_Checkout/Recovery_Carts/Set_Default_Options', array(
             'default_time_for_lost_orders' => 10,
+            'default_time_for_lost_orders_type' => 'minutes',
+            'title_modal_add_to_cart' => 'Registre-se para receber um cupom de desconto e ficar por dentro das melhores ofertas!',
+            'title_modal_send_lead' => 'Receber meu cupom',
             'toggle_switchs' => array(
-                
+                'enable_modal_add_to_cart' => 'yes',
             ),
             'follow_up_events' => array(
                 'mensagem_em_1_hora' => array(
@@ -284,5 +309,22 @@ class Admin {
 
         // update permacarrinhos
         flush_rewrite_rules();
+    }
+
+
+    /**
+     * Check if plugin Flexify Checkout is Pro
+     * 
+     * @since 1.0.0
+     * @return bool
+     */
+    public static function is_pro() {
+        $get_status = get_option( 'flexify_checkout_license_status', 'invalid' );
+
+        if ( $get_status === 'valid' ) {
+            return true;
+        }
+
+        return false;
     }
 }

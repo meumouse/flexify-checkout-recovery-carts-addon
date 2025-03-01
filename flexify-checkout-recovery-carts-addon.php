@@ -2,7 +2,7 @@
 
 /**
  * Plugin Name:             Flexify Checkout - Recuperação de carrinhos abandonados
- * Description:             Plugin adicional para Flexify Checkout, adicionando recuperação de carrinhos abandonados.
+ * Description:             Recupere carrinhos e pedidos abandonados com follow up cadenciado. Plugin adicional do Flexify Checkout para WooCommerce.
  * Plugin URI:              https://meumouse.com/plugins/flexify-checkout-para-woocommerce/?utm_source=plugins_list&utm_medium=flexify_checkout_recovery_cart&utm_campaign=plugin_addon
  * Requires Plugins: 		flexify-checkout-for-woocommerce, woocommerce
  * Author:                  MeuMouse.com

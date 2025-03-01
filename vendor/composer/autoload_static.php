@@ -137,7 +137,11 @@ class ComposerStaticInit2d0d8e5718943d4e0f4f7aa59d79d9d9
         'MeuMouse\\Flexify_Checkout\\Recovery_Carts\\Core\\Compatibility' => __DIR__ . '/../..' . '/inc/Core/Compatibility.php',
         'MeuMouse\\Flexify_Checkout\\Recovery_Carts\\Core\\Helpers' => __DIR__ . '/../..' . '/inc/Core/Helpers.php',
         'MeuMouse\\Flexify_Checkout\\Recovery_Carts\\Core\\Init' => __DIR__ . '/../..' . '/inc/Core/Init.php',
+        'MeuMouse\\Flexify_Checkout\\Recovery_Carts\\Core\\Recovery_Handler' => __DIR__ . '/../..' . '/inc/Core/Recovery_Handler.php',
+        'MeuMouse\\Flexify_Checkout\\Recovery_Carts\\Core\\Session_Manager' => __DIR__ . '/../..' . '/inc/Core/Session_Manager.php',
         'MeuMouse\\Flexify_Checkout\\Recovery_Carts\\Core\\Updater' => __DIR__ . '/../..' . '/inc/Core/Updater.php',
+        'MeuMouse\\Flexify_Checkout\\Recovery_Carts\\Frontend\\Lead_Capture' => __DIR__ . '/../..' . '/inc/Frontend/Lead_Capture.php',
+        'MeuMouse\\Flexify_Checkout\\Recovery_Carts\\Frontend\\Validations' => __DIR__ . '/../..' . '/inc/Frontend/Validations.php',
     );
 
     public static function getInitializer(ClassLoader $loader)

@@ -47,6 +47,7 @@ class Carts_Table extends WP_List_Table {
             'contact'    => __('Contato', 'fc-recovery-carts'),
             'total'      => __('Valor do carrinho', 'fc-recovery-carts'),
             'abandoned'  => __('Data de abandono', 'fc-recovery-carts'),
+            'actions'    => __('Ações', 'fc-recovery-carts'),
             'status'     => __('Status', 'fc-recovery-carts'),
         );
 
@@ -131,9 +132,10 @@ class Carts_Table extends WP_List_Table {
         $status = get_post_status( $item->ID );
 
         $statuses = array(
-            'wc-pending' => __('Pendente', 'fc-recovery-carts'),
-            'wc-failed' => __('Falhou', 'fc-recovery-carts'),
-            'wc-completed' => __('Recuperado', 'fc-recovery-carts'),
+            'shipping' => __('Comprando', 'fc-recovery-carts'),
+            'abandoned' => __('Abandonado', 'fc-recovery-carts'),
+            'recovered' => __('Recuperado', 'fc-recovery-carts'),
+            'lost' => __('Perdido', 'fc-recovery-carts'),
         );
 
         return sprintf( '<span class="status-label %s">%s</span>', esc_attr( $status ), esc_html( $statuses[$status] ?? ucfirst($status) ) );
@@ -149,6 +151,9 @@ class Carts_Table extends WP_List_Table {
     public function get_bulk_actions() {
         return array(
             'delete' => __('Excluir', 'fc-recovery-carts'),
+            'mark_lost' => __('Marcar como perdido', 'fc-recovery-carts'),
+            'mark_abandoned' => __('Marcar como abandonado', 'fc-recovery-carts'),
+            'mark_recovered' => __('Marcar como recuperado', 'fc-recovery-carts'),
         );
     }
 
@@ -160,11 +165,44 @@ class Carts_Table extends WP_List_Table {
      * @return void
      */
     public function process_bulk_action() {
-        if ( 'delete' === $this->current_action() ) {
-            if ( isset( $_POST['cart_ids'] ) ) {
-                foreach ( $_POST['cart_ids'] as $cart_id ) {
-                    wp_delete_post( $cart_id, true );
-                }
+        if ( isset( $_POST['cart_ids'] ) && is_array( $_POST['cart_ids'] ) ) {
+            $cart_ids = array_map( 'intval', $_POST['cart_ids'] );
+
+            // check current bulk action
+            switch ( $this->current_action() ) {
+                case 'delete':
+                    foreach ( $cart_ids as $cart_id ) {
+                        wp_delete_post( $cart_id, true );
+                    }
+
+                    break;
+                case 'mark_lost':
+                    foreach ( $cart_ids as $cart_id ) {
+                        wp_update_post( array(
+                            'ID' => $cart_id,
+                            'post_status' => 'lost',
+                        ) );
+                    }
+
+                    break;
+                case 'mark_abandoned':
+                    foreach ( $cart_ids as $cart_id ) {
+                        wp_update_post( array(
+                            'ID' => $cart_id,
+                            'post_status' => 'abandoned',
+                        ) );
+                    }
+
+                    break;
+                case 'mark_recovered':
+                    foreach ( $cart_ids as $cart_id ) {
+                        wp_update_post( array(
+                            'ID' => $cart_id,
+                            'post_status' => 'recovered',
+                        ) );
+                    }
+                    
+                    break;
             }
         }
     }

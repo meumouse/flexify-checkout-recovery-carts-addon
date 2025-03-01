@@ -114,5 +114,9 @@ return array(
     'MeuMouse\\Flexify_Checkout\\Recovery_Carts\\Core\\Compatibility' => $baseDir . '/inc/Core/Compatibility.php',
     'MeuMouse\\Flexify_Checkout\\Recovery_Carts\\Core\\Helpers' => $baseDir . '/inc/Core/Helpers.php',
     'MeuMouse\\Flexify_Checkout\\Recovery_Carts\\Core\\Init' => $baseDir . '/inc/Core/Init.php',
+    'MeuMouse\\Flexify_Checkout\\Recovery_Carts\\Core\\Recovery_Handler' => $baseDir . '/inc/Core/Recovery_Handler.php',
+    'MeuMouse\\Flexify_Checkout\\Recovery_Carts\\Core\\Session_Manager' => $baseDir . '/inc/Core/Session_Manager.php',
     'MeuMouse\\Flexify_Checkout\\Recovery_Carts\\Core\\Updater' => $baseDir . '/inc/Core/Updater.php',
+    'MeuMouse\\Flexify_Checkout\\Recovery_Carts\\Frontend\\Lead_Capture' => $baseDir . '/inc/Frontend/Lead_Capture.php',
+    'MeuMouse\\Flexify_Checkout\\Recovery_Carts\\Frontend\\Validations' => $baseDir . '/inc/Frontend/Validations.php',
 );

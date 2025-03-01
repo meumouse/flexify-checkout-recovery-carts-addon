@@ -1,7 +1,5 @@
 <?php
 
-use MeuMouse\Flexify_Checkout\Recovery_Carts\Admin\Components as Admin_Components;
-
 // Exit if accessed directly.
 defined('ABSPATH') || exit; ?>
 
@@ -25,32 +23,8 @@ defined('ABSPATH') || exit; ?>
 do_action('Flexify_Checkout/Recovery_Carts/Settings/Display_Notices'); ?>
 
 <div class="fc-recovery-carts-wrapper">
-    <div class="nav-tab-wrapper fc-recovery-carts-tab-wrapper">
-        <?php
-        /**
-         * Settings nav tabs hook
-         * 
-         * @since 1.0.0
-         */
-        do_action('Flexify_Checkout/Recovery_Carts/Settings/Nav_Tabs'); ?>
-    </div>
-
-    <div class="fc-recovery-carts-options-settings-container">
-        <form method="post" class="fc-recovery-carts-form" name="fc-recovery-carts-options-form">
-            <?php $tabs = Admin_Components::get_settings_tabs();
-
-            foreach ( $tabs as $tab ) :
-                if ( ! empty( $tab['file'] ) ) {
-                    include_once $tab['file'];
-                }
-            endforeach; ?>
-        </form>
-
-        <div class="actions-footer mt-5">
-            <button id="fcrc_save_options" class="btn btn-primary d-flex align-items-center justify-content-center" disabled>
-                <svg class="icon me-2 icon-white" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M5 21h14a2 2 0 0 0 2-2V8a1 1 0 0 0-.29-.71l-4-4A1 1 0 0 0 16 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2zm10-2H9v-5h6zM13 7h-2V5h2zM5 5h2v4h8V5h.59L19 8.41V19h-2v-5a2 2 0 0 0-2-2H9a2 2 0 0 0-2 2v5H5z"></path></svg>
-                <?php esc_html_e( 'Salvar alterações', 'fc-recovery-carts' ) ?></a>
-            </button>
-        </div>
+    <div class="alert alert-info d-flex align-items-center w-fit fs-6">
+        <svg class="icon icon-lg icon-info me-2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 2C6.486 2 2 6.486 2 12s4.486 10 10 10 10-4.486 10-10S17.514 2 12 2zm0 18c-4.411 0-8-3.589-8-8s3.589-8 8-8 8 3.589 8 8-3.589 8-8 8z"></path><path d="M11 11h2v6h-2zm0-4h2v2h-2z"></path></svg>
+        <?php esc_html_e( 'Ative a versão Pro do Flexify Checkout para liberar as configurações deste plugin', 'fc-recovery-carts' ); ?>
     </div>
 </div>

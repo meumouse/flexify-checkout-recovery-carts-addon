@@ -341,7 +341,7 @@ class Updater {
      */
     public function enable_auto_update( $update, $item ) {
         if ( isset( $item->plugin ) && $item->plugin === 'flexify-checkout-recovery-carts-addon/flexify-checkout-recovery-carts-addon.php' ) {
-            return true; // enable only joinotify
+            return true; // enable only this plugin
         }
 
         return $update;

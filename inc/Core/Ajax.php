@@ -57,10 +57,11 @@ class Ajax {
             // Convert serialized data into an array
             parse_str( $_POST['form_data'], $form_data );
 
-            $options = array();
+            // get current options
+            $options = get_options( 'flexify_checkout_recovery_carts_settings', array() );
 
             // iterate for each switch options
-            foreach ( Admin::get_setting('switch_options') as $switch ) {
+            foreach ( $options['toggle_switchs'] as $switch ) {
                 $options[$switch] = isset( $form_data[$switch] ) ? 'yes' : 'no';
             }
 
@@ -77,7 +78,7 @@ class Ajax {
                     'toast_body_title' => esc_html__( 'As configurações foram atualizadas!', 'fc-recovery-carts' ),
                 );
 
-                if ( JOINOTIFY_DEBUG_MODE ) {
+                if ( FC_RECOVERY_CARTS_DEBUG_MODE ) {
                     $response['debug'] = array(
                         'options' => $updated_options,
                     );
