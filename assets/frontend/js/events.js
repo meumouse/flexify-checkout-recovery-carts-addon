@@ -16,6 +16,7 @@
 	 * @package MeuMouse.com
 	 */
 	const Events = {
+        
         /**
 		 * Initialize object functions
 		 * 
@@ -24,6 +25,7 @@
 		init: function() {
             this.openModal();
 			this.addedToCart();
+            this.initPhoneInput();
 		},
 
         /**
@@ -55,15 +57,12 @@
          * @since 1.0.0
          */
         openModal: function() {
-        //    var triggers = params.triggers_list;
-            var triggers = 'button[name="add-to-cart"]';
+            var triggers = params.triggers_list;
 
             // open modal using event delegation
-            $(document).on('click', triggers, function(e) {
-                e.preventDefault();
-
-                // check if lead was already collected
-                if ( $('body').hasClass('fcrc-lead-collected') ) {
+            $(triggers).hover( function(e) {
+                // check if lead was already collected or rejected
+                if ( $('body').hasClass('fcrc-lead-collected') || $('body').hasClass('fcrc-lead-rejected') ) {
                     return;
                 }
 
@@ -75,6 +74,7 @@
                 e.preventDefault();
 
                 $('.fcrc-popup-container.lead-capture-modal').removeClass('show');
+                $('body').addClass('fcrc-lead-rejected')
             });
         },
 
@@ -125,8 +125,63 @@
                     },
                     complete: function() {
                         btn.prop('disabled', false).html(btn_state.html);
-                    }
+                    },
                 });
+            });
+        },
+
+        /**
+         * Get cookie value by name
+         * 
+         * @since 1.0.0
+         * @param {string} name | Cookie name
+         * @returns Cookie value
+         */
+        getCookie: function(name) {
+            let matches = document.cookie.match(new RegExp(
+                "(?:^|; )" + name.replace(/([\.\$?*|{}\(\)\[\]\/+^])/g, '\\$1') + "=([^;]*)"
+            ));
+
+            return matches ? decodeURIComponent(matches[1]) : undefined;
+        },
+
+        /**
+         * Initialize international phone input
+         * 
+         * @since 1.0.0
+         */
+        initPhoneInput: function() {
+            const input = document.querySelector('.fcrc-input.fcrc-get-phone');
+
+            // initialize intl tel input
+            const iti = window.intlTelInput( input, {
+                loadUtilsOnInit: params.path_to_utils,
+                autoPlaceholder: "aggressive",
+                containerClass: "fcrc-international-phone-selector",
+                initialCountry: "auto",
+                geoIpLookup: function(success, failure) {
+                    const country_code = Events.getCookie('fcrc_phone_country_code');
+
+                    if (country_code) {
+                        success(country_code);
+                    } else {
+                        fetch("https://ipapi.co/json")
+                        .then( function(response) { 
+                            return response.json();
+                        })
+                        .then( function(data) {
+                            // set response API in cookies for 7 days
+                            document.cookie = "fcrc_phone_country_code=" + data.country_code + "; max-age=" + (7 * 24 * 60 * 60) + "; path=/";
+                            success(data.country_code);
+                        })
+                        .catch( function() {
+                            failure("br");
+                        });
+                    }
+                },
+                i18n: {
+                    searchPlaceholder: params.i18n.intl_search_input_placeholder,
+                },
             });
         },
     }

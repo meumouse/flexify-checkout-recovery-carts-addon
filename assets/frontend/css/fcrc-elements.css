@@ -140,18 +140,19 @@
 
 .fcrc-input {
     width: 100%;
-    padding: 0.825rem 1rem !important;
+    max-width: -webkit-fill-available;
+    padding: 0.825rem 1rem;
     font-size: 1rem;
     font-weight: 400;
-    line-height: 1.4 !important;
-    color: #576071 !important;
-    background-color: #fff !important;
+    line-height: 1.4;
+    color: #576071;
+    background-color: #fff;
     background-clip: padding-box;
-    border: 1px solid #d7dde2 !important;
+    border: 1px solid #d7dde2;
     -webkit-appearance: none;
     -moz-appearance: none;
     appearance: none;
-    border-radius: 0.375rem !important;
+    border-radius: 0.375rem;
     transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out, -webkit-box-shadow 0.15s ease-in-out;
 }
 
@@ -228,11 +229,6 @@ input.fcrc-input:disabled {
     text-align: left;
 }
 
-.fcrc-pre-checkout-form {
-    display: grid;
-    max-width: 720px;
-}
-
 .fcrc-contact-name-wrapper {
     display: flex;
     justify-content: space-between;
@@ -243,12 +239,13 @@ input.fcrc-input:disabled {
 @media screen and (min-width: 992px) {
     .fcrc-first-name-wrapper,
     .fcrc-last-name-wrapper {
-        width: 46%;
+        width: calc(50% - 1rem);
     }
 }
 
 .lead-capture-modal .fcrc-popup-footer {
     border-top: 0;
+    padding-top: 0;
 }
 
 .fcrc-btn {
@@ -393,4 +390,36 @@ a.fcrc-btn-primary, a.fcrc-btn-primary:hover, a.fcrc-btn-primary:focus {
 
 .fcrc-pre-checkout-title-icon .coupon-icon {
     fill: var(--fc-recovery-carts-primary);
+}
+
+.fcrc-international-phone-selector {
+    width: 100%;
+}
+
+.fcrc-international-phone-selector .fcrc-input.fcrc-get-phone {
+    padding-left: 5rem !important;
+}
+
+.fcrc-international-phone-selector .iti__country-container {
+    width: 5rem;
+}
+
+.fcrc-international-phone-selector .iti__flag {
+    background-image: url("https://raw.githubusercontent.com/jackocnr/intl-tel-input/refs/heads/master/build/img/flags%402x.webp");
+    background-size: cover;
+    height: 24px !important;
+    width: 32px;
+    background-position: var(--iti-flag-offset) 0 !important;
+}
+
+.fcrc-international-phone-selector .iti__selected-country {
+    width: 5rem;
+    justify-content: center;
+}
+
+.fcrc-international-phone-selector .iti__search-input {
+    height: 3rem;
+    padding: 1rem;
+    outline: none;
+    font-size: 1rem;
 }

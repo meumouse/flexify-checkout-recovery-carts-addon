@@ -138,6 +138,7 @@ class Admin {
             'title_modal_send_lead' => 'Receber meu cupom',
             'toggle_switchs' => array(
                 'enable_modal_add_to_cart' => 'yes',
+                'enable_international_phone_modal' => 'yes',
             ),
             'follow_up_events' => array(
                 'mensagem_em_1_hora' => array(
@@ -191,6 +192,7 @@ class Admin {
                     ),
                 ),
             ),
+            'modal_triggers_list' => 'button[name="add-to-cart"], a.add_to_cart_button, a.ajax_add_to_cart, #wd-add-to-cart',
         ));
     }
 
