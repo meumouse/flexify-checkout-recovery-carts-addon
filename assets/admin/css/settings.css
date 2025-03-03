@@ -522,8 +522,8 @@ input.form-control:disabled {
 }
 
 .form-control-color {
-    width: 3rem;
-    height: calc(1.6em + 1.25rem + 2px);
+    width: 3.3rem;
+    height: inherit;
     padding: 0.225rem;
 }
 
@@ -1445,4 +1445,93 @@ table.popup-table th {
 textarea.form-control:focus {
     border-color: var(--fc-recovery-carts-primary) !important;
     box-shadow: none;
+}
+
+.card {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-width: 0;
+    word-wrap: break-word;
+    background-color: #fff;
+    background-clip: border-box;
+    border: 1px solid #e2e5f1;
+    border-radius: 0.5rem;
+    transition: transform .2s ease-in-out, border-color .2s ease-in-out, background-color .2s ease-in-out, box-shadow .2s ease-in-out;
+}
+
+.card-body {
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 auto;
+    padding-bottom: 1rem;
+    color: #33354d;
+    text-align: center;
+}
+
+.card-title {
+    margin-bottom: 0.75rem;
+    margin-top: 0;
+}
+
+.card-header {
+    padding: 1.125rem 1.5rem;
+    margin-bottom: 0;
+    color: #33354d;
+    background-color: transparent;
+    border-bottom: 1px solid #e2e5f1;
+}
+
+.card-header,
+.card-footer {
+    width: 100%;
+    margin: auto;
+    padding-right: 0;
+    padding-left: 0;
+}
+
+.card-footer {
+    padding: 1.125rem 1.5rem;
+    color: #33354d;
+    background-color: transparent;
+    border-top: 1px solid #e2e5f1;
+}
+
+.card-footer:last-child {
+    border-radius: 0 0 calc(0.5rem - 1px) calc(0.5rem - 1px);
+}
+
+.integration-item img,
+.integration-item svg {
+    max-width: 4rem;
+    height: auto;
+}
+
+@media screen and (min-width: 992px) {
+    .card.integration-item {
+        max-width: 400px;
+    }
+}
+
+#integrations .cards-group .card {
+    max-width: 23rem;
+}
+
+#integrations .cards-group {
+    display: flex;
+    flex-wrap: wrap;
+}
+
+.fcrc-comming-soon {
+    position: absolute;
+    height: 100%;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: rgba(255, 255, 255, 0.75);
+    z-index: 2;
+    font-size: 1.325rem;
+    border-radius: 0.5rem;
 }

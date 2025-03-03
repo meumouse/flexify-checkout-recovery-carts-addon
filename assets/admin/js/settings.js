@@ -27,6 +27,8 @@
 			this.addNewFollowUp();
 			this.editFollowUp();
 			this.deleteFollowUp();
+			this.collectLeadSettings();
+			this.selectColor();
 		},
 
 		/**
@@ -147,23 +149,28 @@
 		 * @param {string} close | Close button popup
 		 */
 		displayModal: function(trigger, container, close) {
-			// open modal using event delegation
-			$(document).on('click', '#' + trigger.attr('id'), function(e) {
+			// Handle both ID string and jQuery object
+			const trigger_id = typeof trigger === 'string' ? trigger : '#' + trigger.attr('id');
+			const container_id = typeof container === 'string' ? container : '#' + container.attr('id');
+			const close_id = typeof close === 'string' ? close : '#' + close.attr('id');
+		
+			// Open modal
+			$(document).on('click', trigger_id, function(e) {
 				e.preventDefault();
-				$('#' + container.attr('id')).addClass('show');
+				$(container_id).addClass('show');
 			});
 		
-			// close modal on click outside container using event delegation 
-			$(document).on('click', '#' + container.attr('id'), function(e) {
+			// Close modal on outside click
+			$(document).on('click', container_id, function(e) {
 				if (e.target === this) {
 					$(this).removeClass('show');
 				}
 			});
 		
-			// close modal on click close button using event delegation
-			$(document).on('click', '#' + close.attr('id'), function(e) {
+			// Close modal on close button click
+			$(document).on('click', close_id, function(e) {
 				e.preventDefault();
-				$('#' + container.attr('id')).removeClass('show');
+				$(container_id).removeClass('show');
 			});
 		},
 
@@ -410,6 +417,68 @@
 						btn.prop('disabled', false).html(btn_state.html);
 					},
 				});
+			});
+		},
+
+		/**
+		 * Change visibility for elements
+		 * 
+		 * @since 1.0.0
+		 * @param {string} selector | Activation element selector
+		 * @param {string} container | Container selector
+		 */
+		visibilityController: function(selector, container) {
+			// Initial state
+			let checked = $(selector).prop('checked');
+			
+			$(container).toggleClass('d-none', ! checked);
+		
+			// Update state on click
+			$(selector).on('click', function() {
+				checked = $(this).prop('checked'); // Get current state inside click handler
+
+				$(container).toggleClass('d-none', ! checked);
+			});
+		},
+
+		/**
+		 * Change collect lead modal settings
+		 * 
+		 * @since 1.0.0
+		 */
+		collectLeadSettings: function() {
+			// display trigger modal
+			Settings.visibilityController( '#enable_modal_add_to_cart', '#collect_lead_modal_settings_trigger' );
+
+			// open settings modal
+			Settings.displayModal( '#collect_lead_modal_settings_trigger', '#collect_lead_modal_settings_container', '#collect_lead_modal_settings_close' );
+		},
+
+		/**
+		 * Select color
+		 * 
+		 * @since 1.0.0
+		 */
+		selectColor: function() {
+			$('.get-color-selected').on('input', function() {
+				var color_value = $(this).val();
+		
+				$(this).closest('.color-container').find('.form-control-color').val(color_value);
+			});
+		
+			$('.form-control-color').on('input', function() {
+				var color_value = $(this).val();
+		
+				$(this).closest('.color-container').find('.get-color-selected').val(color_value);
+			});
+	
+			$('.reset-color').on('click', function(e) {
+				e.preventDefault();
+				
+				var color_value = $(this).data('color');
+	
+				$(this).closest('.color-container').find('.form-control-color').val(color_value);
+				$(this).closest('.color-container').find('.get-color-selected').val(color_value).change();
 			});
 		},
 	};

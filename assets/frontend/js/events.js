@@ -24,8 +24,12 @@
 		 */
 		init: function() {
             this.openModal();
-			this.addedToCart();
-            this.initPhoneInput();
+			this.collectLead();
+
+            // check if international phone input is enabled
+            if ( params.enable_international_phone === 'yes' ) {
+                this.initPhoneInput();
+            }
 		},
 
         /**
@@ -79,11 +83,11 @@
         },
 
         /**
-         * Listen added_to_cart event
+         * Collect lead event
          * 
          * @since 1.0.0
          */
-        addedToCart: function() {
+        collectLead: function() {
             // send request on click trigger button
             $(document).on('click', '.fcrc-trigger-send-lead', function(e) {
                 e.preventDefault();
@@ -95,7 +99,7 @@
                     url: params.ajax_url,
                     type: 'POST',
                     data: {
-                        action: 'fc_add_recovery_cart',
+                        action: 'fcrc_lead_collected',
                         first_name: $('.fcrc-get-first-name').val(),
                         last_name: $('.fcrc-get-last-name').val(),
                         phone: $('.fcrc-get-phone').val(),

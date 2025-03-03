@@ -27,7 +27,7 @@ class Ajax {
             'fc_recovery_carts_save_options' => 'admin_save_options_callback',
             'fcrc_add_new_follow_up' => 'fcrc_add_new_follow_up_callback',
             'fcrc_delete_follow_up' => 'fcrc_delete_follow_up_callback',
-            'fc_add_recovery_cart' => 'fc_add_recovery_cart_callback',
+            'fcrc_lead_collected' => 'fcrc_lead_collected_callback',
         );
 
         // loop for each ajax action
@@ -36,7 +36,7 @@ class Ajax {
         }
 
         $nopriv_ajax_actions = array(
-            'fc_add_recovery_cart' => 'fc_add_recovery_cart_callback',
+            'fcrc_lead_collected' => 'fcrc_lead_collected_callback',
         );
 
         // loop for each nopriv ajax action
@@ -58,18 +58,16 @@ class Ajax {
             parse_str( $_POST['form_data'], $form_data );
 
             // get current options
-            $options = get_options( 'flexify_checkout_recovery_carts_settings', array() );
+            $options = get_option('flexify_checkout_recovery_carts_settings');
+            $get_switchs = array_keys( Admin::set_default_options()['toggle_switchs'] );
 
             // iterate for each switch options
-            foreach ( $options['toggle_switchs'] as $switch ) {
-                $options[$switch] = isset( $form_data[$switch] ) ? 'yes' : 'no';
+            foreach ( $get_switchs as $switch ) {
+                $options['toggle_switchs'][$switch] = isset( $form_data['toggle_switchs'][$switch] ) ? 'yes' : 'no';
             }
 
-            // Merge the form data with the default options
-            $updated_options = wp_parse_args( $form_data, $options );
-
             // Save the updated options
-            $saved_options = update_option( 'flexify_checkout_recovery_carts_settings', $updated_options );
+            $saved_options = update_option( 'flexify_checkout_recovery_carts_settings', $options );
 
             if ( $saved_options ) {
                 $response = array(
@@ -80,7 +78,7 @@ class Ajax {
 
                 if ( FC_RECOVERY_CARTS_DEBUG_MODE ) {
                     $response['debug'] = array(
-                        'options' => $updated_options,
+                        'options' => $options,
                     );
                 }
 
@@ -199,58 +197,14 @@ class Ajax {
     }
 
     /**
-     * Create a new abandoned cart post when a product is added to the WooCommerce cart
+     * Get lead collected
      * 
      * @since 1.0.0
      * @return void
      */
-    public function fc_add_recovery_cart() {
-        // Verify nonce for security
-        check_ajax_referer( 'fc_recovery_carts_nonce', 'security' );
-
-        // Get current user ID or assign guest ID
-        $user_id = get_current_user_id();
-        $contact = isset( $_POST['contact'] ) ? sanitize_text_field( $_POST['contact'] ) : '';
-
-        // Get WooCommerce cart total
-        $cart_total = WC()->cart->get_total( 'edit' );
-
-        // Check if an abandoned cart already exists for this user
-        $existing_cart = get_posts( array(
-            'post_type' => 'fc-recovery-carts',
-            'post_status' => 'shopping',
-            'meta_query' => array(
-                array(
-                    'key' => '_fc_cart_user',
-                    'value' => $user_id,
-                    'compare' => '='
-                )
-            ),
-        ) );
-
-        if ( ! empty( $existing_cart ) ) {
-            wp_send_json_success( array( 'message' => __( 'Carrinho já registrado.', 'fc-recovery-carts' ) ) );
+    public function fcrc_lead_collected_callback() {
+        if ( isset( $_POST['action'] ) && $_POST['action'] === 'fcrc_lead_collected' ) {
+            
         }
-
-        // Create a new recovery cart post
-        $cart_id = wp_insert_post( array(
-            'post_type'   => 'fc-recovery-carts',
-            'post_status' => 'shopping',
-            'post_title'  => 'Carrinho - ' . ( $user_id ? "Usuário #$user_id" : "Visitante" ),
-            'post_author' => $user_id ? $user_id : 0,
-        ) );
-
-        // Store cart metadata
-        if ( $cart_id ) {
-            update_post_meta( $cart_id, '_fc_cart_user', $user_id );
-            update_post_meta( $cart_id, '_fc_cart_contact', $contact );
-            update_post_meta( $cart_id, '_fc_cart_total', $cart_total );
-        }
-
-        // Return response
-        wp_send_json_success( array(
-            'message' => __( 'Carrinho registrado com sucesso.', 'fc-recovery-carts' ),
-            'cart_id' => $cart_id
-        ) );
     }
 }

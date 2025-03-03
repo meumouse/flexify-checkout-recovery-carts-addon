@@ -118,5 +118,7 @@ return array(
     'MeuMouse\\Flexify_Checkout\\Recovery_Carts\\Core\\Session_Manager' => $baseDir . '/inc/Core/Session_Manager.php',
     'MeuMouse\\Flexify_Checkout\\Recovery_Carts\\Core\\Updater' => $baseDir . '/inc/Core/Updater.php',
     'MeuMouse\\Flexify_Checkout\\Recovery_Carts\\Frontend\\Lead_Capture' => $baseDir . '/inc/Frontend/Lead_Capture.php',
+    'MeuMouse\\Flexify_Checkout\\Recovery_Carts\\Frontend\\Styles' => $baseDir . '/inc/Frontend/Styles.php',
     'MeuMouse\\Flexify_Checkout\\Recovery_Carts\\Frontend\\Validations' => $baseDir . '/inc/Frontend/Validations.php',
+    'MeuMouse\\Flexify_Checkout\\Recovery_Carts\\Integrations\\Integrations_Base' => $baseDir . '/inc/Integrations/Integrations_Base.php',
 );

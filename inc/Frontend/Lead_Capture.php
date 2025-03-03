@@ -68,6 +68,14 @@ class Lead_Capture {
                     </div>
 
                     <div class="fcrc-pre-checkout-form">
+                        <?php
+                        /**
+                         * Hook for display custom contents before modal fields
+                         * 
+                         * @since 1.0.0
+                         */
+                        do_action('Flexify_Checkout/Recovery_Carts/Before_Modal_Fields'); ?>
+
                         <div class="fcrc-contact-name-wrapper mb-4">
                             <div class="fcrc-first-name-wrapper">
                                 <label class="form-label"><?php esc_html_e( 'Nome: *', 'fc-recovery-carts' ); ?></label>
@@ -93,6 +101,14 @@ class Lead_Capture {
                                 <input type="email" class="fcrc-input fcrc-get-email" placeholder="<?php esc_attr_e( 'joaodasilva@email.com', 'fc-recovery-carts' ); ?>" value="<?php echo $email; ?>">
                             </div>
                         </div>
+                        
+                        <?php
+                        /**
+                         * Hook for display custom contents after modal fields
+                         * 
+                         * @since 1.0.0
+                         */
+                        do_action('Flexify_Checkout/Recovery_Carts/After_Modal_Fields'); ?>
                     </div>
                 </div>
 

@@ -37,6 +37,7 @@ class Init {
             '\MeuMouse\Flexify_Checkout\Recovery_Carts\Core\Assets',
             '\MeuMouse\Flexify_Checkout\Recovery_Carts\Core\Ajax',
             '\MeuMouse\Flexify_Checkout\Recovery_Carts\Frontend\Lead_Capture',
+            '\MeuMouse\Flexify_Checkout\Recovery_Carts\Frontend\Styles',
         ));
 
         foreach ( $classes as $class ) {

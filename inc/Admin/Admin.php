@@ -139,6 +139,8 @@ class Admin {
             'toggle_switchs' => array(
                 'enable_modal_add_to_cart' => 'yes',
                 'enable_international_phone_modal' => 'yes',
+                'enable_joinotify_integration' => 'yes',
+                'enable_email_integration' => 'no',
             ),
             'follow_up_events' => array(
                 'mensagem_em_1_hora' => array(
@@ -193,6 +195,7 @@ class Admin {
                 ),
             ),
             'modal_triggers_list' => 'button[name="add-to-cart"], a.add_to_cart_button, a.ajax_add_to_cart, #wd-add-to-cart',
+            'primary_color' => '#008aff',
         ));
     }
 
@@ -211,13 +214,9 @@ class Admin {
         if ( empty( $default_options ) ) {
             update_option( 'flexify_checkout_recovery_carts_settings', $get_options );
         } else {
-            foreach ( $get_options as $key => $value ) {
-                if ( ! isset( $default_options[$key] ) ) {
-                    $default_options[$key] = $value;
-                }
-            }
+            $merged_options = array_replace_recursive( $get_options, $default_options );
 
-            update_option( 'flexify_checkout_recovery_carts_settings', $default_options );
+            update_option( 'flexify_checkout_recovery_carts_settings', $merged_options );
         }
     }
 
@@ -249,7 +248,14 @@ class Admin {
      * @return string
      */
     public static function get_switch( $key ) {
-        return self::get_setting('toggle_switchs')[$key];
+        $options = get_option('flexify_checkout_recovery_carts_settings', array());
+
+        // check if array key exists and return key
+        if ( isset( $options['toggle_switchs'][$key] ) ) {
+            return $options['toggle_switchs'][$key];
+        }
+
+        return false;
     }
 
 

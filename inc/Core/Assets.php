@@ -59,6 +59,7 @@ class Assets {
 					'toast_aria_label' => esc_html__( 'Fechar', 'fc-recovery-carts' ),
                     'confirm_delete_follow_up' => esc_html__( 'Tem certeza que deseja excluir este evento?', 'fc-recovery-carts' ),
 				),
+                'enable_international_phone' => Admin::get_switch('enable_international_phone_modal'),
 			));
         }
     }
@@ -74,9 +75,11 @@ class Assets {
         $min_file = FC_RECOVERY_CARTS_DEBUG_MODE ? '' : '.min';
 
         if ( Helpers::is_product() ) {
-            wp_enqueue_style( 'fc-recovery-carts-events-intl-tel-input-styles', FC_RECOVERY_CARTS_ASSETS . 'vendor/intl-tel-input/css/intlTelInput'. $min_file .'.css', array(), '24.6.0' );
-			wp_enqueue_style( 'fc-recovery-carts-events-intl-tel-input-styles-flag-offset-2x', FC_RECOVERY_CARTS_ASSETS . 'vendor/intl-tel-input/css/flag-offset-2x.min.css', array(), FC_RECOVERY_CARTS_VERSION );
-            wp_enqueue_script( 'fc-recovery-carts-events-intl-tel-input', FC_RECOVERY_CARTS_ASSETS . 'vendor/intl-tel-input/js/intlTelInput'. $min_file .'.js', array(), '24.6.0' );
+            if ( Admin::get_switch('enable_international_phone_modal') === 'yes' ) {
+                wp_enqueue_style( 'fc-recovery-carts-events-intl-tel-input-styles', FC_RECOVERY_CARTS_ASSETS . 'vendor/intl-tel-input/css/intlTelInput'. $min_file .'.css', array(), '24.6.0' );
+                wp_enqueue_style( 'fc-recovery-carts-events-intl-tel-input-styles-flag-offset-2x', FC_RECOVERY_CARTS_ASSETS . 'vendor/intl-tel-input/css/flag-offset-2x.min.css', array(), FC_RECOVERY_CARTS_VERSION );
+                wp_enqueue_script( 'fc-recovery-carts-events-intl-tel-input', FC_RECOVERY_CARTS_ASSETS . 'vendor/intl-tel-input/js/intlTelInput'. $min_file .'.js', array(), '24.6.0' );
+            }
 
             wp_enqueue_style( 'fc-recovery-carts-elements-styles', FC_RECOVERY_CARTS_ASSETS . 'frontend/css/fcrc-elements'. $min_file .'.css', array(), FC_RECOVERY_CARTS_VERSION );
 			wp_enqueue_script( 'fc-recovery-carts-events-script', FC_RECOVERY_CARTS_ASSETS . 'frontend/js/events'. $min_file .'.js', array('jquery'), FC_RECOVERY_CARTS_VERSION, true );
@@ -91,6 +94,7 @@ class Assets {
                 'i18n' => array(
                     'intl_search_input_placeholder' => esc_html__( 'Pesquisar', 'fc-recovery-carts' ),
                 ),
+                'enable_international_phone' => Admin::get_switch('enable_international_phone_modal'),
 			));
         }
     }

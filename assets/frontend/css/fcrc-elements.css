@@ -303,8 +303,8 @@ a.fcrc-btn-primary, a.fcrc-btn-primary:hover, a.fcrc-btn-primary:focus {
 }
 
 .fcrc-btn-primary:hover {
-    background-color: #0078ed;
-    border-color: #0078ed;
+    background-color: var(--fc-recovery-carts-primary-hover);
+    border-color: var(--fc-recovery-carts-primary-hover);
 }
 
 .fcrc-btn-success {
