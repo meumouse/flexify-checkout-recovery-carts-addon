@@ -37,7 +37,7 @@ defined('ABSPATH') || exit; ?>
                     </div>
 
                     <div class="mb-4">
-                        <label class="form-label text-left mb-3"><?php esc_html_e( 'Canais: *', 'fc-recovery-carts' ); ?></label>
+                        <label class="form-label text-left mb-3"><?php esc_html_e( 'Canal da notificação: *', 'fc-recovery-carts' ); ?></label>
                         
                         <div class="d-flex align-items-center">
                             <span class="fs-6 me-3"><?php esc_html_e( 'WhatsApp (Joinotify)', 'fc-recovery-carts' ); ?></span>

@@ -29,6 +29,8 @@
 			this.deleteFollowUp();
 			this.collectLeadSettings();
 			this.selectColor();
+			this.adjustTextareaHeight();
+			this.integrationSettings();
 		},
 
 		/**
@@ -364,7 +366,6 @@
 				let value = $(this).val();
 				var get_item = $('.edit-follow-up-container.show').data('follow-up-item');
 
-				console.log(get_item);
 				$('.list-group-item[data-follow-up-item="' + get_item + '"]').find('.fcrc-follow-up-item-title').text(value);
 			});
 		},
@@ -480,6 +481,67 @@
 				$(this).closest('.color-container').find('.form-control-color').val(color_value);
 				$(this).closest('.color-container').find('.get-color-selected').val(color_value).change();
 			});
+		},
+
+
+		/**
+		 * Adjust textarea height based on content
+		 * 
+		 * @since 1.0.0
+		 */
+		adjustTextareaHeight: function() {
+			/**
+			 * Adjust the height of a textarea based on its content
+			 * 
+			 * @since 1.0.0
+			 * @param {object} textarea | Textarea element
+			 */
+			function adjustHeight(textarea) {
+				if (textarea.length === 0) return; // Ensure the element exists
+		
+				textarea.css({
+					"height": "auto", // Reset height to recalculate
+					"min-height": "40px", // Prevent height from being 0px
+				});
+		
+				setTimeout(() => {
+					let newHeight = textarea[0].scrollHeight;
+
+					if (newHeight > 0) {
+						textarea.css("height", newHeight + "px"); // Set new height based on content
+					}
+				}, 10); // Slight delay for better calculation
+			}
+		
+			$('.get-follow-up-message').each(function() {
+				adjustHeight($(this)); // Adjust on page load
+		
+				$(this).on('input', function () {
+					adjustHeight($(this)); // Adjust on input
+				});
+			});
+		},
+
+		/**
+		 * Display Joinotify integration settings
+		 * 
+		 * @since 1.0.0
+		 */
+		joinotifySettings: function() {
+			// display trigger modal
+			Settings.visibilityController( '#enable_joinotify_integration', '#fcrc_joinotify_settings_trigger' );
+
+			// open settings modal
+			Settings.displayModal( '#fcrc_joinotify_settings_trigger', '#fcrc_joinotify_settings_container', '#fcrc_joinotify_settings_close' );
+		},
+
+		/**
+		 * Handle with integration settings
+		 * 
+		 * @since 1.0.0
+		 */
+		integrationSettings: function() {
+			Settings.joinotifySettings();
 		},
 	};
 

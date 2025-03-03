@@ -121,4 +121,5 @@ return array(
     'MeuMouse\\Flexify_Checkout\\Recovery_Carts\\Frontend\\Styles' => $baseDir . '/inc/Frontend/Styles.php',
     'MeuMouse\\Flexify_Checkout\\Recovery_Carts\\Frontend\\Validations' => $baseDir . '/inc/Frontend/Validations.php',
     'MeuMouse\\Flexify_Checkout\\Recovery_Carts\\Integrations\\Integrations_Base' => $baseDir . '/inc/Integrations/Integrations_Base.php',
+    'MeuMouse\\Flexify_Checkout\\Recovery_Carts\\Integrations\\Joinotify' => $baseDir . '/inc/Integrations/Joinotify.php',
 );

@@ -38,6 +38,7 @@ class Init {
             '\MeuMouse\Flexify_Checkout\Recovery_Carts\Core\Ajax',
             '\MeuMouse\Flexify_Checkout\Recovery_Carts\Frontend\Lead_Capture',
             '\MeuMouse\Flexify_Checkout\Recovery_Carts\Frontend\Styles',
+            '\MeuMouse\Flexify_Checkout\Recovery_Carts\Integrations\Joinotify'
         ));
 
         foreach ( $classes as $class ) {

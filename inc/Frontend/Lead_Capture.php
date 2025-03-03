@@ -37,7 +37,7 @@ class Lead_Capture {
      * @return string
      */
     public function render_modal() {
-        if ( ! Helpers::is_product() ) {
+        if ( ! Helpers::is_product() || Admin::get_switch('display_modal_for_logged_users') === 'yes' && ! is_user_logged_in() ) {
             return;
         }
 

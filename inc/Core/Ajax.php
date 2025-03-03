@@ -57,13 +57,32 @@ class Ajax {
             // Convert serialized data into an array
             parse_str( $_POST['form_data'], $form_data );
 
-            // get current options
-            $options = get_option('flexify_checkout_recovery_carts_settings');
-            $get_switchs = array_keys( Admin::set_default_options()['toggle_switchs'] );
+            // Get current options
+            $options = get_option( 'flexify_checkout_recovery_carts_settings', array() );
 
-            // iterate for each switch options
+            // Get default options
+            $default_options = Admin::set_default_options();
+
+            // Get switch options
+            $get_switchs = array_keys( $default_options['toggle_switchs'] );
+
+            // Update switch options
             foreach ( $get_switchs as $switch ) {
                 $options['toggle_switchs'][$switch] = isset( $form_data['toggle_switchs'][$switch] ) ? 'yes' : 'no';
+            }
+
+             // Update all other fields (excluding toggle_switchs and follow_up_events)
+            foreach ( $default_options as $key => $value ) {
+                if ( $key !== 'toggle_switchs' && $key !== 'follow_up_events' ) {
+                    if ( isset( $form_data[$key] ) ) {
+                        $options[$key] = sanitize_text_field( $form_data[$key] );
+                    }
+                }
+            }
+
+            // Preserve existing follow_up_events if not modified in the form
+            if ( isset( $form_data['follow_up_events'] ) && is_array( $form_data['follow_up_events'] ) ) {
+                $options['follow_up_events'] = array_replace_recursive( $options['follow_up_events'] ?? array(), $form_data['follow_up_events'] );
             }
 
             // Save the updated options

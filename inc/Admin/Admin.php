@@ -132,8 +132,8 @@ class Admin {
      */
     public static function set_default_options() {
         return apply_filters( 'Flexify_Checkout/Recovery_Carts/Set_Default_Options', array(
-            'default_time_for_lost_orders' => 10,
-            'default_time_for_lost_orders_type' => 'minutes',
+            'time_for_lost_carts' => 15,
+            'time_unit_for_lost_carts' => 'minutes',
             'title_modal_add_to_cart' => 'Registre-se para receber um cupom de desconto e ficar por dentro das melhores ofertas!',
             'title_modal_send_lead' => 'Receber meu cupom',
             'toggle_switchs' => array(
@@ -141,6 +141,7 @@ class Admin {
                 'enable_international_phone_modal' => 'yes',
                 'enable_joinotify_integration' => 'yes',
                 'enable_email_integration' => 'no',
+                'display_modal_for_logged_users' => 'no',
             ),
             'follow_up_events' => array(
                 'mensagem_em_1_hora' => array(
@@ -152,6 +153,7 @@ class Admin {
                         'email' => 'no',
                         'whatsapp' => 'yes',
                     ),
+                    'coupon' => 'none',
                 ),
                 'mensagem_em_3_horas' => array(
                     'title' => 'Mensagem em 3 horas',
@@ -162,6 +164,7 @@ class Admin {
                         'email' => 'no',
                         'whatsapp' => 'yes',
                     ),
+                    'coupon' => 'none',
                 ),
                 'mensagem_em_5_horas' => array(
                     'title' => 'Mensagem em 5 horas',
@@ -172,6 +175,7 @@ class Admin {
                         'email' => 'no',
                         'whatsapp' => 'yes',
                     ),
+                    'coupon' => 'none',
                 ),
                 'mensagem_em_8_horas' => array(
                     'title' => 'Mensagem em 8 horas',
@@ -182,6 +186,7 @@ class Admin {
                         'email' => 'no',
                         'whatsapp' => 'yes',
                     ),
+                    'coupon' => 'none',
                 ),
                 'mensagem_em_24_horas' => array(
                     'title' => 'Mensagem em 24 horas',
@@ -192,10 +197,14 @@ class Admin {
                         'email' => 'no',
                         'whatsapp' => 'yes',
                     ),
+                    'coupon' => 'none',
                 ),
             ),
             'modal_triggers_list' => 'button[name="add-to-cart"], a.add_to_cart_button, a.ajax_add_to_cart, #wd-add-to-cart',
             'primary_color' => '#008aff',
+            'select_coupon' => 'none',
+            'payment_methods' => array(),
+            'joinotify_sender_phone' => 'none',
         ));
     }
 

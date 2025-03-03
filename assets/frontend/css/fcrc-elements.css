@@ -181,6 +181,9 @@ input.fcrc-input:disabled {
 .lead-capture-modal .fcrc-popup-header {
     justify-content: flex-end;
     border-bottom: 0;
+    margin-bottom: -2.5rem;
+    z-index: 2;
+    position: relative;
 }
 
 .d-flex {
