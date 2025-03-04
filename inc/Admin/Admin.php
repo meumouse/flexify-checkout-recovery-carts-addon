@@ -131,6 +131,17 @@ class Admin {
      * @return array
      */
     public static function set_default_options() {
+        // get current payment methods
+        $payment_gateways = WC()->payment_gateways->payment_gateways();
+        $payment_methods = array();
+
+        foreach ( $payment_gateways as $gateway_id => $gateway ) {
+            $payment_methods[$gateway_id] = array(
+                'delay_time' => 5,
+                'delay_unit' => 'minutes',
+            );
+        }
+
         return apply_filters( 'Flexify_Checkout/Recovery_Carts/Set_Default_Options', array(
             'time_for_lost_carts' => 15,
             'time_unit_for_lost_carts' => 'minutes',
@@ -203,7 +214,7 @@ class Admin {
             'modal_triggers_list' => 'button[name="add-to-cart"], a.add_to_cart_button, a.ajax_add_to_cart, #wd-add-to-cart',
             'primary_color' => '#008aff',
             'select_coupon' => 'none',
-            'payment_methods' => array(),
+            'payment_methods' => $payment_methods,
             'joinotify_sender_phone' => 'none',
         ));
     }

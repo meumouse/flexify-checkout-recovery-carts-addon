@@ -38,8 +38,7 @@ class Helpers {
             '{{ first_name }}' => esc_html__( 'Primeiro nome', 'fc-recovery-carts' ),
             '{{ last_name }}' => esc_html__( 'Sobrenome', 'fc-recovery-carts' ),
             '{{ recovery_link }}' => esc_html__( 'Link de recuperação do carrinho', 'fc-recovery-carts' ),
-            '{{ coupon_code }}' => esc_html__( 'Código do cupom (Gerado automaticamente)', 'fc-recovery-carts' ),
-            '{{ coupon_expire_time }}' => esc_html__( 'Tempo de expiração do cupom (Gerado automaticamente)', 'fc-recovery-carts' ),
+            '{{ coupon_code }}' => esc_html__( 'Código do cupom', 'fc-recovery-carts' ),
         ));
     }
 

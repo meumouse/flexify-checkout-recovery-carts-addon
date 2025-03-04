@@ -46,10 +46,30 @@ defined('ABSPATH') || exit; ?>
                     </div>
 
                     <div class="mb-4">
+                        <label class="form-label text-left mb-3"><?php esc_html_e( 'Cupom de desconto: *', 'fc-recovery-carts' ); ?></label>
+
+                        <?php $coupons = get_posts( array(
+                            'post_type' => 'shop_coupon',
+                            'posts_per_page' => -1, // Get all coupons
+                            'post_status' => 'publish',
+                        )); ?>
+
+                        <select id="fcrc_get_coupon" class="form-select">
+                            <option value="none"><?php esc_html_e( 'Não enviar nenhum cupom', 'fc-recovery-carts' ); ?></option>
+
+                            <?php foreach ( $coupons as $coupon ) : 
+                                $coupon_code = get_the_title( $coupon->ID ); ?>
+
+                                <option value="<?php echo esc_attr( $coupon_code ); ?>"><?php echo esc_html( $coupon_code ); ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+
+                    <div class="mb-4">
                         <label class="form-label text-left"><?php esc_html_e( 'Atraso: *', 'fc-recovery-carts' ); ?></label>
 
                         <div class="input-group get-delay-info">
-                            <input id="fcrc_add_new_follow_up_delay_time" type="number" class="form-control" placeholder="<?php esc_attr_e( '1', 'fc-recovery-carts' ); ?>">
+                            <input id="fcrc_add_new_follow_up_delay_time" type="number" class="form-control" min="0" placeholder="<?php esc_attr_e( '1', 'fc-recovery-carts' ); ?>">
 
                             <select id="fcrc_add_new_follow_up_delay_type" class="form-select">
                                 <option value="minutes"><?php esc_html_e( 'Minutos', 'fc-recovery-carts' ); ?></option>

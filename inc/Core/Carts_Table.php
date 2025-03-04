@@ -87,9 +87,22 @@ class Carts_Table extends WP_List_Table {
      * @return string
      */
     public function column_contact( $item ) {
-        $contact = get_post_meta( $item->ID, '_fc_cart_contact', true );
+        $contact_name = get_post_meta( $item->ID, '_fcrc_cart_full_name', true );
+        $phone = get_post_meta( $item->ID, '_fcrc_cart_phone', true );
+        $email = get_post_meta( $item->ID, '_fcrc_cart_email', true );
+        $user_id = get_post_meta( $item->ID, '_fcrc_user_id', true );
 
-        return esc_html( $contact ? $contact : __('Não informado', 'fc-recovery-carts') );
+        if ( $email ) {
+            echo esc_html( $contact_name ) . '<br>'. esc_html( $phone ) . '<br><a href="mailto:' . esc_attr( $email ) . '">' . esc_html( $email ) . '</a>';
+        }
+
+        // if has a user associated, display the link to the profile
+        if ( $user_id ) {
+            $user_profile_link = get_edit_user_link( $user_id );
+            $contact_display .= '<br><small><a href="' . esc_url( $user_profile_link ) . '" class="button button-small" style="margin-top: 1rem;">' . __( 'Ver usuário', 'fc-recovery-carts' ) . '</a></small>';
+        }
+
+        return $contact_display ? $contact_display : __('Não informado', 'fc-recovery-carts');
     }
 
 
@@ -101,7 +114,12 @@ class Carts_Table extends WP_List_Table {
      * @return string
      */
     public function column_total( $item ) {
-        $total = get_post_meta( $item->ID, '_fc_cart_total', true );
+        $total = get_post_meta( $item->ID, '_fcrc_cart_total', true );
+        $status = get_post_status( $item->ID );
+
+        if ( $status === 'lead' ) {
+            return __( 'Não informado', 'fc-recovery-carts' );
+        }
 
         return $total ? wc_price( $total ) : __('N/A', 'fc-recovery-carts');
     }
@@ -132,13 +150,14 @@ class Carts_Table extends WP_List_Table {
         $status = get_post_status( $item->ID );
 
         $statuses = array(
+            'lead' => __('Lead', 'fc-recovery-carts'),
             'shipping' => __('Comprando', 'fc-recovery-carts'),
             'abandoned' => __('Abandonado', 'fc-recovery-carts'),
             'recovered' => __('Recuperado', 'fc-recovery-carts'),
             'lost' => __('Perdido', 'fc-recovery-carts'),
         );
 
-        return sprintf( '<span class="status-label %s">%s</span>', esc_attr( $status ), esc_html( $statuses[$status] ?? ucfirst($status) ) );
+        return sprintf( '<span class="status-label %s">%s</span>', esc_attr( $status ), esc_html( $statuses[$status] ?? ucfirst( $status ) ) );
     }
 
 
@@ -216,21 +235,21 @@ class Carts_Table extends WP_List_Table {
      */
     public function prepare_items() {
         $this->process_bulk_action();
-
+    
         $per_page = 10;
         $current_page = $this->get_pagenum();
-
+    
         $args = array(
             'post_type' => 'fc-recovery-carts',
             'posts_per_page' => $per_page,
             'paged' => $current_page,
+            'post_status' => array( 'lead', 'shipping', 'abandoned', 'recovered', 'lost' ),
         );
-
+    
         $query = new \WP_Query( $args );
         $this->items = $query->posts;
-
         $this->_column_headers = array( $this->get_columns(), array(), array() );
-
+    
         $this->set_pagination_args( array(
             'total_items' => $query->found_posts,
             'per_page' => $per_page,

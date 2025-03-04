@@ -278,11 +278,11 @@ class Components {
                     <span class="payment-method-title"><?php echo esc_html( $gateway->get_title() ); ?></span>
                     
                     <div class="input-group">
-                        <input type="number" class="form-control" name="payment_methods[<?php echo esc_attr( $key ); ?>][delay_time]" min="0" value="<?php echo esc_attr( $settings['payment_methods'][ $key ]['delay_time'] ?? '' ); ?>">
+                        <input type="number" class="form-control" name="payment_methods[<?php echo esc_attr( $key ); ?>][delay_time]" min="0" value="<?php echo esc_attr( $settings[ $key ]['delay_time'] ?? '' ); ?>">
                         
                         <select class="form-select" name="payment_methods[<?php echo esc_attr( $key ); ?>][delay_unit]">
                             <?php foreach ( $time_units as $unit_key => $unit_label ) : ?>
-                                <option value="<?php echo esc_attr( $unit_key ); ?>" <?php selected( $settings['payment_methods'][ $key ]['delay_unit'] ?? '', $unit_key, true ); ?>>
+                                <option value="<?php echo esc_attr( $unit_key ); ?>" <?php selected( $settings[ $key ]['delay_unit'] ?? '', $unit_key, true ); ?>>
                                     <?php echo esc_html( $unit_label ); ?>
                                 </option>
                             <?php endforeach; ?>

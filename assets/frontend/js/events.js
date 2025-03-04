@@ -9,6 +9,14 @@
 	 */
 	const params = fcrc_events_params;
 
+    /**
+     * Get country data
+     * 
+     * @since 1.0.0
+     * @returns {object}
+     */
+    var country = {};
+
 	/**
 	 * Flexify Checkout Recovery Carts events object variable
 	 * 
@@ -28,7 +36,7 @@
 
             // check if international phone input is enabled
             if ( params.enable_international_phone === 'yes' ) {
-                this.initPhoneInput();
+                this.internationalPhone();
             }
 		},
 
@@ -104,6 +112,7 @@
                         last_name: $('.fcrc-get-last-name').val(),
                         phone: $('.fcrc-get-phone').val(),
                         email: $('.fcrc-get-email').val(),
+                        country_code: country.dialCode,
                     },
                     beforeSend: function() {
                         btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm"></span>');
@@ -154,7 +163,7 @@
          * 
          * @since 1.0.0
          */
-        initPhoneInput: function() {
+        internationalPhone: function() {
             const input = document.querySelector('.fcrc-input.fcrc-get-phone');
 
             // initialize intl tel input
@@ -187,6 +196,23 @@
                     searchPlaceholder: params.i18n.intl_search_input_placeholder,
                 },
             });
+
+            /**
+             * Get current country data
+             * 
+             * @since 1.0.0
+             * @returns 
+             */
+            function getCurrentCountry() {
+                const countryData = iti.getSelectedCountryData();
+                
+                return countryData;
+            }
+
+            // wait for the initialization to ensure the country is loaded correctly
+            setTimeout(() => {
+                country = getCurrentCountry();
+            }, 500);
         },
     }
 

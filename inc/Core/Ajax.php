@@ -54,54 +54,52 @@ class Ajax {
      */
     public function admin_save_options_callback() {
         if ( isset( $_POST['action'] ) && $_POST['action'] === 'fc_recovery_carts_save_options' ) {
-            // Convert serialized data into an array
+            // convert form data for associative array
             parse_str( $_POST['form_data'], $form_data );
-
-            // Get current options
+    
+            // get current options 
             $options = get_option( 'flexify_checkout_recovery_carts_settings', array() );
-
-            // Get default options
+    
+            // get default options
             $default_options = Admin::set_default_options();
-
-            // Get switch options
-            $get_switchs = array_keys( $default_options['toggle_switchs'] );
-
-            // Update switch options
-            foreach ( $get_switchs as $switch ) {
-                $options['toggle_switchs'][$switch] = isset( $form_data['toggle_switchs'][$switch] ) ? 'yes' : 'no';
-            }
-
-             // Update all other fields (excluding toggle_switchs and follow_up_events)
-            foreach ( $default_options as $key => $value ) {
-                if ( $key !== 'toggle_switchs' && $key !== 'follow_up_events' ) {
-                    if ( isset( $form_data[$key] ) ) {
-                        $options[$key] = sanitize_text_field( $form_data[$key] );
-                    }
+    
+            // update toggle switchs
+            if ( isset( $default_options['toggle_switchs'] ) ) {
+                foreach ( array_keys( $default_options['toggle_switchs'] ) as $switch ) {
+                    $options['toggle_switchs'][$switch] = isset( $form_data['toggle_switchs'][$switch] ) ? 'yes' : 'no';
                 }
             }
-
-            // Preserve existing follow_up_events if not modified in the form
-            if ( isset( $form_data['follow_up_events'] ) && is_array( $form_data['follow_up_events'] ) ) {
-                $options['follow_up_events'] = array_replace_recursive( $options['follow_up_events'] ?? array(), $form_data['follow_up_events'] );
+    
+            // update all fields except arrays like toggle_switchs and follow_up_events
+            foreach ( $default_options as $key => $value ) {
+                if ( ! is_array( $value ) && isset( $form_data[$key] ) ) {
+                    $options[$key] = sanitize_text_field( $form_data[$key] );
+                }
             }
-
-            // Save the updated options
+    
+            // update dynamic arrays (including follow_up_events and others)
+            foreach ( $default_options as $key => $default_value ) {
+                if ( is_array( $default_value ) && isset( $form_data[$key] ) ) {
+                    $options[$key] = array_replace_recursive( $options[$key] ?? array(), $form_data[$key] );
+                }
+            }
+    
             $saved_options = update_option( 'flexify_checkout_recovery_carts_settings', $options );
-
+    
             if ( $saved_options ) {
                 $response = array(
                     'status' => 'success',
                     'toast_header_title' => esc_html__( 'Salvo com sucesso', 'fc-recovery-carts' ),
                     'toast_body_title' => esc_html__( 'As configurações foram atualizadas!', 'fc-recovery-carts' ),
                 );
-
+    
                 if ( FC_RECOVERY_CARTS_DEBUG_MODE ) {
                     $response['debug'] = array(
                         'options' => $options,
                     );
                 }
-
-                wp_send_json( $response ); // Send JSON response
+    
+                wp_send_json( $response );
             }
         }
     }
@@ -122,6 +120,7 @@ class Ajax {
             $delay_type = isset( $_POST['delay_type'] ) ? sanitize_text_field( $_POST['delay_type'] ) : '';
             $whatsapp = isset( $_POST['whatsapp'] ) ? sanitize_text_field( $_POST['whatsapp'] ) : '';
             //$email = isset( $_POST['email'] ) ? sanitize_text_field( $_POST['email'] ) : '';
+            $coupon = isset( $_POST['coupon'] ) ? sanitize_text_field( $_POST['coupon'] ) : '';
 
             // get current settings
             $settings = get_option( 'flexify_checkout_recovery_carts_settings', array() );
@@ -139,7 +138,8 @@ class Ajax {
                 'delay_type' => $delay_type,
                 'channels' => array(
                     'whatsapp' => $whatsapp,
-                )
+                ),
+                'coupon' => $coupon,
             );
 
             // update options
@@ -223,7 +223,64 @@ class Ajax {
      */
     public function fcrc_lead_collected_callback() {
         if ( isset( $_POST['action'] ) && $_POST['action'] === 'fcrc_lead_collected' ) {
-            
+            // Sanitiza os dados recebidos
+            $first_name = isset( $_POST['first_name'] ) ? sanitize_text_field( $_POST['first_name'] ) : '';
+            $last_name = isset( $_POST['last_name'] ) ? sanitize_text_field( $_POST['last_name'] ) : '';
+            $phone = isset( $_POST['phone'] ) ? sanitize_text_field( $_POST['phone'] ) : '';
+            $email = isset( $_POST['email'] ) ? sanitize_email( $_POST['email'] ) : '';
+            $country_code = isset( $_POST['country_code'] ) ? sanitize_text_field( $_POST['country_code'] ) : '';
+            $format_phone = $country_code . $phone;
+            $international_phone = preg_replace( '/\D/', '', $format_phone );
+
+            // get full name
+            $contact_name = sprintf( '%s %s', $first_name, $last_name );
+
+            // get cart total
+            $cart_total = WC()->cart ? WC()->cart->get_cart_contents_total() : 0;
+
+            // check if user exists
+            $user = get_user_by( 'email', $email );
+
+            if ( $user ) {
+                // add user meta indicating that the lead was collected
+                update_user_meta( $user->ID, '_fcrc_lead_collected', true );
+                update_user_meta( $user->ID, 'billing_first_name', $first_name );
+                update_user_meta( $user->ID, 'billing_last_name', $last_name );
+                update_user_meta( $user->ID, 'billing_email', $email );
+                update_user_meta( $user->ID, 'billing_phone', $international_phone );
+                update_user_meta( $user->ID, 'billing_country', strtoupper( $country_code ) );
+            }
+
+            // create a new post of type 'fc-recovery-carts'
+            $cart_id = wp_insert_post( array(
+                'post_type' => 'fc-recovery-carts',
+                'post_status' => 'lead',
+                'post_title' => 'Lead: ' . $contact_name,
+                'post_content' => '',
+                'meta_input' => array(
+                    '_fcrc_cart_full_name' => $contact_name,
+                    '_fcrc_cart_phone' => $international_phone,
+                    '_fcrc_cart_email' => $email,
+                    '_fcrc_cart_total' => $cart_total,
+                    '_fcrc_cart_items' => WC()->cart ? WC()->cart->get_cart() : array(),
+                    '_fcrc_user_id' => $user ? $user->ID : 0,
+                ),
+            ) );
+
+            // check if post was created
+            if ( $cart_id ) {
+                $response = array(
+                    'status' => 'success',
+                    'cart_id' => $cart_id,
+                );
+            } else {
+                $response = array(
+                    'status' => 'error',
+                );
+            }
+
+            // send response
+            wp_send_json( $response );
         }
     }
 }

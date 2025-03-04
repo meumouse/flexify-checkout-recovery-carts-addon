@@ -57,7 +57,7 @@ class Joinotify extends Integrations_Base {
                                         <option value="none" <?php selected( Admin::get_setting('joinotify_sender_phone') ?? '', 'none', true ) ?>><?php esc_html_e( 'Selecione um remetente', 'fc-recovery-carts' ) ?></option>
                                         
                                         <?php foreach ( get_option('joinotify_get_phones_senders') as $phone ) : ?>
-                                            <option value="<?php esc_attr_e( $phone ) ?>" <?php selected( Admin::get_setting('joinotify_sender_phone') ?? '', $phone, true ) ?> class="get-sender-number"><?php echo esc_html( Joinotify_Helpers::validate_and_format_phone( $phone ) ) ?></option>
+                                            <option value="<?php esc_attr_e( $phone ) ?>" <?php selected( Admin::get_setting('joinotify_sender_phone') ?? '', $phone, true ) ?> class="get-sender-number"><?php echo class_exists('MeuMouse\Joinotify\Core\Helpers') ? esc_html( Joinotify_Helpers::validate_and_format_phone( $phone ) ) : esc_html( $phone ); ?></option>
                                         <?php endforeach; ?>
                                     </select>
                                 </td>
