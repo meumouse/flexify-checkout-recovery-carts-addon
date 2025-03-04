@@ -79,26 +79,26 @@ class Lead_Capture {
                         <div class="fcrc-contact-name-wrapper mb-4">
                             <div class="fcrc-first-name-wrapper">
                                 <label class="form-label"><?php esc_html_e( 'Nome: *', 'fc-recovery-carts' ); ?></label>
-                                <input type="text" class="fcrc-input fcrc-get-first-name" required placeholder="<?php esc_attr_e( 'João', 'fc-recovery-carts' ); ?>" value="<?php echo $first_name; ?>">
+                                <input type="text" class="fcrc-input fcrc-get-first-name" required placeholder="<?php esc_attr_e( 'João', 'fc-recovery-carts' ); ?>" value="<?php echo $first_name ?? ''; ?>">
                             </div>
 
                             <div class="fcrc-last-name-wrapper">
                                 <label class="form-label"><?php esc_html_e( 'Sobrenome: *', 'fc-recovery-carts' ); ?></label>
-                                <input type="text" class="fcrc-input fcrc-get-last-name" required placeholder="<?php esc_attr_e( 'da Silva', 'fc-recovery-carts' ); ?>" value="<?php echo $last_name; ?>">
+                                <input type="text" class="fcrc-input fcrc-get-last-name" required placeholder="<?php esc_attr_e( 'da Silva', 'fc-recovery-carts' ); ?>" value="<?php echo $last_name ?? ''; ?>">
                             </div>
                         </div>
 
                         <div class="fcrc-contact-phone-wrapper mb-4">
                             <div class="me-3 w-100">
                                 <label class="form-label"><?php esc_html_e( 'Telefone / WhatsApp: *', 'fc-recovery-carts' ); ?></label>
-                                <input type="tel" class="fcrc-input fcrc-get-phone" required placeholder="<?php esc_attr_e( '+55 11 91234-5678', 'fc-recovery-carts' ); ?>" value="<?php echo $phone; ?>">
+                                <input type="tel" class="fcrc-input fcrc-get-phone" required placeholder="<?php esc_attr_e( '+55 11 91234-5678', 'fc-recovery-carts' ); ?>" value="<?php echo $phone ?? ''; ?>">
                             </div>
                         </div>
 
                         <div class="fcrc-contact-email-wrapper mb-4">
                             <div class="me-3 w-100">
                                 <label class="form-label"><?php esc_html_e( 'Seu melhor e-mail: *', 'fc-recovery-carts' ); ?></label>
-                                <input type="email" class="fcrc-input fcrc-get-email" required placeholder="<?php esc_attr_e( 'joaodasilva@email.com', 'fc-recovery-carts' ); ?>" value="<?php echo $email; ?>">
+                                <input type="email" class="fcrc-input fcrc-get-email" required placeholder="<?php esc_attr_e( 'joaodasilva@email.com', 'fc-recovery-carts' ); ?>" value="<?php echo $email ?? ''; ?>">
                             </div>
                         </div>
                         

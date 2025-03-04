@@ -216,6 +216,8 @@ class Admin {
             'select_coupon' => 'none',
             'payment_methods' => $payment_methods,
             'joinotify_sender_phone' => 'none',
+            'fallback_first_name' => 'Cliente',
+            'message_to_send_lead_collected' => "Oi, {{ first_name }}! Aqui está seu cupom para usar em sua próxima compra 🎁:\n\n {{ coupon_code }}\n\nSe tiver qualquer dúvida estamos à disposição!",
         ));
     }
 

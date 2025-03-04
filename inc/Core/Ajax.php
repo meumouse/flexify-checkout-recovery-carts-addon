@@ -28,6 +28,7 @@ class Ajax {
             'fcrc_add_new_follow_up' => 'fcrc_add_new_follow_up_callback',
             'fcrc_delete_follow_up' => 'fcrc_delete_follow_up_callback',
             'fcrc_lead_collected' => 'fcrc_lead_collected_callback',
+            'fcrc_register_cart_abandonment' => 'fcrc_register_cart_abandonment_callback',
         );
 
         // loop for each ajax action
@@ -35,8 +36,10 @@ class Ajax {
             add_action( "wp_ajax_$action", array( $this, $callback ) );
         }
 
+        // ajax actions for not logged in users
         $nopriv_ajax_actions = array(
             'fcrc_lead_collected' => 'fcrc_lead_collected_callback',
+            'fcrc_register_cart_abandonment' => 'fcrc_register_cart_abandonment_callback',
         );
 
         // loop for each nopriv ajax action
@@ -258,14 +261,39 @@ class Ajax {
                 'post_title' => 'Lead: ' . $contact_name,
                 'post_content' => '',
                 'meta_input' => array(
-                    '_fcrc_cart_full_name' => $contact_name,
+                    '_fcrc_first_name' => $first_name,
+                    '_fcrc_last_name' => $last_name,
+                    '_fcrc_full_name' => $contact_name,
                     '_fcrc_cart_phone' => $international_phone,
                     '_fcrc_cart_email' => $email,
                     '_fcrc_cart_total' => $cart_total,
                     '_fcrc_cart_items' => WC()->cart ? WC()->cart->get_cart() : array(),
                     '_fcrc_user_id' => $user ? $user->ID : 0,
                 ),
-            ) );
+            ));
+
+            // storage cart id (post id) in session
+            if ( $cart_id ) {
+                WC()->session->set( 'fcrc_cart_id', $cart_id );
+            }
+
+            /**
+             * Hook fired on lead collected
+             * 
+             * @since 1.0.0
+             * @param int $cart_id | Cart ID | Post ID
+             * @param array $data | Lead data
+             */
+            do_action( 'Flexify_Checkout/Recovery_Carts/Lead_Collected', $cart_id, array(
+                'first_name' => $first_name,
+                'last_name' => $last_name,
+                'full_name' => $contact_name,
+                'phone' => $international_phone,
+                'email' => $email,
+                'country' => $country_code,
+                'cart_total' => $cart_total,
+                'user_id' => $user ? $user->ID : 0,
+            ));
 
             // check if post was created
             if ( $cart_id ) {
@@ -280,6 +308,43 @@ class Ajax {
             }
 
             // send response
+            wp_send_json( $response );
+        }
+    }
+
+
+    /**
+     * Registers the abandonment time for the cart
+     *
+     * @since 1.0.0
+     * @return void
+     */
+    public function fcrc_register_cart_abandonment_callback() {
+        if ( isset( $_POST['action'] ) && $_POST['action'] === 'fcrc_register_cart_abandonment' ) {
+            $cart_id = intval( $_POST['cart_id'] );
+
+            if ( $cart_id ) {
+                update_post_meta( $cart_id, '_fcrc_abandoned_time', current_time('mysql') );
+
+                wp_update_post( array(
+                    'ID' => $cart_id,
+                    'post_status' => 'abandoned',
+                ));
+
+                /**
+                 * Fire hook when cart is abandoned
+                 * 
+                 * @since 1.0.0
+                 * @param int $cart_id | Cart ID | Post ID
+                 */
+                do_action( 'Flexify_Checkout/Recovery_Carts/Cart_Abandoned', $cart_id );
+
+                $response = array(
+                    'status' => 'success',
+                    'cart_id' => $cart_id,
+                );
+            }
+
             wp_send_json( $response );
         }
     }

@@ -42,13 +42,14 @@ class Carts_Table extends WP_List_Table {
      */
     public function get_columns() {
         $columns = array(
-            'cb'         => '<input type="checkbox" />',
-            'id'         => __('ID', 'fc-recovery-carts'),
-            'contact'    => __('Contato', 'fc-recovery-carts'),
-            'total'      => __('Valor do carrinho', 'fc-recovery-carts'),
-            'abandoned'  => __('Data de abandono', 'fc-recovery-carts'),
-            'actions'    => __('Ações', 'fc-recovery-carts'),
-            'status'     => __('Status', 'fc-recovery-carts'),
+            'cb'          => '<input type="checkbox" />',
+            'id'          => __('ID', 'fc-recovery-carts'),
+            'contact'     => __('Contato', 'fc-recovery-carts'),
+            'location'    => __('Localização', 'fc-recovery-carts'),
+            'products'    => __('Produtos', 'fc-recovery-carts'),
+            'total'       => __('Valor do carrinho', 'fc-recovery-carts'),
+            'abandoned'   => __('Data de abandono', 'fc-recovery-carts'),
+            'status'      => __('Status', 'fc-recovery-carts'),
         );
 
         return $columns;
@@ -87,7 +88,7 @@ class Carts_Table extends WP_List_Table {
      * @return string
      */
     public function column_contact( $item ) {
-        $contact_name = get_post_meta( $item->ID, '_fcrc_cart_full_name', true );
+        $contact_name = get_post_meta( $item->ID, '_fcrc_full_name', true );
         $phone = get_post_meta( $item->ID, '_fcrc_cart_phone', true );
         $email = get_post_meta( $item->ID, '_fcrc_cart_email', true );
         $user_id = get_post_meta( $item->ID, '_fcrc_user_id', true );
@@ -99,10 +100,71 @@ class Carts_Table extends WP_List_Table {
         // if has a user associated, display the link to the profile
         if ( $user_id ) {
             $user_profile_link = get_edit_user_link( $user_id );
-            $contact_display .= '<br><small><a href="' . esc_url( $user_profile_link ) . '" class="button button-small" style="margin-top: 1rem;">' . __( 'Ver usuário', 'fc-recovery-carts' ) . '</a></small>';
+            $contact_display = '<br><small><a href="' . esc_url( $user_profile_link ) . '" class="button button-small" style="margin-top: 1rem;">' . __( 'Ver usuário', 'fc-recovery-carts' ) . '</a></small>';
         }
 
         return $contact_display ? $contact_display : __('Não informado', 'fc-recovery-carts');
+    }
+
+
+    /**
+     * Render the location column
+     *
+     * @since 1.0.0
+     * @param object $item | Cart data
+     * @return string
+     */
+    public function column_location($item) {
+        $city    = get_post_meta($item->ID, '_fcrc_cart_city', true);
+        $state   = get_post_meta($item->ID, '_fcrc_cart_state', true);
+        $zipcode = get_post_meta($item->ID, '_fcrc_cart_zipcode', true);
+        $country = get_post_meta($item->ID, '_fcrc_cart_country', true);
+
+        // Formata o endereço se os dados existirem
+        if (!empty($city) && !empty($state) && !empty($zipcode) && !empty($country)) {
+            return sprintf('%s - %s (%s) - %s', esc_html($city), esc_html($state), esc_html($zipcode), esc_html($country));
+        }
+
+        return __('Não informado', 'fc-recovery-carts');
+    }
+
+
+    /**
+     * Render the products column
+     *
+     * @since 1.0.0
+     * @param object $item | Cart data
+     * @return string
+     */
+    public function column_products( $item ) {
+        $cart_items = get_post_meta( $item->ID, '_fcrc_cart_items', true );
+        $cart_items = is_array( $cart_items ) ? $cart_items : array();
+
+        if ( empty( $cart_items ) ) {
+            return __('Nenhum produto', 'fc-recovery-carts');
+        }
+
+        $output = '<div class="fcrc-cart-products">';
+
+        foreach ( $cart_items as $item_data ) {
+            $image = ! empty( $item_data['image'] ) ? esc_url( $item_data['image'] ) : wc_placeholder_img_src();
+            $product_name = isset( $item_data['name'] ) ? esc_html( $item_data['name'] ) : __('Produto desconhecido', 'fc-recovery-carts');
+            $quantity = isset( $item_data['quantity'] ) ? intval( $item_data['quantity'] ) : 1;
+            $formatted_product = sprintf( __('%s - Qtd: %d', 'fc-recovery-carts'), $product_name, $quantity );
+
+            $output .= sprintf(
+                '<div class="fcrc-cart-product fcrc-tooltip" data-text="%s">
+                    <img src="%s" alt="%s"/>
+                </div>',
+                esc_attr( $formatted_product ),
+                esc_url( $image ),
+                esc_attr( $product_name )
+            );
+        }
+
+        $output .= '</div>';
+
+        return $output;
     }
 
 
@@ -121,7 +183,11 @@ class Carts_Table extends WP_List_Table {
             return __( 'Não informado', 'fc-recovery-carts' );
         }
 
-        return $total ? wc_price( $total ) : __('N/A', 'fc-recovery-carts');
+        $output = '<div class="fcrc-cart-total">';
+            $output .= $total ? wc_price( $total ) : __('N/A', 'fc-recovery-carts');
+        $output .= '</div>';
+
+        return $output;
     }
 
 
@@ -133,9 +199,13 @@ class Carts_Table extends WP_List_Table {
      * @return string
      */
     public function column_abandoned( $item ) {
-        $date = get_the_date( 'd/m/Y H:i', $item->ID );
+        $abandoned_time = get_post_meta( $item->ID, '_fcrc_abandoned_time', true );
 
-        return esc_html( $date );
+        if ( ! empty( $abandoned_time ) ) {
+            return esc_html( date( 'd/m/Y H:i', strtotime( $abandoned_time ) ) );
+        }
+
+        return __( 'Carrinho ainda ativo', 'fc-recovery-carts' );
     }
 
 
@@ -151,7 +221,7 @@ class Carts_Table extends WP_List_Table {
 
         $statuses = array(
             'lead' => __('Lead', 'fc-recovery-carts'),
-            'shipping' => __('Comprando', 'fc-recovery-carts'),
+            'shopping' => __('Comprando', 'fc-recovery-carts'),
             'abandoned' => __('Abandonado', 'fc-recovery-carts'),
             'recovered' => __('Recuperado', 'fc-recovery-carts'),
             'lost' => __('Perdido', 'fc-recovery-carts'),
@@ -243,7 +313,7 @@ class Carts_Table extends WP_List_Table {
             'post_type' => 'fc-recovery-carts',
             'posts_per_page' => $per_page,
             'paged' => $current_page,
-            'post_status' => array( 'lead', 'shipping', 'abandoned', 'recovered', 'lost' ),
+            'post_status' => array( 'lead', 'shopping', 'abandoned', 'recovered', 'lost' ),
         );
     
         $query = new \WP_Query( $args );

@@ -38,7 +38,11 @@ class Init {
             '\MeuMouse\Flexify_Checkout\Recovery_Carts\Core\Ajax',
             '\MeuMouse\Flexify_Checkout\Recovery_Carts\Frontend\Lead_Capture',
             '\MeuMouse\Flexify_Checkout\Recovery_Carts\Frontend\Styles',
-            '\MeuMouse\Flexify_Checkout\Recovery_Carts\Integrations\Joinotify'
+            '\MeuMouse\Flexify_Checkout\Recovery_Carts\Integrations\Joinotify',
+            '\MeuMouse\Flexify_Checkout\Recovery_Carts\Core\Cart_Events',
+            '\MeuMouse\Flexify_Checkout\Recovery_Carts\Cron\Recovery_Handler',
+            '\MeuMouse\Flexify_Checkout\Recovery_Carts\Core\Session_Handler',
+            '\MeuMouse\Flexify_Checkout\Recovery_Carts\Core\Order_Abandonment',
         ));
 
         foreach ( $classes as $class ) {

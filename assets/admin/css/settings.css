@@ -514,6 +514,7 @@ input.form-control:focus {
     border-color: var(--fc-recovery-carts-primary) !important;
     box-shadow: none !important;
     outline: none !important;
+    z-index: 2;
 }
 
 input.form-control:disabled {

@@ -3,6 +3,9 @@
 namespace MeuMouse\Flexify_Checkout\Recovery_Carts\Integrations;
 
 use MeuMouse\Flexify_Checkout\Recovery_Carts\Admin\Admin;
+use MeuMouse\Flexify_Checkout\Recovery_Carts\Core\Placeholders;
+use MeuMouse\Flexify_Checkout\Recovery_Carts\Core\Helpers;
+
 use MeuMouse\Joinotify\Core\Helpers as Joinotify_Helpers;
 
 // Exit if accessed directly.
@@ -24,6 +27,9 @@ class Joinotify extends Integrations_Base {
      */
     public function __construct() {
         add_action( 'Flexify_Checkout/Recovery_Carts/Integrations/Joinotify', array( $this, 'joinotify_settings' ) );
+
+        // send coupon message on collect lead
+        add_action( 'Flexify_Checkout/Recovery_Carts/Lead_Collected', array( $this, 'send_coupon_message' ), 10, 2 );
     }
 
 
@@ -68,5 +74,32 @@ class Joinotify extends Integrations_Base {
             </div>
         </div>
         <?php
+    }
+
+
+    /**
+     * Send coupon message for user
+     * 
+     * @since 1.0.0
+     * @param int $cart_id | Cart ID
+     * @param array $lead_data | Lead data
+     * @return void
+     */
+    public function send_coupon_message( $cart_id, $lead_data ) {
+        if ( function_exists('joinotify_send_whatsapp_message_text') ) {
+            $replacement = array(
+                '{{ first_name }}' => $lead_data['first_name'] ?? Admin::get_setting('fallback_first_name'),
+                '{{ last_name }}' => $lead_data['last_name'] ?? '',
+                '{{ recovery_link }}' => Helpers::generate_recovery_cart_link( $cart_id ),
+                '{{ coupon_code }}' => Admin::get_setting('select_coupon'),
+            );
+
+            // Replace placeholders in the message
+            $message = Placeholders::replace_placeholders( Admin::get_setting('message_to_send_lead_collected'), $replacement );
+            $sender = Admin::get_setting('joinotify_sender_phone');
+            $receiver = function_exists('joinotify_prepare_receiver') ? joinotify_prepare_receiver( $lead_data['phone'] ) : $lead_data['phone'];
+
+            joinotify_send_whatsapp_message_text( $sender, $receiver, $message );
+        }
     }
 }

@@ -31,13 +31,19 @@
 		 * @since 1.0.0
 		 */
 		init: function() {
-            this.openModal();
 			this.collectLead();
 
+            // check if current page has product
+            if ( params.is_product ) {
+                this.openModal();
+            }
+
             // check if international phone input is enabled
-            if ( params.enable_international_phone === 'yes' ) {
+            if ( params.enable_international_phone === 'yes' && params.is_product ) {
                 this.internationalPhone();
             }
+
+            this.trackVisibilityChange();
 		},
 
         /**
@@ -102,16 +108,21 @@
 
                 var btn = $(this);
                 var btn_state = Events.keepButtonState(btn);
+                var get_first_name = $('.fcrc-get-first-name').val();
+                var get_last_name = $('.fcrc-get-last-name').val();
+                var get_phone = $('.fcrc-get-phone').val();
+                var get_email = $('.fcrc-get-email').val();
 
+                // send ajax request
                 $.ajax({
                     url: params.ajax_url,
                     type: 'POST',
                     data: {
                         action: 'fcrc_lead_collected',
-                        first_name: $('.fcrc-get-first-name').val(),
-                        last_name: $('.fcrc-get-last-name').val(),
-                        phone: $('.fcrc-get-phone').val(),
-                        email: $('.fcrc-get-email').val(),
+                        first_name: get_first_name,
+                        last_name: get_last_name,
+                        phone: get_phone,
+                        email: get_email,
                         country_code: country.dialCode,
                     },
                     beforeSend: function() {
@@ -126,6 +137,15 @@
                             if ( response.status === 'success' ) {
                                 $('body').addClass('fcrc-lead-collected');
                                 $('.fcrc-popup-container.lead-capture-modal').removeClass('show');
+
+                                // save post id on cookie for 7 days
+                                Events.setCookie('fcrc_cart_id', response.cart_id, 7);
+
+                                // save lead data on cookie for 30 days
+                                Events.setCookie('fcrc_first_name', get_first_name, 30);
+                                Events.setCookie('fcrc_last_name', get_last_name, 30);
+                                Events.setCookie('fcrc_phone', get_phone, 30);
+                                Events.setCookie('fcrc_email', get_email, 30);
                             } else {
                                 $('body').removeClass('fcrc-lead-collected');
                             }
@@ -134,13 +154,34 @@
                         }
                     },
                     error: function () {
-                        console.log("Erro ao registrar o carrinho.");
+                        console.log('Error on send lead data');
                     },
                     complete: function() {
                         btn.prop('disabled', false).html(btn_state.html);
                     },
                 });
             });
+        },
+
+        /**
+         * Set cookie value
+         * 
+         * @since 1.0.0
+         * @param {string} name | Cookie name
+         * @param {string} value | Cookie value
+         * @param {int} days | Expiration time in days
+         */
+        setCookie: function(name, value, days) {
+            let expires = "";
+
+            if (days) {
+                let date = new Date();
+
+                date.setTime( date.getTime() + ( days * 24 * 60 * 60 * 1000 ) );
+                expires = "; expires=" + date.toUTCString();
+            }
+
+            document.cookie = name + "=" + encodeURIComponent(value) + expires + "; path=/";
         },
 
         /**
@@ -214,6 +255,89 @@
                 country = getCurrentCountry();
             }, 500);
         },
+
+        /**
+         * Sends an AJAX request to track cart abandonment
+         *
+         * @since 1.0.0
+         */
+        trackAbandonment: function() {
+            let cart_id = Events.getCookie('fcrc_cart_id');
+
+            if ( ! cart_id ) {
+                return;
+            }
+
+            // send request
+            $.ajax({
+                url: params.ajax_url,
+                type: 'POST',
+                data: {
+                    action: 'fcrc_register_cart_abandonment',
+                    cart_id: cart_id,
+                },
+                success: function(response) {
+                    if (params.dev_mode) {
+                        console.log("Abandonment registered:", response);
+                    }
+                },
+                error: function() {
+                    console.log("Error tracking cart abandonment.");
+                }
+            });
+        },
+
+        /**
+		 * Track when the user leaves the cart or checkout page
+		 * and start the abandonment timer
+		 *
+		 * @since 1.0.0
+		 */
+		trackVisibilityChange: function() {
+			document.addEventListener('visibilitychange', function() {
+				if (document.hidden) {
+					// User left the cart or checkout page
+					Events.startAbandonmentTimer();
+				} else {
+					// User returned before timeout
+					Events.cancelAbandonment();
+				}
+			});
+
+			window.addEventListener('beforeunload', function() {
+				Events.startAbandonmentTimer();
+			});
+		},
+        
+        /**
+		 * Starts the abandonment timer when the user leaves
+		 * the cart or checkout page
+		 *
+		 * @since 1.0.0
+		 */
+		startAbandonmentTimer: function() {
+			let cart_id = Events.getCookie('fcrc_cart_id');
+
+			if ( ! cart_id ) {
+				return;
+			}
+
+			let abandonment_time = parseInt( params.abandonment_time_seconds );
+
+			// Set timeout to trigger abandonment event
+			Events.abandonment_timer = setTimeout( function() {
+				Events.trackAbandonment();
+			}, abandonment_time * 1000);
+		},
+
+		/**
+		 * Cancels the abandonment event if the user returns
+		 *
+		 * @since 1.0.0
+		 */
+		cancelAbandonment: function() {
+			clearTimeout(Events.abandonment_timer);
+		},
     }
 
     // Initialize the Settings object on ready event

@@ -109,11 +109,35 @@ defined('ABSPATH') || exit; ?>
                                                 </select>
                                             </td>
                                         </tr>
+
+                                        <tr>
+                                            <th class="w-50">
+                                                <?php esc_html_e( 'Mensagem a ser enviada', 'fc-recovery-carts' ); ?>
+                                                <span class="fc-recovery-carts-description"><?php esc_html_e( 'Mensagem que será enviada ao usuário ao enviar os dados do formulário.', 'fc-recovery-carts' ); ?></span>
+                                            </th>
+                                            <td class="w-50">
+                                                <textarea id="message_to_send_lead_collected" class="form-control" name="message_to_send_lead_collected"><?php echo esc_textarea( Admin::get_setting('message_to_send_lead_collected') ) ?></textarea>
+
+                                                <div class="placeholders mt-4">
+                                                    <?php echo Admin_Components::render_placeholders(); ?>
+                                                </div>
+                                            </td>
+                                        </tr>
                                     </tbody>
                                 </table>
                             </div>
                         </div>
                     </div>
+                </td>
+            </tr>
+
+            <tr>
+                <th>
+                    <?php esc_html_e( 'Fallback para nome do usuário', 'fc-recovery-carts' ); ?>
+                    <span class="fc-recovery-carts-description"><?php esc_html_e( 'Texto alternativo para quando não for possível recuperar o nome do usuário.', 'fc-recovery-carts' ); ?></span>
+                </th>
+                <td>
+                    <input type="text" id="fallback_first_name" class="form-control" name="fallback_first_name" value="<?php echo Admin::get_setting('fallback_first_name') ?>"/>
                 </td>
             </tr>
 

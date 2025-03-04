@@ -25,6 +25,9 @@ class Assets {
         // register settings scripts
         add_action( 'admin_enqueue_scripts', array( $this, 'settings_scripts' ) );
 
+        // register carts table scripts
+        add_action( 'admin_enqueue_scripts', array( $this, 'carts_table_scripts' ) );
+
         // register frontend scripts
         add_action( 'wp_enqueue_scripts', array( $this, 'frontend_scripts' ) );
     }
@@ -66,6 +69,23 @@ class Assets {
 
 
     /**
+     * Enqueue carts table scripts
+     * 
+     * @since 1.0.0
+     * @return void
+     */
+    public function carts_table_scripts() {
+        $min_file = FC_RECOVERY_CARTS_DEBUG_MODE ? '' : '.min';
+
+        if ( Helpers::check_admin_page('fc-recovery-carts') ) {
+            // carts table scripts
+			wp_enqueue_style( 'fc-recovery-carts-table-styles', FC_RECOVERY_CARTS_ASSETS . 'admin/css/carts-table'. $min_file .'.css', array(), FC_RECOVERY_CARTS_VERSION );
+			wp_enqueue_script( 'fc-recovery-carts-table-scripts', FC_RECOVERY_CARTS_ASSETS . 'admin/js/carts-table'. $min_file .'.js', array('jquery'), FC_RECOVERY_CARTS_VERSION, true );
+        }
+    }
+
+
+    /**
      * Register frontend scripts
      * 
      * @since 1.0.0
@@ -82,20 +102,23 @@ class Assets {
             }
 
             wp_enqueue_style( 'fc-recovery-carts-elements-styles', FC_RECOVERY_CARTS_ASSETS . 'frontend/css/fcrc-elements'. $min_file .'.css', array(), FC_RECOVERY_CARTS_VERSION );
-			wp_enqueue_script( 'fc-recovery-carts-events-script', FC_RECOVERY_CARTS_ASSETS . 'frontend/js/events'. $min_file .'.js', array('jquery'), FC_RECOVERY_CARTS_VERSION, true );
-
-            // events params
-			wp_localize_script( 'fc-recovery-carts-events-script', 'fcrc_events_params', array(
-				'debug_mode' => FC_RECOVERY_CARTS_DEBUG_MODE,
-				'dev_mode' => FC_RECOVERY_CARTS_DEV_MODE,
-				'ajax_url' => admin_url('admin-ajax.php'),
-                'triggers_list' => Admin::get_setting('modal_triggers_list'),
-                'path_to_utils' => FC_RECOVERY_CARTS_ASSETS . 'vendor/intl-tel-input/js/utils.js',
-                'i18n' => array(
-                    'intl_search_input_placeholder' => esc_html__( 'Pesquisar', 'fc-recovery-carts' ),
-                ),
-                'enable_international_phone' => Admin::get_switch('enable_international_phone_modal'),
-			));
         }
+
+        wp_enqueue_script( 'fc-recovery-carts-events-script', FC_RECOVERY_CARTS_ASSETS . 'frontend/js/events'. $min_file .'.js', array('jquery'), FC_RECOVERY_CARTS_VERSION, true );
+
+        // events params
+        wp_localize_script( 'fc-recovery-carts-events-script', 'fcrc_events_params', array(
+            'debug_mode' => FC_RECOVERY_CARTS_DEBUG_MODE,
+            'dev_mode' => FC_RECOVERY_CARTS_DEV_MODE,
+            'ajax_url' => admin_url('admin-ajax.php'),
+            'triggers_list' => Admin::get_setting('modal_triggers_list'),
+            'path_to_utils' => FC_RECOVERY_CARTS_ASSETS . 'vendor/intl-tel-input/js/utils.js',
+            'i18n' => array(
+                'intl_search_input_placeholder' => esc_html__( 'Pesquisar', 'fc-recovery-carts' ),
+            ),
+            'enable_international_phone' => Admin::get_switch('enable_international_phone_modal'),
+            'is_product' => Helpers::is_product(),
+            'abandonment_time_seconds' => Helpers::get_abandonment_time_seconds(),
+        ));
     }
 }
