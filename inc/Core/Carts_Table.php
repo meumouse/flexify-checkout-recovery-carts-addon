@@ -118,23 +118,18 @@ class Carts_Table extends WP_List_Table {
         // Get the user ID associated with the cart
         $user_id = get_post_meta( $item->ID, '_fcrc_user_id', true );
 
-        // If no user ID is associated, return "Not provided"
-        if ( ! $user_id ) {
-            return __('Não informado', 'fc-recovery-carts');
-        }
-
         // Get user billing information
-        $city = get_user_meta( $user_id, 'billing_city', true );
-        $state = get_user_meta( $user_id, 'billing_state', true );
-        $zipcode = get_user_meta( $user_id, 'billing_postcode', true );
-        $country = get_user_meta( $user_id, 'billing_country', true );
+        $city = esc_html( get_user_meta( $user_id, 'billing_city', true ) ) ?? '';
+        $state = esc_html( get_user_meta( $user_id, 'billing_state', true ) ) ?? '';
+        $zipcode = esc_html( get_user_meta( $user_id, 'billing_postcode', true ) ) ?? '';
+        $country = esc_html( get_user_meta( $user_id, 'billing_country', true ) ) ?? '';
 
         // Format the location if the data exists
-        if ( ! empty( $city ) && ! empty( $state ) && ! empty( $zipcode ) && ! empty( $country ) ) {
-            return sprintf( '%s - %s (%s) - %s', esc_html( $city ), esc_html( $state ), esc_html( $zipcode ), esc_html( $country ) );
+        if ( ! empty( $city ) ) {
+            return sprintf( '%s - %s (%s) - %s', $city, $state, $zipcode, $country );
         }
 
-        return __('Não informado', 'fc-recovery-carts');
+        return esc_html__('Não informado', 'fc-recovery-carts');
     }
 
 

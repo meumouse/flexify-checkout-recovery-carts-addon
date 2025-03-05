@@ -22,11 +22,17 @@ class Order_Abandonment {
      * @return void
      */
     public function __construct() {
+        // schedule event for order abandonment check
         add_action( 'woocommerce_checkout_order_processed', array( $this, 'schedule_order_abandonment_check' ), 10, 3 );
+
+        // check if order still unpaid
         add_action( 'fcrc_check_order_payment_status', array( $this, 'check_order_payment_status' ), 10, 1 );
+
+        // save cart id on order meta data
+        add_action( 'woocommerce_new_order', array( $this, 'save_cart_id_to_order_meta' ), 10, 1 );
     }
 
-    
+
     /**
      * Schedules an event to check if the order is paid within the configured delay
      *
@@ -106,4 +112,30 @@ class Order_Abandonment {
          */
         do_action( 'Flexify_Checkout/Recovery_Carts/Order_Abandoned', $order_id, $cart_id );
     }
+
+
+    /**
+     * Saves the cart ID to the order meta when a new order is created
+     *
+     * @since 1.0.0
+     * @param int $order_id | The order ID
+     * @return void
+     */
+    public function save_cart_id_to_order_meta( $order_id ) {
+        if ( ! $order_id ) {
+            return;
+        }
+
+        // try to get the cart_id from the session or cookie
+        $cart_id = WC()->session->get('fcrc_cart_id') ?: ( $_COOKIE['fcrc_cart_id'] ?? null );
+
+        if ( $cart_id ) {
+            update_post_meta( $order_id, '_fcrc_cart_id', $cart_id );
+
+            if ( FC_RECOVERY_CARTS_DEV_MODE ) {
+                error_log( "Cart ID {$cart_id} saved to order {$order_id}" );
+            }
+        }
+    }
+
 }
