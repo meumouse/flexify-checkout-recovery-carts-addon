@@ -86,6 +86,12 @@ class Joinotify extends Integrations_Base {
      * @return void
      */
     public function send_coupon_message( $cart_id, $lead_data ) {
+        // check if message must be sent
+        if ( Admin::get_switch('enable_modal_add_to_cart') !== 'yes' || Admin::get_setting('select_coupon') === 'none' ) {
+            return;
+        }
+
+        // check if Joinotify is active
         if ( function_exists('joinotify_send_whatsapp_message_text') ) {
             $replacement = array(
                 '{{ first_name }}' => $lead_data['first_name'] ?? Admin::get_setting('fallback_first_name'),

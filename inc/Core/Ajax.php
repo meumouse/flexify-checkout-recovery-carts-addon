@@ -28,7 +28,7 @@ class Ajax {
             'fcrc_add_new_follow_up' => 'fcrc_add_new_follow_up_callback',
             'fcrc_delete_follow_up' => 'fcrc_delete_follow_up_callback',
             'fcrc_lead_collected' => 'fcrc_lead_collected_callback',
-            'fcrc_register_cart_abandonment' => 'fcrc_register_cart_abandonment_callback',
+            'fcrc_cart_ping' => 'fcrc_cart_ping_callback',
         );
 
         // loop for each ajax action
@@ -39,7 +39,7 @@ class Ajax {
         // ajax actions for not logged in users
         $nopriv_ajax_actions = array(
             'fcrc_lead_collected' => 'fcrc_lead_collected_callback',
-            'fcrc_register_cart_abandonment' => 'fcrc_register_cart_abandonment_callback',
+            'fcrc_cart_ping' => 'fcrc_cart_ping_callback',
         );
 
         // loop for each nopriv ajax action
@@ -231,8 +231,10 @@ class Ajax {
             $last_name = isset( $_POST['last_name'] ) ? sanitize_text_field( $_POST['last_name'] ) : '';
             $phone = isset( $_POST['phone'] ) ? sanitize_text_field( $_POST['phone'] ) : '';
             $email = isset( $_POST['email'] ) ? sanitize_email( $_POST['email'] ) : '';
-            $country_code = isset( $_POST['country_code'] ) ? sanitize_text_field( $_POST['country_code'] ) : '';
-            $format_phone = $country_code . $phone;
+            $country_ccountry_dataode = isset( $_POST['country_data'] ) ? json_decode( stripslashes( $_POST['country_data'] ), true ) : array();
+            $country_code = $country_data['iso2'] ?? '';
+            $country_dial_code = $country_data['dialCode'] ?? '';
+            $format_phone = $country_dial_code . $phone;
             $international_phone = preg_replace( '/\D/', '', $format_phone );
 
             // get full name
@@ -250,7 +252,7 @@ class Ajax {
                 update_user_meta( $user->ID, 'billing_first_name', $first_name );
                 update_user_meta( $user->ID, 'billing_last_name', $last_name );
                 update_user_meta( $user->ID, 'billing_email', $email );
-                update_user_meta( $user->ID, 'billing_phone', $international_phone );
+                update_user_meta( $user->ID, 'billing_phone', $phone );
                 update_user_meta( $user->ID, 'billing_country', strtoupper( $country_code ) );
             }
 
@@ -314,38 +316,28 @@ class Ajax {
 
 
     /**
-     * Registers the abandonment time for the cart
+     * Handles cart activity pings from the frontend
      *
      * @since 1.0.0
      * @return void
      */
-    public function fcrc_register_cart_abandonment_callback() {
-        if ( isset( $_POST['action'] ) && $_POST['action'] === 'fcrc_register_cart_abandonment' ) {
+    public function fcrc_cart_ping_callback() {
+        if ( isset( $_POST['action'] ) && $_POST['action'] === 'fcrc_cart_ping' ) {
             $cart_id = intval( $_POST['cart_id'] );
 
-            if ( $cart_id ) {
-                update_post_meta( $cart_id, '_fcrc_abandoned_time', current_time('mysql') );
-
-                wp_update_post( array(
-                    'ID' => $cart_id,
-                    'post_status' => 'abandoned',
-                ));
-
-                /**
-                 * Fire hook when cart is abandoned
-                 * 
-                 * @since 1.0.0
-                 * @param int $cart_id | Cart ID | Post ID
-                 */
-                do_action( 'Flexify_Checkout/Recovery_Carts/Cart_Abandoned', $cart_id );
-
-                $response = array(
-                    'status' => 'success',
-                    'cart_id' => $cart_id,
-                );
+            if ( FC_RECOVERY_CARTS_DEV_MODE ) {
+                error_log('Ping received from cart ID: ' . $cart_id);
             }
 
-            wp_send_json( $response );
+            if ( $cart_id ) {
+                update_post_meta( $cart_id, '_fcrc_cart_last_ping', time() );
+                
+                wp_send_json( array(
+                    'status' => 'success',
+                    'response' => 'pong',
+                    'timestamp' => time(),
+                ));
+            }
         }
     }
 }

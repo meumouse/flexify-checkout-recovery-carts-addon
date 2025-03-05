@@ -108,21 +108,30 @@ class Carts_Table extends WP_List_Table {
 
 
     /**
-     * Render the location column
+     * Render the location column from user meta data
      *
      * @since 1.0.0
      * @param object $item | Cart data
      * @return string
      */
-    public function column_location($item) {
-        $city    = get_post_meta($item->ID, '_fcrc_cart_city', true);
-        $state   = get_post_meta($item->ID, '_fcrc_cart_state', true);
-        $zipcode = get_post_meta($item->ID, '_fcrc_cart_zipcode', true);
-        $country = get_post_meta($item->ID, '_fcrc_cart_country', true);
+    public function column_location( $item ) {
+        // Get the user ID associated with the cart
+        $user_id = get_post_meta( $item->ID, '_fcrc_user_id', true );
 
-        // Formata o endereço se os dados existirem
-        if (!empty($city) && !empty($state) && !empty($zipcode) && !empty($country)) {
-            return sprintf('%s - %s (%s) - %s', esc_html($city), esc_html($state), esc_html($zipcode), esc_html($country));
+        // If no user ID is associated, return "Not provided"
+        if ( ! $user_id ) {
+            return __('Não informado', 'fc-recovery-carts');
+        }
+
+        // Get user billing information
+        $city = get_user_meta( $user_id, 'billing_city', true );
+        $state = get_user_meta( $user_id, 'billing_state', true );
+        $zipcode = get_user_meta( $user_id, 'billing_postcode', true );
+        $country = get_user_meta( $user_id, 'billing_country', true );
+
+        // Format the location if the data exists
+        if ( ! empty( $city ) && ! empty( $state ) && ! empty( $zipcode ) && ! empty( $country ) ) {
+            return sprintf( '%s - %s (%s) - %s', esc_html( $city ), esc_html( $state ), esc_html( $zipcode ), esc_html( $country ) );
         }
 
         return __('Não informado', 'fc-recovery-carts');

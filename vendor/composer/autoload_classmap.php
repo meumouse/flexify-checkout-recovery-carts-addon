@@ -119,6 +119,7 @@ return array(
     'MeuMouse\\Flexify_Checkout\\Recovery_Carts\\Core\\Placeholders' => $baseDir . '/inc/Core/Placeholders.php',
     'MeuMouse\\Flexify_Checkout\\Recovery_Carts\\Core\\Session_Handler' => $baseDir . '/inc/Core/Session_Handler.php',
     'MeuMouse\\Flexify_Checkout\\Recovery_Carts\\Core\\Updater' => $baseDir . '/inc/Core/Updater.php',
+    'MeuMouse\\Flexify_Checkout\\Recovery_Carts\\Cron\\Recovery_Handler' => $baseDir . '/inc/Cron/Recovery_Handler.php',
     'MeuMouse\\Flexify_Checkout\\Recovery_Carts\\Frontend\\Lead_Capture' => $baseDir . '/inc/Frontend/Lead_Capture.php',
     'MeuMouse\\Flexify_Checkout\\Recovery_Carts\\Frontend\\Styles' => $baseDir . '/inc/Frontend/Styles.php',
     'MeuMouse\\Flexify_Checkout\\Recovery_Carts\\Integrations\\Integrations_Base' => $baseDir . '/inc/Integrations/Integrations_Base.php',

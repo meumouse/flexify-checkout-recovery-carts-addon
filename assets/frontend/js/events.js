@@ -43,7 +43,7 @@
                 this.internationalPhone();
             }
 
-            this.trackVisibilityChange();
+			this.startPingTracking();
 		},
 
         /**
@@ -123,7 +123,7 @@
                         last_name: get_last_name,
                         phone: get_phone,
                         email: get_email,
-                        country_code: country.dialCode,
+                        country_data: JSON.stringify(country),
                     },
                     beforeSend: function() {
                         btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm"></span>');
@@ -146,6 +146,7 @@
                                 Events.setCookie('fcrc_last_name', get_last_name, 30);
                                 Events.setCookie('fcrc_phone', get_phone, 30);
                                 Events.setCookie('fcrc_email', get_email, 30);
+                                Events.setCookie('fcrc_lead_collected', 'yes', 365);
                             } else {
                                 $('body').removeClass('fcrc-lead-collected');
                             }
@@ -257,11 +258,11 @@
         },
 
         /**
-         * Sends an AJAX request to track cart abandonment
-         *
+         * Sends a ping to keep the cart session active
+         * 
          * @since 1.0.0
          */
-        trackAbandonment: function() {
+        sendPing: function() {
             let cart_id = Events.getCookie('fcrc_cart_id');
 
             if ( ! cart_id ) {
@@ -273,71 +274,39 @@
                 url: params.ajax_url,
                 type: 'POST',
                 data: {
-                    action: 'fcrc_register_cart_abandonment',
+                    action: 'fcrc_cart_ping',
                     cart_id: cart_id,
+                    ping: true,
                 },
                 success: function(response) {
                     if (params.dev_mode) {
-                        console.log("Abandonment registered:", response);
+                        console.log("Ping sent:", response);
                     }
                 },
                 error: function() {
-                    console.log("Error tracking cart abandonment.");
+                    console.log("Error sending cart ping.");
                 }
             });
         },
 
         /**
-		 * Track when the user leaves the cart or checkout page
-		 * and start the abandonment timer
-		 *
-		 * @since 1.0.0
-		 */
-		trackVisibilityChange: function() {
-			document.addEventListener('visibilitychange', function() {
-				if (document.hidden) {
-					// User left the cart or checkout page
-					Events.startAbandonmentTimer();
-				} else {
-					// User returned before timeout
-					Events.cancelAbandonment();
-				}
-			});
+         * Starts ping tracking to detect abandonment
+         *
+         * @since 1.0.0
+         */
+        startPingTracking: function() {
+            let cart_id = Events.getCookie('fcrc_cart_id');
 
-			window.addEventListener('beforeunload', function() {
-				Events.startAbandonmentTimer();
-			});
-		},
-        
-        /**
-		 * Starts the abandonment timer when the user leaves
-		 * the cart or checkout page
-		 *
-		 * @since 1.0.0
-		 */
-		startAbandonmentTimer: function() {
-			let cart_id = Events.getCookie('fcrc_cart_id');
+            if ( ! cart_id ) {
+                return;
+            }
 
-			if ( ! cart_id ) {
-				return;
-			}
+            // Send an initial ping immediately
+            Events.sendPing();
 
-			let abandonment_time = parseInt( params.abandonment_time_seconds );
-
-			// Set timeout to trigger abandonment event
-			Events.abandonment_timer = setTimeout( function() {
-				Events.trackAbandonment();
-			}, abandonment_time * 1000);
-		},
-
-		/**
-		 * Cancels the abandonment event if the user returns
-		 *
-		 * @since 1.0.0
-		 */
-		cancelAbandonment: function() {
-			clearTimeout(Events.abandonment_timer);
-		},
+            // Send a ping every 30 seconds
+            setInterval(Events.sendPing, 30000);
+        },
     }
 
     // Initialize the Settings object on ready event

@@ -34,10 +34,15 @@ class Lead_Capture {
      * Render lead capture modal
      * 
      * @since 1.0.0
-     * @return string
+     * @return void
      */
     public function render_modal() {
-        if ( ! Helpers::is_product() || Admin::get_switch('display_modal_for_logged_users') === 'yes' && ! is_user_logged_in() ) {
+        error_log( 'Check user meta data' . print_r( is_user_logged_in() && get_user_meta( get_current_user_id(), '_fcrc_lead_collected', true ), true ) );
+
+        if ( ! Helpers::is_product()
+            || Admin::get_switch('display_modal_for_logged_users') === 'yes' && ! is_user_logged_in()
+            || isset( $_COOKIE['fcrc_lead_collected'] ) && $_COOKIE['fcrc_lead_collected'] === 'yes'
+            || is_user_logged_in() && get_user_meta( get_current_user_id(), '_fcrc_lead_collected', true ) ) {
             return;
         }
 
