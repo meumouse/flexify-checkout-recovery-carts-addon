@@ -29,6 +29,7 @@ class Ajax {
             'fcrc_delete_follow_up' => 'fcrc_delete_follow_up_callback',
             'fcrc_lead_collected' => 'fcrc_lead_collected_callback',
             'fcrc_cart_ping' => 'fcrc_cart_ping_callback',
+            'fcrc_save_checkout_lead' => 'fcrc_save_checkout_lead_callback',
         );
 
         // loop for each ajax action
@@ -40,6 +41,7 @@ class Ajax {
         $nopriv_ajax_actions = array(
             'fcrc_lead_collected' => 'fcrc_lead_collected_callback',
             'fcrc_cart_ping' => 'fcrc_cart_ping_callback',
+            'fcrc_save_checkout_lead' => 'fcrc_save_checkout_lead_callback',
         );
 
         // loop for each nopriv ajax action
@@ -336,6 +338,54 @@ class Ajax {
                     'status' => 'success',
                     'response' => 'pong',
                     'timestamp' => time(),
+                ));
+            }
+        }
+    }
+
+
+    /**
+     * Get checkout lead data
+     * 
+     * @since 1.0.0
+     * @return void
+     */
+    public function fcrc_save_checkout_lead_callback() {
+        if ( isset( $_POST['action'] ) && $_POST['action'] === 'fcrc_save_checkout_lead' ) {
+            $cart_id = intval( $_POST['cart_id'] ); // get cart id from cookie inserted by update_cart_post()
+            $first_name = isset( $_POST['first_name'] ) ? sanitize_text_field( $_POST['first_name'] ) : '';
+            $last_name = isset( $_POST['last_name'] ) ? sanitize_text_field( $_POST['last_name'] ) : '';
+            $phone = isset( $_POST['phone'] ) ? sanitize_text_field( $_POST['phone'] ) : '';
+            $email = isset( $_POST['email'] ) ? sanitize_email( $_POST['email'] ) : '';
+
+            // check if user exists
+            $user = get_user_by( 'email', $email );
+            $user_id = $user ? $user->ID : 0;
+
+            if ( $cart_id ) {
+                update_post_meta( $cart_id, '_fcrc_first_name', $first_name );
+                update_post_meta( $cart_id, '_fcrc_last_name', $last_name );
+                update_post_meta( $cart_id, '_fcrc_cart_phone', $phone );
+                update_post_meta( $cart_id, '_fcrc_cart_email', $phone );
+                update_post_meta( $cart_id, '_fcrc_user_id', $user_id );
+
+                /**
+                 * Hook fired on lead collected on checkout
+                 * 
+                 * @since 1.0.0
+                 * @param int $cart_id | Cart ID | Post ID
+                 * @param array $data | Lead data
+                 */
+                do_action( 'Flexify_Checkout/Recovery_Carts/Checkout_Lead_Collected', $cart_id, array(
+                    'first_name' => $first_name,
+                    'last_name' => $last_name,
+                    'phone' => $phone,
+                    'email' => $email,
+                    'user_id' => $user_id,
+                ));
+                
+                wp_send_json( array(
+                    'status' => 'success',
                 ));
             }
         }

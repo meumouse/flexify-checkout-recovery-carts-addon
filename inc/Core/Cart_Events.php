@@ -45,6 +45,33 @@ class Cart_Events {
      * @return void
      */
     public function update_cart_post( $cart_id, $product_id, $request_quantity, $variation_id, $variation, $cart_item_data ) {
+        $cart_id = WC()->session->get('fcrc_cart_id') ?: ( $_COOKIE['fcrc_cart_id'] ?? null );
+
+        if ( ! $cart_id ) {
+            // Create new cart post
+            $cart_id = wp_insert_post( array(
+                'post_type' => 'fc-recovery-carts',
+                'post_status' => 'shopping',
+                'post_title' => sprintf( __( 'Novo carrinho - %s', 'fc-recovery-carts' ), current_time('mysql') ),
+                'meta_input' => array(
+                    '_fcrc_cart_items' => array(),
+                    '_fcrc_cart_total' => 0,
+                    '_fcrc_cart_updated_time' => time(),
+                    '_fcrc_abandoned_time' => '',
+                ),
+            ));
+
+            // Store in session
+            WC()->session->set( 'fcrc_cart_id', $cart_id );
+
+            // Store in cookie
+            setcookie( 'fcrc_cart_id', $cart_id, time() + ( 7 * 24 * 60 * 60 ), COOKIEPATH, COOKIE_DOMAIN ); // Expira em 7 dias
+
+            if ( FC_RECOVERY_CARTS_DEV_MODE ) {
+                error_log( "New cart created: " . $cart_id );
+            }
+        }
+
         $this->sync_cart_with_post();
     }
 

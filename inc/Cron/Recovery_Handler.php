@@ -41,6 +41,9 @@ class Recovery_Handler {
 
         // Hook to handle the scheduled final cart status check
         add_action( 'check_final_cart_status', array( $this, 'check_final_cart_status' ), 10, 1 );
+
+        // Listen for cart lost
+        add_action( 'Flexify_Checkout/Recovery_Carts/Cart_Lost', array( '\MeuMouse\Flexify_Checkout\Recovery_Carts\Core\Helpers', 'clear_cart_id_reference' ) );
     }
 
 
@@ -173,9 +176,10 @@ class Recovery_Handler {
 
         // Replace placeholders in the message
         $message = Placeholders::replace_placeholders( $event['message'], $replacement );
+        $receiver = function_exists('joinotify_prepare_receiver') ? joinotify_prepare_receiver( $phone ) : $phone;
 
         if ( $event['channels']['whatsapp'] === 'yes' ) {
-            self::send_whatsapp_message( $phone, $message );
+            self::send_whatsapp_message( $receiver, $message );
         }
     }
 
@@ -200,6 +204,14 @@ class Recovery_Handler {
             if ( FC_RECOVERY_CARTS_DEV_MODE ) {
                 error_log( 'Cart marked as lost: ' . $cart_id );
             }
+
+            /**
+             * Fire a hook when an order is considered lost
+             *
+             * @since 1.0.0
+             * @param int $cart_id | The abandoned cart ID
+             */
+            do_action( 'Flexify_Checkout/Recovery_Carts/Cart_Lost', $cart_id );
         }
     }
 

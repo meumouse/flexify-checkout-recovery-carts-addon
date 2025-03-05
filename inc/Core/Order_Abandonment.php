@@ -30,6 +30,15 @@ class Order_Abandonment {
 
         // save cart id on order meta data
         add_action( 'woocommerce_new_order', array( $this, 'save_cart_id_to_order_meta' ), 10, 1 );
+
+        // Listen for order status changes
+        add_action( 'woocommerce_order_status_changed', array( $this, 'mark_cart_as_recovered' ), 10, 3 );
+
+        // Listen for cart recovery
+        add_action( 'Flexify_Checkout/Recovery_Carts/Cart_Recovered', array( '\MeuMouse\Flexify_Checkout\Recovery_Carts\Core\Helpers', 'clear_cart_id_reference' ) );
+
+        // Listen for order lost
+        add_action( 'Flexify_Checkout/Recovery_Carts/Order_Abandoned', array( '\MeuMouse\Flexify_Checkout\Recovery_Carts\Core\Helpers', 'clear_cart_id_reference' ) );
     }
 
 
@@ -100,7 +109,7 @@ class Order_Abandonment {
 
         wp_update_post( array(
             'ID' => $cart_id,
-            'post_status' => 'abandoned',
+            'post_status' => 'order_abandoned',
         ));
 
         /**
@@ -138,4 +147,48 @@ class Order_Abandonment {
         }
     }
 
+
+    /**
+     * Marks the cart as recovered when the order is paid (processing or completed)
+     *
+     * @since 1.0.0
+     * @param int $order_id | The WooCommerce order ID
+     * @param string $old_status | The previous order status
+     * @param string $new_status | The new order status
+     * @return void
+     */
+    public function mark_cart_as_recovered( $order_id, $old_status, $new_status ) {
+        if ( ! in_array( $new_status, array( 'processing', 'completed' ) ) ) {
+            return;
+        }
+
+        // Get the cart ID linked to this order
+        $cart_id = get_post_meta( $order_id, '_fcrc_cart_id', true );
+
+        if ( ! $cart_id ) {
+            return;
+        }
+
+        // Update the cart status to recovered
+        wp_update_post( array(
+            'ID' => $cart_id,
+            'post_status' => 'recovered',
+        ));
+
+        // Remove abandoned time meta since the cart is recovered
+        delete_post_meta( $cart_id, '_fcrc_abandoned_time' );
+
+        if ( FC_RECOVERY_CARTS_DEV_MODE ) {
+            error_log( "Cart ID {$cart_id} linked to Order ID {$order_id} marked as recovered." );
+        }
+
+        /**
+         * Fire a hook when a cart is recovered
+         *
+         * @since 1.0.0
+         * @param int $cart_id | The cart ID
+         * @param int $order_id | The WooCommerce order ID
+         */
+        do_action( 'Flexify_Checkout/Recovery_Carts/Cart_Recovered', $cart_id, $order_id );
+    }
 }

@@ -227,6 +227,7 @@ class Carts_Table extends WP_List_Table {
             'lead' => __('Lead', 'fc-recovery-carts'),
             'shopping' => __('Comprando', 'fc-recovery-carts'),
             'abandoned' => __('Abandonado', 'fc-recovery-carts'),
+            'order_abandoned' => __('Pedido abandonado', 'fc-recovery-carts'),
             'recovered' => __('Recuperado', 'fc-recovery-carts'),
             'lost' => __('Perdido', 'fc-recovery-carts'),
         );
@@ -317,7 +318,7 @@ class Carts_Table extends WP_List_Table {
             'post_type' => 'fc-recovery-carts',
             'posts_per_page' => $per_page,
             'paged' => $current_page,
-            'post_status' => array( 'lead', 'shopping', 'abandoned', 'recovered', 'lost' ),
+            'post_status' => array( 'lead', 'shopping', 'abandoned', 'order_abandoned', 'recovered', 'lost' ),
         );
     
         $query = new \WP_Query( $args );

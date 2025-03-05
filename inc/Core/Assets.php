@@ -120,5 +120,18 @@ class Assets {
             'is_product' => Helpers::is_product(),
             'abandonment_time_seconds' => Helpers::get_abandonment_time_seconds(),
         ));
+
+        // add checkout events
+        if ( function_exists('is_flexify_checkout') && is_flexify_checkout() || is_checkout() ) {
+            wp_enqueue_script( 'fc-recovery-carts-checkout-events-script', FC_RECOVERY_CARTS_ASSETS . 'frontend/js/checkout-events'. $min_file .'.js', array('jquery'), FC_RECOVERY_CARTS_VERSION, true );
+
+            // checkout events params
+            wp_localize_script( 'fc-recovery-carts-events-script', 'fcrc_checkout_params', array(
+                'debug_mode' => FC_RECOVERY_CARTS_DEBUG_MODE,
+                'dev_mode' => FC_RECOVERY_CARTS_DEV_MODE,
+                'ajax_url' => admin_url('admin-ajax.php'),
+                'abandonment_time_seconds' => Helpers::get_abandonment_time_seconds(),
+            ));
+        }
     }
 }

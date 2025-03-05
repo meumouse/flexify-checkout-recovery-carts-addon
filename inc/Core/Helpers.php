@@ -199,4 +199,28 @@ class Helpers {
 
         exit;
     }
+
+
+    /**
+     * Clears the cart ID from session and cookie
+     *
+     * @since 1.0.0
+     * @return void
+     */
+    public static function clear_cart_id_reference() {
+        // Remove from WooCommerce session
+        if ( WC()->session ) {
+            WC()->session->__unset('fcrc_cart_id');
+        }
+
+        // Remove from cookie
+        if ( isset( $_COOKIE['fcrc_cart_id'] ) ) {
+            unset( $_COOKIE['fcrc_cart_id'] );
+            setcookie( 'fcrc_cart_id', '', time() - 3600, COOKIEPATH, COOKIE_DOMAIN );
+        }
+
+        if ( FC_RECOVERY_CARTS_DEV_MODE ) {
+            error_log( 'Cart ID removed from session and cookies.' );
+        }
+    }
 }

@@ -40,7 +40,8 @@
     color: var(--fc-recovery-carts-success);
 }
 
-.status-label.abandoned {
+.status-label.abandoned,
+.status-label.order_abandoned {
     background-color: rgba(var(--fc-recovery-carts-warning-rgb), 0.10);
     color: var(--fc-recovery-carts-warning);
 }
