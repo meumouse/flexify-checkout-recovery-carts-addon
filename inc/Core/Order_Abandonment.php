@@ -33,12 +33,6 @@ class Order_Abandonment {
 
         // Listen for order status changes
         add_action( 'woocommerce_order_status_changed', array( $this, 'mark_cart_as_recovered' ), 10, 3 );
-
-        // Listen for cart recovery
-        add_action( 'Flexify_Checkout/Recovery_Carts/Cart_Recovered', array( '\MeuMouse\Flexify_Checkout\Recovery_Carts\Core\Helpers', 'clear_cart_id_reference' ) );
-
-        // Listen for order lost
-        add_action( 'Flexify_Checkout/Recovery_Carts/Order_Abandoned', array( '\MeuMouse\Flexify_Checkout\Recovery_Carts\Core\Helpers', 'clear_cart_id_reference' ) );
     }
 
 

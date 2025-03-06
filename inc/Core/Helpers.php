@@ -126,38 +126,26 @@ class Helpers {
      *
      * @since 1.0.0
      * @param int $cart_id | The recovery cart post ID
+     * @param string $medium | The medium of the link (whatsapp, email, etc.)
      * @return string The recovery cart URL
      */
-    public static function generate_recovery_cart_link( $cart_id ) {
+    public static function generate_recovery_cart_link( $cart_id, $medium = 'whatsapp' ) {
         if ( ! $cart_id ) {
             return '';
         }
 
-        // Get cart items from the stored cart post
-        $cart_items = get_post_meta( $cart_id, '_fcrc_cart_items', true );
-
-        if ( empty( $cart_items ) || ! is_array( $cart_items ) ) {
-            return '';
-        }
-
-        // Base URL (Cart page)
-        $cart_page_url = wc_get_cart_url();
+        // Base URL (Checkout page)
+        $cart_page_url = wc_get_checkout_url();
 
         // Build query parameters
         $query_params = array(
             'recovery_cart' => $cart_id, // Cart ID identifier
             'utm_source' => 'joinotify',
-            'utm_medium' => 'whatsapp',
+            'utm_medium' => $medium,
             'utm_campaign' => 'recovery_carts',
         );
 
-        // Append product data to the query parameters
-        foreach ( $cart_items as $index => $item ) {
-            $query_params["product_{$index}"] = $item['product_id'];
-            $query_params["quantity_{$index}"] = $item['quantity'];
-        }
-
-        // Generate recovery link
+        // Generate recovery link without products
         return add_query_arg( $query_params, $cart_page_url );
     }
 
@@ -175,28 +163,47 @@ class Helpers {
 
         $cart_id = intval( $_GET['recovery_cart'] );
 
-        if ( ! $cart_id ) {
+        if ( ! $cart_id || get_post_type( $cart_id ) !== 'fc-recovery-carts' ) {
+            if ( FC_RECOVERY_CARTS_DEV_MODE ) {
+                error_log( "Error: Cart ID {$cart_id} invalid or not found." );
+            }
+
             return;
         }
 
-        // Get cart items from stored cart post
+        // get products from cart
         $cart_items = get_post_meta( $cart_id, '_fcrc_cart_items', true );
 
         if ( empty( $cart_items ) || ! is_array( $cart_items ) ) {
+            if ( FC_RECOVERY_CARTS_DEV_MODE ) {
+                error_log( "Error: Any product found for the cart: {$cart_id}." );
+            }
+            
             return;
         }
 
-        // Empty the current WooCommerce cart
+        // Set recovery mode
+        WC()->session->set( 'fcrc_cart_recovery_mode', true );
+
+        // clear cart before restoring cart
         WC()->cart->empty_cart();
 
-        // Add products to the cart
+        // add products to cart
         foreach ( $cart_items as $item ) {
             WC()->cart->add_to_cart( $item['product_id'], $item['quantity'] );
         }
 
-        // Redirect to cart page without query parameters
-        wp_safe_redirect( wc_get_cart_url() );
+        // store cart ID in session and cookie
+        WC()->session->set( 'fcrc_cart_id', $cart_id );
+        setcookie( 'fcrc_cart_id', $cart_id, time() + ( 7 * 24 * 60 * 60 ), COOKIEPATH, COOKIE_DOMAIN );
 
+        if ( FC_RECOVERY_CARTS_DEV_MODE ) {
+            error_log( "Cart {$cart_id} restored and redirecting to checkout." );
+        }
+
+        // redirect to checkout
+        wp_safe_redirect( wc_get_checkout_url() );
+        
         exit;
     }
 

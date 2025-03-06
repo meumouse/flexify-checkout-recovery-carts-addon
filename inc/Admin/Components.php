@@ -81,17 +81,17 @@ class Components {
                                             </div>
 
                                             <div class="fcrc-popup-body">
-                                                <div class="mb-4">
+                                                <div class="mb-5">
                                                     <label class="form-label text-left"><?php esc_html_e( 'Nome do evento: *', 'fc-recovery-carts' ); ?></label>
                                                     <input type="text" class="form-control get-follow-up-title" name="follow_up_events[<?php esc_attr_e( $key ) ?>][title]" value="<?php esc_attr_e( $follow_up['title'] ); ?>" placeholder="<?php esc_attr_e( 'Nome do evento', 'fc-recovery-carts' ); ?>">
                                                 </div>
 
-                                                <div class="mb-4">
+                                                <div class="mb-5">
                                                     <label class="form-label text-left"><?php esc_html_e( 'Mensagem: *', 'fc-recovery-carts' ); ?></label>
                                                     <textarea class="form-control get-follow-up-message" name="follow_up_events[<?php esc_attr_e( $key ) ?>][message]" placeholder="<?php esc_attr_e( 'Mensagem que será enviada', 'fc-recovery-carts' ); ?>"><?php echo esc_textarea( $follow_up['message'] ) ?></textarea>
                                                 </div>
 
-                                                <div class="mb-4">
+                                                <div class="mb-5">
                                                     <label class="form-label text-left mb-3"><?php esc_html_e( 'Canal da notificação: *', 'fc-recovery-carts' ); ?></label>
                                                     
                                                     <div class="d-flex align-items-center">
@@ -100,27 +100,11 @@ class Components {
                                                     </div>
                                                 </div>
 
-                                                <div class="mb-4">
-                                                    <label class="form-label text-left mb-3"><?php esc_html_e( 'Cupom de desconto: *', 'fc-recovery-carts' ); ?></label>
-
-                                                    <?php $coupons = get_posts( array(
-                                                        'post_type' => 'shop_coupon',
-                                                        'posts_per_page' => -1, // Get all coupons
-                                                        'post_status' => 'publish',
-                                                    )); ?>
-
-                                                    <select name="follow_up_events[<?php esc_attr_e( $key ) ?>][coupon]" class="form-select get-coupon-code">
-                                                        <option value="none" <?php selected( $follow_up['coupon'] ?? '', 'none', true ) ?>><?php esc_html_e( 'Não enviar nenhum cupom', 'fc-recovery-carts' ); ?></option>
-
-                                                        <?php foreach ( $coupons as $coupon ) : 
-                                                            $coupon_code = get_the_title( $coupon->ID ); ?>
-
-                                                            <option value="<?php echo esc_attr( $coupon_code ); ?>" <?php selected( $follow_up['coupon'] ?? '', $coupon_code, true ) ?>><?php echo esc_html( $coupon_code ); ?></option>
-                                                        <?php endforeach; ?>
-                                                    </select>
+                                                <div class="mb-5">
+                                                    <?php echo self::render_coupon_form( 'follow_up_events['. $key .']', $follow_up['coupon'] ); ?>
                                                 </div>
 
-                                                <div class="mb-4">
+                                                <div class="mb-5">
                                                     <label class="form-label text-left"><?php esc_html_e( 'Atraso: *', 'fc-recovery-carts' ); ?></label>
 
                                                     <div class="input-group get-delay-info">
@@ -134,7 +118,7 @@ class Components {
                                                     </div>
                                                 </div>
 
-                                                <div class="placeholders mb-4">
+                                                <div class="placeholders mb-5">
                                                     <?php echo self::render_placeholders(); ?>
                                                 </div>
                                             </div>
@@ -186,47 +170,78 @@ class Components {
      * Render  coupon form component
      * 
      * @since 1.0.0
+     * @param int $index | Current coupon index
      * @param array $settings | Current coupon settings
      * @return string
      */
-    public static function render_coupon_form( $settings = array() ) {
+    public static function render_coupon_form( $index, $settings = array() ) {
         ob_start(); ?>
 
         <div class="coupon-form-wrapper">
+            <div class="enable-send-coupon-wrapper mb-4 d-flex align-items-center">
+                <label class="form-label text-left me-3"><?php esc_html_e( 'Ativar envio de cupom:', 'fc-recovery-carts' ); ?></label>
+                <input type="checkbox" class="toggle-switch toggle-switch-sm enable-send-coupon" name="<?php printf( '%s[coupon][enabled]', $index ); ?>" <?php checked( $settings['enabled'] ?? '', 'yes' ); ?>>
+            </div>
+
+            <div class="generate-coupon-wrapper mb-4 d-flex align-items-center">
+                <label class="form-label text-left me-3"><?php esc_html_e( 'Gerar cupom automaticamente:', 'fc-recovery-carts' ); ?></label>
+                <input type="checkbox" class="toggle-switch toggle-switch-sm enable-generate-coupon" name="<?php printf( '%s[coupon][generate_coupon]', $index ); ?>" <?php checked( $settings['generate_coupon'] ?? '', 'yes' ); ?>>
+            </div>
+
+            <div class="coupon-preset-wrapper mb-4">
+                <label class="form-label text-left mb-3"><?php esc_html_e( 'Cupom de desconto: *', 'fc-recovery-carts' ); ?></label>
+
+                <?php $coupons = get_posts( array(
+                    'post_type' => 'shop_coupon',
+                    'posts_per_page' => -1, // Get all coupons
+                    'post_status' => 'publish',
+                )); ?>
+
+                <select name="<?php printf( '%s[coupon][coupon_code]', $index ); ?>" class="form-select get-coupon-code">
+                    <option value="none" <?php selected( $settings['coupon_code'] ?? '', 'none', true ) ?>><?php esc_html_e( 'Não enviar nenhum cupom', 'fc-recovery-carts' ); ?></option>
+
+                    <?php foreach ( $coupons as $coupon ) : 
+                        $coupon_code = get_the_title( $coupon->ID ); ?>
+
+                        <option value="<?php echo esc_attr( $coupon_code ); ?>" <?php selected( $settings['coupon_code'] ?? '', $coupon_code, true ) ?>><?php echo esc_html( $coupon_code ); ?></option>
+                    <?php endforeach; ?>
+                </select>
+            </div>
+
             <div class="coupon-prefix-wrapper mb-4">
                 <label class="form-label text-left mb-3"><?php esc_html_e( 'Prefixo do cupom: *', 'fc-recovery-carts' ); ?></label>
-                <input type="text" class="form-control get-coupon-prefix" name="coupon_prefix" placeholder="<?php esc_attr_e( 'CUPOM_', 'fc-recovery-carts' ); ?>" value="<?php esc_attr_e( $settings['coupon_prefix'] ?? '' ); ?>">
+                <input type="text" class="form-control get-coupon-prefix" name="<?php printf( '%s[coupon][coupon_prefix]', $index ); ?>" value="<?php esc_attr_e( $settings['coupon_prefix'] ?? '' ); ?>" placeholder="<?php esc_attr_e( 'CUPOM_', 'fc-recovery-carts' ); ?>">
             </div>
 
             <div class="discount-type-wrapper mb-4">
                 <label class="form-label text-left mb-3"><?php esc_html_e( 'Tipo do desconto: *', 'fc-recovery-carts' ); ?></label>
 
-                <select class="form-select get-coupon-type" name="coupon_type">
-                    <option value="fixed_cart" <?php selected( $settings[''] ?? '', 'fixed_cart' ); ?>><?php esc_html_e( 'Valor fixo', 'fc-recovery-carts' ); ?></option>
-                    <option value="percent" <?php selected( $settings[''] ?? '', 'percent' ); ?>><?php esc_html_e( 'Percentual', 'fc-recovery-carts' ); ?></option>
+                <select class="form-select get-coupon-type" name="<?php printf( '%s[coupon][discount_type]', $index ); ?>">
+                    <option value="fixed_cart" <?php selected( $settings['discount_type'] ?? '', 'fixed_cart' ); ?>><?php esc_html_e( 'Valor fixo', 'fc-recovery-carts' ); ?></option>
+                    <option value="percent" <?php selected( $settings['discount_type'] ?? '', 'percent' ); ?>><?php esc_html_e( 'Percentual (%)', 'fc-recovery-carts' ); ?></option>
                 </select>
             </div>
 
             <div class="coupon-value-wrapper mb-4">
                 <label class="form-label text-left mb-3"><?php esc_html_e( 'Valor do cupom: *', 'fc-recovery-carts' ); ?></label>
-                <input type="number" class="form-control get-coupon-value" value="<?php esc_attr_e( $settings[''] ?? '' ); ?>">
+                <input type="number" class="form-control get-coupon-value" name="<?php printf( '%s[coupon][discount_value]', $index ); ?>" value="<?php esc_attr_e( $settings['discount_value'] ?? '' ); ?>">
             </div>
 
             <div class="coupon-allow-free-shipping-wrapper mb-4 d-flex align-items-center">
                 <label class="form-label text-left me-3"><?php esc_html_e( 'Permitir frete grátis:', 'fc-recovery-carts' ); ?></label>
-                <input type="checkbox" class="toggle-switch toggle-switch-sm get-coupon-allow-free-shipping" <?php checked( $settings[''] ?? '', 'yes' ); ?>>
+                <input type="checkbox" class="toggle-switch toggle-switch-sm get-coupon-allow-free-shipping" name="<?php printf( '%s[coupon][allow_free_shipping]', $index ); ?>" <?php checked( $settings['allow_free_shipping'] ?? '', 'yes' ); ?>>
             </div>
 
             <div class="coupon-expire-time-wrapper mb-4">
                 <label class="form-label text-left mb-3"><?php esc_html_e( 'Tempo de expiração do cupom: *', 'fc-recovery-carts' ); ?></label>
 
                 <div class="input-group">
-                    <input type="number" class="form-control get-coupon-expire-time" value="<?php esc_attr_e( $settings[''] ?? '' ); ?>">
+                    <input type="number" class="form-control get-coupon-expire-time" name="<?php printf( '%s[coupon][expiration_time]', $index ); ?>" value="<?php esc_attr_e( $settings['expiration_time'] ?? '' ); ?>">
                     
-                    <select class="form-select get-coupon-expire-time-type">
-                        <option value="minutes" <?php selected( $settings[''] ?? '', 'minutes' ); ?>><?php esc_html_e( 'Minutos', 'fc-recovery-carts' ); ?></option>
-                        <option value="hours" <?php selected( $settings[''] ?? '', 'hours' ); ?>><?php esc_html_e( 'Horas', 'fc-recovery-carts' ); ?></option>
-                        <option value="days" <?php selected( $settings[''] ?? '', 'days' ); ?>><?php esc_html_e( 'Dias', 'fc-recovery-carts' ); ?></option>
+                    <select name="<?php printf( '%s[coupon][expiration_time_unit]', $index ); ?>" class="form-select get-coupon-expire-time-type">
+                        <option value="minutes" <?php selected( $settings['expiration_time_unit'] ?? '', 'minutes' ); ?>><?php esc_html_e( 'Minutos', 'fc-recovery-carts' ); ?></option>
+                        <option value="hours" <?php selected( $settings['expiration_time_unit'] ?? '', 'hours' ); ?>><?php esc_html_e( 'Horas', 'fc-recovery-carts' ); ?></option>
+                        <option value="days" <?php selected( $settings['expiration_time_unit'] ?? '', 'days' ); ?>><?php esc_html_e( 'Dias', 'fc-recovery-carts' ); ?></option>
                     </select>
                 </div>
             </div>
@@ -238,12 +253,12 @@ class Components {
 
                 <div class="mb-3">
                     <label class="form-label text-left mb-3"><?php esc_html_e( 'Limite de uso por cupom:', 'fc-recovery-carts' ); ?></label>
-                    <input type="number" class="get-coupon-limit-usage form-control" value="<?php esc_attr_e( $settings[''] ?? '' ); ?>">
+                    <input type="number" class="get-coupon-limit-usage form-control" name="<?php printf( '%s[coupon][limit_usages]', $index ); ?>" value="<?php esc_attr_e( $settings['limit_usages'] ?? '' ); ?>">
                 </div>
 
                 <div class="mb-3">
                     <label class="form-label text-left mb-3"><?php esc_html_e( 'Limite de uso por cliente:', 'fc-recovery-carts' ); ?></label>
-                    <input type="number" class="get-coupon-limit-usage form-control" value="<?php esc_attr_e( $settings[''] ?? '' ); ?>">
+                    <input type="number" class="get-coupon-limit-usage-per-user form-control" name="<?php printf( '%s[coupon][limit_usages_per_user]', $index ); ?>" value="<?php esc_attr_e( $settings['limit_usages_per_user'] ?? '' ); ?>">
                 </div>
             </div>
         </div>

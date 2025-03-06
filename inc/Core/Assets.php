@@ -111,7 +111,7 @@ class Assets {
             'debug_mode' => FC_RECOVERY_CARTS_DEBUG_MODE,
             'dev_mode' => FC_RECOVERY_CARTS_DEV_MODE,
             'ajax_url' => admin_url('admin-ajax.php'),
-            'triggers_list' => Admin::get_setting('modal_triggers_list'),
+            'triggers_list' => Admin::get_setting('collect_lead_modal')['triggers_list'],
             'path_to_utils' => FC_RECOVERY_CARTS_ASSETS . 'vendor/intl-tel-input/js/utils.js',
             'i18n' => array(
                 'intl_search_input_placeholder' => esc_html__( 'Pesquisar', 'fc-recovery-carts' ),
@@ -130,7 +130,6 @@ class Assets {
                 'debug_mode' => FC_RECOVERY_CARTS_DEBUG_MODE,
                 'dev_mode' => FC_RECOVERY_CARTS_DEV_MODE,
                 'ajax_url' => admin_url('admin-ajax.php'),
-                'abandonment_time_seconds' => Helpers::get_abandonment_time_seconds(),
             ));
         }
     }

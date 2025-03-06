@@ -45,6 +45,13 @@ class Cart_Events {
      * @return void
      */
     public function update_cart_post( $cart_id, $product_id, $request_quantity, $variation_id, $variation, $cart_item_data ) {
+        // Check if we're in recovery mode
+        if ( WC()->session->get('fcrc_cart_recovery_mode') ) {
+            WC()->session->__unset('fcrc_cart_recovery_mode'); // Clear recovery mode flag
+            
+            return;
+        }
+
         $cart_id = WC()->session->get('fcrc_cart_id') ?: ( $_COOKIE['fcrc_cart_id'] ?? null );
 
         if ( ! $cart_id ) {

@@ -87,7 +87,7 @@ class Joinotify extends Integrations_Base {
      */
     public function send_coupon_message( $cart_id, $lead_data ) {
         // check if message must be sent
-        if ( Admin::get_switch('enable_modal_add_to_cart') !== 'yes' || Admin::get_setting('select_coupon') === 'none' ) {
+        if ( Admin::get_switch('enable_modal_add_to_cart') !== 'yes' || Admin::get_setting('collect_lead_modal')['coupon']['enabled'] !== 'yes' ) {
             return;
         }
 
@@ -97,11 +97,11 @@ class Joinotify extends Integrations_Base {
                 '{{ first_name }}' => $lead_data['first_name'] ?? Admin::get_setting('fallback_first_name'),
                 '{{ last_name }}' => $lead_data['last_name'] ?? '',
                 '{{ recovery_link }}' => Helpers::generate_recovery_cart_link( $cart_id ),
-                '{{ coupon_code }}' => Admin::get_setting('select_coupon'),
+                '{{ coupon_code }}' => 'FALTA ALTERAR AQUI',
             );
 
             // Replace placeholders in the message
-            $message = Placeholders::replace_placeholders( Admin::get_setting('message_to_send_lead_collected'), $replacement );
+            $message = Placeholders::replace_placeholders( Admin::get_setting('collect_lead_modal')['message'], $replacement );
             $sender = Admin::get_setting('joinotify_sender_phone');
             $receiver = function_exists('joinotify_prepare_receiver') ? joinotify_prepare_receiver( $lead_data['phone'] ) : $lead_data['phone'];
 

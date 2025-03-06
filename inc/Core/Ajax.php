@@ -357,6 +357,7 @@ class Ajax {
             $last_name = isset( $_POST['last_name'] ) ? sanitize_text_field( $_POST['last_name'] ) : '';
             $phone = isset( $_POST['phone'] ) ? sanitize_text_field( $_POST['phone'] ) : '';
             $email = isset( $_POST['email'] ) ? sanitize_email( $_POST['email'] ) : '';
+            $full_name = sprintf( '%s %s', $first_name, $last_name );
 
             // check if user exists
             $user = get_user_by( 'email', $email );
@@ -365,8 +366,9 @@ class Ajax {
             if ( $cart_id ) {
                 update_post_meta( $cart_id, '_fcrc_first_name', $first_name );
                 update_post_meta( $cart_id, '_fcrc_last_name', $last_name );
+                update_post_meta( $cart_id, '_fcrc_full_name', $full_name );
                 update_post_meta( $cart_id, '_fcrc_cart_phone', $phone );
-                update_post_meta( $cart_id, '_fcrc_cart_email', $phone );
+                update_post_meta( $cart_id, '_fcrc_cart_email', $email );
                 update_post_meta( $cart_id, '_fcrc_user_id', $user_id );
 
                 /**
@@ -383,6 +385,10 @@ class Ajax {
                     'email' => $email,
                     'user_id' => $user_id,
                 ));
+
+                if ( FC_RECOVERY_CARTS_DEV_MODE ) {
+                    error_log('New checkout lead collected from cart ID: ' . $cart_id);
+                }
                 
                 wp_send_json( array(
                     'status' => 'success',

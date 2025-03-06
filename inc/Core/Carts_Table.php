@@ -2,6 +2,8 @@
 
 namespace MeuMouse\Flexify_Checkout\Recovery_Carts\Core;
 
+use MeuMouse\Flexify_Checkout\Recovery_Carts\Admin\Admin;
+
 use WP_List_Table;
 
 // Exit if accessed directly.
@@ -85,13 +87,13 @@ class Carts_Table extends WP_List_Table {
      * 
      * @since 1.0.0
      * @param object $item | Cart data
-     * @return string
+     * @return void
      */
     public function column_contact( $item ) {
-        $contact_name = get_post_meta( $item->ID, '_fcrc_full_name', true );
-        $phone = get_post_meta( $item->ID, '_fcrc_cart_phone', true );
-        $email = get_post_meta( $item->ID, '_fcrc_cart_email', true );
-        $user_id = get_post_meta( $item->ID, '_fcrc_user_id', true );
+        $contact_name = get_post_meta( $item->ID, '_fcrc_full_name', true ) ?? Admin::get_setting('fallback_first_name');
+        $phone = get_post_meta( $item->ID, '_fcrc_cart_phone', true ) ?? '';
+        $email = get_post_meta( $item->ID, '_fcrc_cart_email', true ) ?? '';
+        $user_id = get_post_meta( $item->ID, '_fcrc_user_id', true ) ?? '';
 
         if ( $email ) {
             echo esc_html( $contact_name ) . '<br>'. esc_html( $phone ) . '<br><a href="mailto:' . esc_attr( $email ) . '">' . esc_html( $email ) . '</a>';
@@ -100,10 +102,9 @@ class Carts_Table extends WP_List_Table {
         // if has a user associated, display the link to the profile
         if ( $user_id ) {
             $user_profile_link = get_edit_user_link( $user_id );
-            $contact_display = '<br><small><a href="' . esc_url( $user_profile_link ) . '" class="button button-small" style="margin-top: 1rem;">' . __( 'Ver usuário', 'fc-recovery-carts' ) . '</a></small>';
-        }
 
-        return $contact_display ? $contact_display : __('Não informado', 'fc-recovery-carts');
+            echo $contact_display = '<br><small><a href="' . esc_url( $user_profile_link ) . '" class="button button-small" style="margin-top: 1rem;">' . __( 'Ver usuário', 'fc-recovery-carts' ) . '</a></small>';
+        }
     }
 
 
@@ -275,7 +276,15 @@ class Carts_Table extends WP_List_Table {
                         wp_update_post( array(
                             'ID' => $cart_id,
                             'post_status' => 'lost',
-                        ) );
+                        ));
+
+                        /**
+                         * Fire a hook when an order is considered lost manually
+                         *
+                         * @since 1.0.0
+                         * @param int $cart_id | The abandoned cart ID
+                         */
+                        do_action( 'Flexify_Checkout/Recovery_Carts/Cart_Lost', $cart_id );
                     }
 
                     break;
@@ -284,7 +293,15 @@ class Carts_Table extends WP_List_Table {
                         wp_update_post( array(
                             'ID' => $cart_id,
                             'post_status' => 'abandoned',
-                        ) );
+                        ));
+
+                        /**
+                         * Fire hook when cart is abandoned manually
+                         * 
+                         * @since 1.0.0
+                         * @param int $cart_id | Cart ID | Post ID
+                         */
+                        do_action( 'Flexify_Checkout/Recovery_Carts/Cart_Abandoned', $cart_id );
                     }
 
                     break;
@@ -293,7 +310,15 @@ class Carts_Table extends WP_List_Table {
                         wp_update_post( array(
                             'ID' => $cart_id,
                             'post_status' => 'recovered',
-                        ) );
+                        ));
+
+                        /**
+                         * Fire a hook when a cart is recovered manually
+                         *
+                         * @since 1.0.0
+                         * @param int $cart_id | The cart ID
+                         */
+                        do_action( 'Flexify_Checkout/Recovery_Carts/Cart_Recovered_Manually', $cart_id );
                     }
                     
                     break;

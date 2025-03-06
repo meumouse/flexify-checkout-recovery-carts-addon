@@ -371,6 +371,9 @@
 
 				$('.list-group-item[data-follow-up-item="' + get_item + '"]').find('.fcrc-follow-up-item-title').text(value);
 			});
+
+			// change coupon settings
+			Settings.getCouponSettings();
 		},
 
 		/**
@@ -545,6 +548,22 @@
 		 */
 		integrationSettings: function() {
 			Settings.joinotifySettings();
+		},
+
+		/**
+		 * 
+		 */
+		visibilityControllerForCoupons: function() {
+
+		},
+
+		/**
+		 * Get coupon settings for each follow up
+		 * 
+		 * @since 1.0.0
+		 */
+		getCouponSettings: function() {
+
 		},
 	};
 

@@ -37,13 +37,16 @@ class Recovery_Handler {
         add_action( 'template_redirect', array( '\MeuMouse\Flexify_Checkout\Recovery_Carts\Core\Helpers', 'maybe_restore_cart' ) );
 
         // Hook to handle the scheduled follow-up messages
-        add_action( 'send_follow_up_message', array( $this, 'send_follow_up_message_callback' ), 10, 2 );
+        add_action( 'fcrc_send_follow_up_message', array( $this, 'send_follow_up_message_callback' ), 10, 2 );
 
         // Hook to handle the scheduled final cart status check
         add_action( 'check_final_cart_status', array( $this, 'check_final_cart_status' ), 10, 1 );
 
-        // Listen for cart lost
+        // Listen for cart changes for clear cart id reference
         add_action( 'Flexify_Checkout/Recovery_Carts/Cart_Lost', array( '\MeuMouse\Flexify_Checkout\Recovery_Carts\Core\Helpers', 'clear_cart_id_reference' ) );
+        add_action( 'Flexify_Checkout/Recovery_Carts/Cart_Recovered_Manually', array( '\MeuMouse\Flexify_Checkout\Recovery_Carts\Core\Helpers', 'clear_cart_id_reference' ) );
+        add_action( 'Flexify_Checkout/Recovery_Carts/Cart_Recovered', array( '\MeuMouse\Flexify_Checkout\Recovery_Carts\Core\Helpers', 'clear_cart_id_reference' ) );
+        add_action( 'Flexify_Checkout/Recovery_Carts/Order_Abandoned', array( '\MeuMouse\Flexify_Checkout\Recovery_Carts\Core\Helpers', 'clear_cart_id_reference' ) );
     }
 
 
@@ -129,7 +132,7 @@ class Recovery_Handler {
             $delay = Helpers::convert_to_seconds( $event_data['delay_time'], $event_data['delay_type'] );
 
             if ( $delay ) {
-                wp_schedule_single_event( time() + $delay, "send_follow_up_message", array( 'cart_id' => $cart_id, 'event_key' => $event_key ) );
+                wp_schedule_single_event( time() + $delay, "fcrc_send_follow_up_message", array( 'cart_id' => $cart_id, 'event_key' => $event_key ) );
 
                 // update the maximum delay found
                 if ( $delay > $max_delay ) {
@@ -247,7 +250,7 @@ class Recovery_Handler {
         }
 
         foreach ( $follow_up_events as $event_key => $event_data ) {
-            wp_clear_scheduled_hook( 'send_follow_up_message', array( 'cart_id' => $cart_id, 'event_key' => $event_key ) );
+            wp_clear_scheduled_hook( 'fcrc_send_follow_up_message', array( 'cart_id' => $cart_id, 'event_key' => $event_key ) );
         }
 
         if ( FC_RECOVERY_CARTS_DEV_MODE ) {

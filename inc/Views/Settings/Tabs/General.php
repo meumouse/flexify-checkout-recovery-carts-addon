@@ -42,7 +42,7 @@ defined('ABSPATH') || exit; ?>
                                                 <span class="fc-recovery-carts-description"><?php esc_html_e( 'Título exibido dentro do modal de coleta de leads.', 'fc-recovery-carts' ); ?></span>
                                             </th>
                                             <td class="w-50">
-                                                <textarea id="title_modal_add_to_cart" class="form-control" name="title_modal_add_to_cart"><?php echo esc_textarea( Admin::get_setting('title_modal_add_to_cart') ) ?></textarea>
+                                                <textarea id="title_modal_add_to_cart" class="form-control" name="collect_lead_modal[title]"><?php echo esc_textarea( Admin::get_setting('collect_lead_modal')['title'] ) ?></textarea>
                                             </td>
                                         </tr>
 
@@ -52,7 +52,7 @@ defined('ABSPATH') || exit; ?>
                                                 <span class="fc-recovery-carts-description"><?php esc_html_e( 'Título exibido no botão dentro do modal de coleta de leads.', 'fc-recovery-carts' ); ?></span>
                                             </th>
                                             <td class="w-50">
-                                                <input type="text" id="title_modal_send_lead" class="form-control" name="title_modal_send_lead" value="<?php echo Admin::get_setting('title_modal_send_lead') ?>"/>
+                                                <input type="text" id="title_modal_send_lead" class="form-control" name="collect_lead_modal[button_title]" value="<?php echo Admin::get_setting('collect_lead_modal')['button_title'] ?>" />
                                             </td>
                                         </tr>
 
@@ -82,31 +82,17 @@ defined('ABSPATH') || exit; ?>
                                                 <span class="fc-recovery-carts-description"><?php esc_html_e( 'Os seletores são os componentes HTML que ao passar o mouse sobre o elemento mostra o modal. Exemplo: button[name="add-to-cart"]', 'fc-recovery-carts' ); ?></span>
                                             </th>
                                             <td class="w-50">
-                                                <textarea id="modal_triggers_list" class="form-control" name="modal_triggers_list"><?php echo esc_textarea( Admin::get_setting('modal_triggers_list') ) ?></textarea>
+                                                <textarea id="modal_triggers_list" class="form-control" name="collect_lead_modal[triggers_list]"><?php echo esc_textarea( Admin::get_setting('collect_lead_modal')['triggers_list'] ) ?></textarea>
                                             </td>
                                         </tr>
 
                                         <tr>
                                             <th class="w-50">
                                                 <?php esc_html_e( 'Cupom a ser enviado', 'fc-recovery-carts' ); ?>
-                                                <span class="fc-recovery-carts-description"><?php esc_html_e( 'Selecione o cupom que será enviado ao usuário ao preencher o formulário.', 'fc-recovery-carts' ); ?></span>
+                                                <span class="fc-recovery-carts-description"><?php esc_html_e( 'Configure o cupom para ser enviado ao usuário ao preencher o formulário.', 'fc-recovery-carts' ); ?></span>
                                             </th>
                                             <td class="w-50">
-                                                <?php $coupons = get_posts( array(
-                                                    'post_type' => 'shop_coupon',
-                                                    'posts_per_page' => -1, // Get all coupons
-                                                    'post_status' => 'publish',
-                                                )); ?>
-
-                                                <select name="select_coupon" id="select_coupon" class="form-select">
-                                                    <option value="none" <?php selected( Admin::get_setting('select_coupon'), 'none', true ) ?>><?php esc_html_e( 'Selecione um cupom', 'fc-recovery-carts' ); ?></option>
-
-                                                    <?php foreach ( $coupons as $coupon ) : 
-                                                        $coupon_code = get_the_title( $coupon->ID ); ?>
-
-                                                        <option value="<?php echo esc_attr( $coupon_code ); ?>" <?php selected( Admin::get_setting('select_coupon'), $coupon_code, true ) ?>><?php echo esc_html( $coupon_code ); ?></option>
-                                                    <?php endforeach; ?>
-                                                </select>
+                                                <?php echo Admin_Components::render_coupon_form( 'collect_lead_modal',  Admin::get_setting('collect_lead_modal')['coupon'] ); ?>
                                             </td>
                                         </tr>
 
@@ -116,7 +102,7 @@ defined('ABSPATH') || exit; ?>
                                                 <span class="fc-recovery-carts-description"><?php esc_html_e( 'Mensagem que será enviada ao usuário ao enviar os dados do formulário.', 'fc-recovery-carts' ); ?></span>
                                             </th>
                                             <td class="w-50">
-                                                <textarea id="message_to_send_lead_collected" class="form-control" name="message_to_send_lead_collected"><?php echo esc_textarea( Admin::get_setting('message_to_send_lead_collected') ) ?></textarea>
+                                                <textarea id="message_to_send_lead_collected" class="form-control" name="collect_lead_modal[message]"><?php echo esc_textarea( Admin::get_setting('collect_lead_modal')['message'] ) ?></textarea>
 
                                                 <div class="placeholders mt-4">
                                                     <?php echo Admin_Components::render_placeholders(); ?>
