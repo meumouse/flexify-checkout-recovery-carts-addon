@@ -136,6 +136,7 @@ class ComposerStaticInit2d0d8e5718943d4e0f4f7aa59d79d9d9
         'MeuMouse\\Flexify_Checkout\\Recovery_Carts\\Core\\Cart_Events' => __DIR__ . '/../..' . '/inc/Core/Cart_Events.php',
         'MeuMouse\\Flexify_Checkout\\Recovery_Carts\\Core\\Carts_Table' => __DIR__ . '/../..' . '/inc/Core/Carts_Table.php',
         'MeuMouse\\Flexify_Checkout\\Recovery_Carts\\Core\\Compatibility' => __DIR__ . '/../..' . '/inc/Core/Compatibility.php',
+        'MeuMouse\\Flexify_Checkout\\Recovery_Carts\\Core\\Coupons' => __DIR__ . '/../..' . '/inc/Core/Coupons.php',
         'MeuMouse\\Flexify_Checkout\\Recovery_Carts\\Core\\Helpers' => __DIR__ . '/../..' . '/inc/Core/Helpers.php',
         'MeuMouse\\Flexify_Checkout\\Recovery_Carts\\Core\\Init' => __DIR__ . '/../..' . '/inc/Core/Init.php',
         'MeuMouse\\Flexify_Checkout\\Recovery_Carts\\Core\\Order_Abandonment' => __DIR__ . '/../..' . '/inc/Core/Order_Abandonment.php',

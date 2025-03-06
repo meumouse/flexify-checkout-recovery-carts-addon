@@ -91,13 +91,24 @@ class Joinotify extends Integrations_Base {
             return;
         }
 
+        $generate_coupon = Admin::get_setting('collect_lead_modal')['coupon']['generate_coupon'];
+
+        // get coupon code
+        if ( $generate_coupon === 'yes' ) {
+            Helpers::generate_wc_coupon( Admin::get_setting('collect_lead_modal')['coupon'], $cart_id );
+            
+            $coupon_code = get_post_meta( $cart_id, '_fcrc_coupon_code', true );
+        } else {
+            $coupon_code = Admin::get_setting('collect_lead_modal')['coupon']['coupon_code'];
+        }
+
         // check if Joinotify is active
         if ( function_exists('joinotify_send_whatsapp_message_text') ) {
             $replacement = array(
                 '{{ first_name }}' => $lead_data['first_name'] ?? Admin::get_setting('fallback_first_name'),
                 '{{ last_name }}' => $lead_data['last_name'] ?? '',
                 '{{ recovery_link }}' => Helpers::generate_recovery_cart_link( $cart_id ),
-                '{{ coupon_code }}' => 'FALTA ALTERAR AQUI',
+                '{{ coupon_code }}' => $coupon_code,
             );
 
             // Replace placeholders in the message

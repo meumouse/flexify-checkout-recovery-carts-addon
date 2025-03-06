@@ -4,6 +4,7 @@ namespace MeuMouse\Flexify_Checkout\Recovery_Carts\Cron;
 
 use MeuMouse\Flexify_Checkout\Recovery_Carts\Admin\Admin;
 use MeuMouse\Flexify_Checkout\Recovery_Carts\Core\Helpers;
+use MeuMouse\Flexify_Checkout\Recovery_Carts\Core\Coupons;
 use MeuMouse\Flexify_Checkout\Recovery_Carts\Core\Placeholders;
 
 // Exit if accessed directly.
@@ -47,6 +48,9 @@ class Recovery_Handler {
         add_action( 'Flexify_Checkout/Recovery_Carts/Cart_Recovered_Manually', array( '\MeuMouse\Flexify_Checkout\Recovery_Carts\Core\Helpers', 'clear_cart_id_reference' ) );
         add_action( 'Flexify_Checkout/Recovery_Carts/Cart_Recovered', array( '\MeuMouse\Flexify_Checkout\Recovery_Carts\Core\Helpers', 'clear_cart_id_reference' ) );
         add_action( 'Flexify_Checkout/Recovery_Carts/Order_Abandoned', array( '\MeuMouse\Flexify_Checkout\Recovery_Carts\Core\Helpers', 'clear_cart_id_reference' ) );
+
+        // update coupon expiration
+        add_action( 'fcrc_update_coupon_expiration', array( 'MeuMouse\Flexify_Checkout\Recovery_Carts\Core\Coupons', 'update_coupon_expiration' ), 10, 1 );
     }
 
 
@@ -170,11 +174,20 @@ class Recovery_Handler {
         $last_name = $cart_data['_fcrc_last_name'][0] ?? '';
         $phone = $cart_data['_fcrc_cart_phone'][0] ?? '';
 
+        // get coupon code
+        if ( $event['coupon']['generate_coupon'] === 'yes' ) {
+            Coupons::generate_wc_coupon( $event['coupon'], $cart_id );
+            
+            $coupon_code = get_post_meta( $cart_id, '_fcrc_coupon_code', true );
+        } else {
+            $coupon_code = $event['coupon']['coupon_code'];
+        }
+
         $replacement = array(
             '{{ first_name }}' => $first_name,
             '{{ last_name }}' => $last_name,
             '{{ recovery_link }}' => Helpers::generate_recovery_cart_link( $cart_id ),
-            '{{ coupon_code }}' => $event['coupon'] ?? '',
+            '{{ coupon_code }}' => $coupon_code ?? '',
         );
 
         // Replace placeholders in the message

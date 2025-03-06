@@ -268,7 +268,7 @@
 		 * @since 1.0.0
 		 */
 		addNewFollowUp: function() {
-			let container = $('#fcrc_add_new_follow_up_container');
+			var container = $('#fcrc_add_new_follow_up_container');
 
 			// display reset modal
 			Settings.displayModal( $('#fcrc_add_new_follow_up_trigger'), container, $('#fcrc_add_new_follow_up_close') );
@@ -284,7 +284,6 @@
 				let follow_up_delay_time = $('#fcrc_add_new_follow_up_delay_time');
 				let follow_up_delay_type = $('#fcrc_add_new_follow_up_delay_type');
 				let whatsapp_channel = $('#fcrc_add_new_follow_up_channels_whatsapp');
-				let coupon = $('#fcrc_get_coupon');
 
 				// send request
 				$.ajax({
@@ -299,17 +298,17 @@
 						whatsapp: whatsapp_channel.prop('checked') ? 'yes' : 'no',
 						email: '',
 						coupon: {
-							enabled: '',
-							generate_coupon: '',
-							coupon_prefix: '',
-							coupon_code: '',
-							discount_type: '',
-							discount_value: '',
-							allow_free_shipping: '',
-							expiration_time: '',
-							expiration_time_unit: '',
-							limit_usages: '',
-							limit_usages_per_user: '',
+							enabled: container.find('.enable-send-coupon').prop('checked') ? 'yes' : 'no',
+							generate_coupon: container.find('.enable-generate-coupon').prop('checked') ? 'yes' : 'no',
+							coupon_prefix: container.find('.get-coupon-prefix').val(),
+							coupon_code: container.find('.get-coupon-code').val(),
+							discount_type: container.find('.get-coupon-type').val(),
+							discount_value: container.find('.get-coupon-value').val(),
+							allow_free_shipping: container.find('.get-coupon-allow-free-shipping').prop('checked') ? 'yes' : 'no',
+							expiration_time: container.find('.get-coupon-expire-time').val(),
+							expiration_time_unit: container.find('.get-coupon-expire-time-type"').val(),
+							limit_usages: container.find('.get-coupon-limit-usage').val(),
+							limit_usages_per_user: container.find('.get-coupon-limit-usage-per-user').val(),
 						},
 					},
 					beforeSend: function() {
@@ -319,6 +318,7 @@
 						try {
 							if (response.status === 'success') {
 								$('#follow_up').find('ul.fcrc-follow-up-list').replaceWith(response.follow_up_list);
+								Settings.emojiPicker();
 								$('#fcrc_add_new_follow_up_container').removeClass('show');
 								
 								Settings.displayToast('success', response.toast_header_title, response.toast_body_title);
@@ -329,7 +329,6 @@
 								follow_up_delay_time.val('');
 								follow_up_delay_type.val('');
 								whatsapp_channel.prop('checked', false);
-								coupon.val('');
 							} else {
 								Settings.displayToast('error', response.toast_header_title, response.toast_body_title);
 							}
@@ -384,9 +383,6 @@
 
 				$('.list-group-item[data-follow-up-item="' + get_item + '"]').find('.fcrc-follow-up-item-title').text(value);
 			});
-
-			// change coupon settings
-			Settings.getCouponSettings();
 		},
 
 		/**
@@ -649,7 +645,7 @@
 							},
 						},
 					});
-				}, 600);
+				}, 500);
 
 				// initialize emoji picker
 				$('.add-emoji-picker').addClass('emoji-initialized');

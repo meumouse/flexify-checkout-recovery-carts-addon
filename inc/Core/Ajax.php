@@ -124,8 +124,7 @@ class Ajax {
             $delay_time = isset( $_POST['delay_time'] ) ? sanitize_text_field( $_POST['delay_time'] ) : '';
             $delay_type = isset( $_POST['delay_type'] ) ? sanitize_text_field( $_POST['delay_type'] ) : '';
             $whatsapp = isset( $_POST['whatsapp'] ) ? sanitize_text_field( $_POST['whatsapp'] ) : '';
-            //$email = isset( $_POST['email'] ) ? sanitize_text_field( $_POST['email'] ) : '';
-            $coupon = isset( $_POST['coupon'] ) ? sanitize_text_field( $_POST['coupon'] ) : '';
+            $coupon = isset( $_POST['coupon'] ) ? json_decode( stripslashes( $_POST['coupon'] ), true ) : array();
 
             // get current settings
             $settings = get_option( 'flexify_checkout_recovery_carts_settings', array() );
@@ -145,17 +144,17 @@ class Ajax {
                     'whatsapp' => $whatsapp,
                 ),
                 'coupon' => array(
-                    'enabled' => '',
-                    'generate_coupon' => '',
-                    'coupon_prefix' => '',
-                    'coupon_code' => '',
-                    'discount_type' => '',
-                    'discount_value' => '',
-                    'allow_free_shipping' => '',
-                    'expiration_time' => '',
-                    'expiration_time_unit' => '',
-                    'limit_usages' => '',
-                    'limit_usages_per_user' => '',
+                    'enabled' => $coupon['enabled'],
+                    'generate_coupon' => $coupon['generate_coupon'],
+                    'coupon_prefix' => $coupon['coupon_prefix'] ?? '',
+                    'coupon_code' => $coupon['coupon_code'] ?? '',
+                    'discount_type' => $coupon['discount_type'] ?? '',
+                    'discount_value' => $coupon['discount_value'] ?? '',
+                    'allow_free_shipping' => $coupon['allow_free_shipping'],
+                    'expiration_time' => $coupon['expiration_time'] ?? '',
+                    'expiration_time_unit' => $coupon['expiration_time_unit'] ?? '',
+                    'limit_usages' => $coupon['limit_usages'] ?? '',
+                    'limit_usages_per_user' => $coupon['limit_usages_per_user'] ?? '',
                 ),
             );
 

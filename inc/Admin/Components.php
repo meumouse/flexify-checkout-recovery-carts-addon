@@ -174,18 +174,22 @@ class Components {
      * @param array $settings | Current coupon settings
      * @return string
      */
-    public static function render_coupon_form( $index, $settings = array() ) {
+    public static function render_coupon_form( $index = '', $settings = array() ) {
+        $send_coupon = $settings['enabled'] ?? '';
+        $generate_coupon = $settings['generate_coupon'] ?? '';
+        $allow_free_shipping = $settings['allow_free_shipping'] ?? '';
+
         ob_start(); ?>
 
         <div class="coupon-form-wrapper">
             <div class="enable-send-coupon-wrapper mb-4 d-flex align-items-center">
                 <label class="form-label text-left me-3"><?php esc_html_e( 'Ativar envio de cupom:', 'fc-recovery-carts' ); ?></label>
-                <input type="checkbox" class="toggle-switch toggle-switch-sm enable-send-coupon" name="<?php printf( '%s[coupon][enabled]', $index ); ?>" value="yes" <?php checked( $settings['enabled'] === 'yes' ); ?>>
+                <input type="checkbox" class="toggle-switch toggle-switch-sm enable-send-coupon" name="<?php printf( '%s[coupon][enabled]', $index ); ?>" value="yes" <?php checked( $send_coupon === 'yes' ); ?>>
             </div>
 
             <div class="generate-coupon-wrapper mb-4 d-flex align-items-center">
                 <label class="form-label text-left me-3"><?php esc_html_e( 'Gerar cupom automaticamente:', 'fc-recovery-carts' ); ?></label>
-                <input type="checkbox" class="toggle-switch toggle-switch-sm enable-generate-coupon" name="<?php printf( '%s[coupon][generate_coupon]', $index ); ?>" value="yes" <?php checked( $settings['generate_coupon'] === 'yes' ); ?>>
+                <input type="checkbox" class="toggle-switch toggle-switch-sm enable-generate-coupon" name="<?php printf( '%s[coupon][generate_coupon]', $index ); ?>" value="yes" <?php checked( $generate_coupon === 'yes' ); ?>>
             </div>
 
             <div class="coupon-preset-wrapper mb-4">
@@ -229,7 +233,7 @@ class Components {
 
             <div class="coupon-allow-free-shipping-wrapper mb-4 d-flex align-items-center">
                 <label class="form-label text-left me-3"><?php esc_html_e( 'Permitir frete grátis:', 'fc-recovery-carts' ); ?></label>
-                <input type="checkbox" class="toggle-switch toggle-switch-sm get-coupon-allow-free-shipping" name="<?php printf( '%s[coupon][allow_free_shipping]', $index ); ?>" value="yes" <?php checked( $settings['allow_free_shipping'] === 'yes' ); ?>>
+                <input type="checkbox" class="toggle-switch toggle-switch-sm get-coupon-allow-free-shipping" name="<?php printf( '%s[coupon][allow_free_shipping]', $index ); ?>" value="yes" <?php checked( $allow_free_shipping === 'yes' ); ?>>
             </div>
 
             <div class="coupon-expire-time-wrapper mb-4">

@@ -113,6 +113,7 @@ return array(
     'MeuMouse\\Flexify_Checkout\\Recovery_Carts\\Core\\Cart_Events' => $baseDir . '/inc/Core/Cart_Events.php',
     'MeuMouse\\Flexify_Checkout\\Recovery_Carts\\Core\\Carts_Table' => $baseDir . '/inc/Core/Carts_Table.php',
     'MeuMouse\\Flexify_Checkout\\Recovery_Carts\\Core\\Compatibility' => $baseDir . '/inc/Core/Compatibility.php',
+    'MeuMouse\\Flexify_Checkout\\Recovery_Carts\\Core\\Coupons' => $baseDir . '/inc/Core/Coupons.php',
     'MeuMouse\\Flexify_Checkout\\Recovery_Carts\\Core\\Helpers' => $baseDir . '/inc/Core/Helpers.php',
     'MeuMouse\\Flexify_Checkout\\Recovery_Carts\\Core\\Init' => $baseDir . '/inc/Core/Init.php',
     'MeuMouse\\Flexify_Checkout\\Recovery_Carts\\Core\\Order_Abandonment' => $baseDir . '/inc/Core/Order_Abandonment.php',

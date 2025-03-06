@@ -26,17 +26,21 @@ defined('ABSPATH') || exit; ?>
                 </div>
 
                 <div class="fcrc-popup-body">
-                    <div class="mb-4">
+                    <div class="mb-5">
                         <label class="form-label text-left"><?php esc_html_e( 'Nome do evento: *', 'fc-recovery-carts' ); ?></label>
                         <input id="fcrc_add_new_follow_up_title" type="text" class="form-control" placeholder="<?php esc_attr_e( 'Nome do evento', 'fc-recovery-carts' ); ?>">
                     </div>
 
-                    <div class="mb-4">
+                    <div class="mb-5">
                         <label class="form-label text-left"><?php esc_html_e( 'Mensagem: *', 'fc-recovery-carts' ); ?></label>
-                        <textarea id="fcrc_add_new_follow_up_message" class="form-control" placeholder="<?php esc_attr_e( 'Mensagem que será enviada', 'fc-recovery-carts' ); ?>"></textarea>
+                        <textarea id="fcrc_add_new_follow_up_message" class="form-control add-emoji-picker" placeholder="<?php esc_attr_e( 'Mensagem que será enviada', 'fc-recovery-carts' ); ?>"></textarea>
                     </div>
 
-                    <div class="mb-4">
+                    <div class="placeholders mb-5">
+                        <?php echo Admin_Components::render_placeholders(); ?>
+                    </div>
+
+                    <div class="mb-5">
                         <label class="form-label text-left mb-3"><?php esc_html_e( 'Canal da notificação: *', 'fc-recovery-carts' ); ?></label>
                         
                         <div class="d-flex align-items-center">
@@ -45,28 +49,12 @@ defined('ABSPATH') || exit; ?>
                         </div>
                     </div>
 
-                    <div class="mb-4">
-                        <label class="form-label text-left mb-3"><?php esc_html_e( 'Cupom de desconto: *', 'fc-recovery-carts' ); ?></label>
-
-                        <?php $coupons = get_posts( array(
-                            'post_type' => 'shop_coupon',
-                            'posts_per_page' => -1, // Get all coupons
-                            'post_status' => 'publish',
-                        )); ?>
-
-                        <select id="fcrc_get_coupon" class="form-select">
-                            <option value="none"><?php esc_html_e( 'Não enviar nenhum cupom', 'fc-recovery-carts' ); ?></option>
-
-                            <?php foreach ( $coupons as $coupon ) : 
-                                $coupon_code = get_the_title( $coupon->ID ); ?>
-
-                                <option value="<?php echo esc_attr( $coupon_code ); ?>"><?php echo esc_html( $coupon_code ); ?></option>
-                            <?php endforeach; ?>
-                        </select>
+                    <div class="mb-5">
+                        <?php echo Admin_Components::render_coupon_form( 'follow_up_events' ); ?>
                     </div>
 
-                    <div class="mb-4">
-                        <label class="form-label text-left"><?php esc_html_e( 'Atraso: *', 'fc-recovery-carts' ); ?></label>
+                    <div class="mb-5">
+                        <label class="form-label text-left mb-3"><?php esc_html_e( 'Atraso: *', 'fc-recovery-carts' ); ?></label>
 
                         <div class="input-group get-delay-info">
                             <input id="fcrc_add_new_follow_up_delay_time" type="number" class="form-control" min="0" placeholder="<?php esc_attr_e( '1', 'fc-recovery-carts' ); ?>">
@@ -78,14 +66,10 @@ defined('ABSPATH') || exit; ?>
                             </select>
                         </div>
                     </div>
-
-                    <div class="placeholders mb-4">
-                        <?php echo Admin_Components::render_placeholders(); ?>
-                    </div>
                 </div>
 
                 <div class="fcrc-popup-footer">
-                    <button id="fcrc_add_new_follow_up_save" class="btn btn-primary"><?php esc_html_e( 'Salvar', 'fc-recovery-carts' ); ?></button>
+                    <button id="fcrc_add_new_follow_up_save" class="btn btn-primary"><?php esc_html_e( 'Adicionar', 'fc-recovery-carts' ); ?></button>
                 </div> 
             </div>
         </div>

@@ -140,7 +140,7 @@ class Helpers {
         // Build query parameters
         $query_params = array(
             'recovery_cart' => $cart_id, // Cart ID identifier
-            'utm_source' => 'joinotify',
+            'utm_source' => 'fc-recovery-carts',
             'utm_medium' => $medium,
             'utm_campaign' => 'recovery_carts',
         );
