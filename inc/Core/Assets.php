@@ -49,6 +49,10 @@ class Assets {
                 wp_enqueue_style( 'bootstrap-utilities', FC_RECOVERY_CARTS_ASSETS . 'vendor/bootstrap/bootstrap-utilities.min.css', array(), '5.3.3' );
 			}
 
+            // EmojioneArea library
+			wp_enqueue_style( 'fcrc-emojionearea-styles', 'https://cdn.rawgit.com/mervick/emojionearea/master/dist/emojionearea.min.css', array(), '3.4.1' );
+            wp_enqueue_script( 'fcrc-emojionearea-scripts', 'https://cdn.rawgit.com/mervick/emojionearea/master/dist/emojionearea.min.js', array('jquery'), '3.4.1' );
+
             // settings scripts
 			wp_enqueue_style( 'fc-recovery-carts-styles', FC_RECOVERY_CARTS_ASSETS . 'admin/css/settings'. $min_file .'.css', array(), FC_RECOVERY_CARTS_VERSION );
 			wp_enqueue_script( 'fc-recovery-carts-scripts', FC_RECOVERY_CARTS_ASSETS . 'admin/js/settings'. $min_file .'.js', array('jquery'), FC_RECOVERY_CARTS_VERSION, true );
@@ -61,6 +65,22 @@ class Assets {
 				'i18n' => array(
 					'toast_aria_label' => esc_html__( 'Fechar', 'fc-recovery-carts' ),
                     'confirm_delete_follow_up' => esc_html__( 'Tem certeza que deseja excluir este evento?', 'fc-recovery-carts' ),
+                    'emoji_picker' => array(
+						'placeholder' => esc_html__( 'Pesquisar', 'fc-recovery-carts' ),
+						'button_title' => esc_html__( 'Use a tecla TAB para inserir um emoji rapidamente', 'fc-recovery-carts' ),
+						'filters' => array(
+							'tones_title' => esc_html__( 'Diversidade', 'fc-recovery-carts' ),
+							'recent_title' => esc_html__( 'Recentes', 'fc-recovery-carts' ),
+							'smileys_people_title' => esc_html__( 'Sorrisos e Pessoas', 'fc-recovery-carts' ),
+							'animals_nature_title' => esc_html__( 'Animais e Natureza', 'fc-recovery-carts' ),
+							'food_drink_title' => esc_html__( 'Comidas e Bebidas', 'fc-recovery-carts' ),
+							'activity_title' => esc_html__( 'Atividades', 'fc-recovery-carts' ),
+							'travel_places_title' => esc_html__( 'Viajens e Lugares', 'fc-recovery-carts' ),
+							'objects_title' => esc_html__( 'Objetos', 'fc-recovery-carts' ),
+							'symbols_title' => esc_html__( 'Símbolos', 'fc-recovery-carts' ),
+							'flags_title' => esc_html__( 'Bandeiras', 'fc-recovery-carts' ),
+						),
+					),
 				),
                 'enable_international_phone' => Admin::get_switch('enable_international_phone_modal'),
 			));

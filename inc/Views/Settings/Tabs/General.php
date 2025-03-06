@@ -87,13 +87,9 @@ defined('ABSPATH') || exit; ?>
                                         </tr>
 
                                         <tr>
-                                            <th class="w-50">
-                                                <?php esc_html_e( 'Cupom a ser enviado', 'fc-recovery-carts' ); ?>
-                                                <span class="fc-recovery-carts-description"><?php esc_html_e( 'Configure o cupom para ser enviado ao usuário ao preencher o formulário.', 'fc-recovery-carts' ); ?></span>
+                                            <th class="w-100">
+                                                <?php echo Admin_Components::render_coupon_form( 'collect_lead_modal', Admin::get_setting('collect_lead_modal')['coupon'] ); ?>
                                             </th>
-                                            <td class="w-50">
-                                                <?php echo Admin_Components::render_coupon_form( 'collect_lead_modal',  Admin::get_setting('collect_lead_modal')['coupon'] ); ?>
-                                            </td>
                                         </tr>
 
                                         <tr>
@@ -102,12 +98,16 @@ defined('ABSPATH') || exit; ?>
                                                 <span class="fc-recovery-carts-description"><?php esc_html_e( 'Mensagem que será enviada ao usuário ao enviar os dados do formulário.', 'fc-recovery-carts' ); ?></span>
                                             </th>
                                             <td class="w-50">
-                                                <textarea id="message_to_send_lead_collected" class="form-control" name="collect_lead_modal[message]"><?php echo esc_textarea( Admin::get_setting('collect_lead_modal')['message'] ) ?></textarea>
+                                                <textarea id="message_to_send_lead_collected" class="form-control add-emoji-picker" name="collect_lead_modal[message]"><?php echo esc_textarea( Admin::get_setting('collect_lead_modal')['message'] ) ?></textarea>
+                                            </td>
+                                        </tr>
 
+                                        <tr>
+                                            <th class="w-100">
                                                 <div class="placeholders mt-4">
                                                     <?php echo Admin_Components::render_placeholders(); ?>
                                                 </div>
-                                            </td>
+                                            </th>
                                         </tr>
                                     </tbody>
                                 </table>

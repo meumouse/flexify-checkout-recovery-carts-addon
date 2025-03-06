@@ -88,7 +88,11 @@ class Components {
 
                                                 <div class="mb-5">
                                                     <label class="form-label text-left"><?php esc_html_e( 'Mensagem: *', 'fc-recovery-carts' ); ?></label>
-                                                    <textarea class="form-control get-follow-up-message" name="follow_up_events[<?php esc_attr_e( $key ) ?>][message]" placeholder="<?php esc_attr_e( 'Mensagem que será enviada', 'fc-recovery-carts' ); ?>"><?php echo esc_textarea( $follow_up['message'] ) ?></textarea>
+                                                    <textarea class="form-control get-follow-up-message add-emoji-picker" name="follow_up_events[<?php esc_attr_e( $key ) ?>][message]" placeholder="<?php esc_attr_e( 'Mensagem que será enviada', 'fc-recovery-carts' ); ?>"><?php echo esc_textarea( $follow_up['message'] ) ?></textarea>
+                                                </div>
+
+                                                <div class="placeholders mb-5">
+                                                    <?php echo self::render_placeholders(); ?>
                                                 </div>
 
                                                 <div class="mb-5">
@@ -105,10 +109,10 @@ class Components {
                                                 </div>
 
                                                 <div class="mb-5">
-                                                    <label class="form-label text-left"><?php esc_html_e( 'Atraso: *', 'fc-recovery-carts' ); ?></label>
+                                                    <label class="form-label text-left mb-3"><?php esc_html_e( 'Atraso: *', 'fc-recovery-carts' ); ?></label>
 
                                                     <div class="input-group get-delay-info">
-                                                        <input type="number" class="form-control get-delay-time" name="follow_up_events[<?php esc_attr_e( $key ) ?>][delay_time]" placeholder="<?php esc_attr_e( '1', 'fc-recovery-carts' ); ?>" value="<?php esc_attr_e( $follow_up['delay_time'] ?? '' ); ?>">
+                                                        <input type="number" class="form-control get-delay-time" name="follow_up_events[<?php esc_attr_e( $key ) ?>][delay_time]" min="0" placeholder="<?php esc_attr_e( '1', 'fc-recovery-carts' ); ?>" value="<?php esc_attr_e( $follow_up['delay_time'] ?? '' ); ?>">
 
                                                         <select class="form-select get-delay-unit" name="follow_up_events[<?php esc_attr_e( $key ) ?>][delay_type]">
                                                             <option value="minutes" <?php selected( $follow_up['delay_type'] ?? '', 'minutes' ); ?>><?php esc_html_e( 'Minutos', 'fc-recovery-carts' ); ?></option>
@@ -116,10 +120,6 @@ class Components {
                                                             <option value="days" <?php selected( $follow_up['delay_type'] ?? '', 'days' ); ?>><?php esc_html_e( 'Dias', 'fc-recovery-carts' ); ?></option>
                                                         </select>
                                                     </div>
-                                                </div>
-
-                                                <div class="placeholders mb-5">
-                                                    <?php echo self::render_placeholders(); ?>
                                                 </div>
                                             </div>
                                         </div>
@@ -180,12 +180,12 @@ class Components {
         <div class="coupon-form-wrapper">
             <div class="enable-send-coupon-wrapper mb-4 d-flex align-items-center">
                 <label class="form-label text-left me-3"><?php esc_html_e( 'Ativar envio de cupom:', 'fc-recovery-carts' ); ?></label>
-                <input type="checkbox" class="toggle-switch toggle-switch-sm enable-send-coupon" name="<?php printf( '%s[coupon][enabled]', $index ); ?>" <?php checked( $settings['enabled'] ?? '', 'yes' ); ?>>
+                <input type="checkbox" class="toggle-switch toggle-switch-sm enable-send-coupon" name="<?php printf( '%s[coupon][enabled]', $index ); ?>" value="yes" <?php checked( $settings['enabled'] === 'yes' ); ?>>
             </div>
 
             <div class="generate-coupon-wrapper mb-4 d-flex align-items-center">
                 <label class="form-label text-left me-3"><?php esc_html_e( 'Gerar cupom automaticamente:', 'fc-recovery-carts' ); ?></label>
-                <input type="checkbox" class="toggle-switch toggle-switch-sm enable-generate-coupon" name="<?php printf( '%s[coupon][generate_coupon]', $index ); ?>" <?php checked( $settings['generate_coupon'] ?? '', 'yes' ); ?>>
+                <input type="checkbox" class="toggle-switch toggle-switch-sm enable-generate-coupon" name="<?php printf( '%s[coupon][generate_coupon]', $index ); ?>" value="yes" <?php checked( $settings['generate_coupon'] === 'yes' ); ?>>
             </div>
 
             <div class="coupon-preset-wrapper mb-4">
@@ -198,7 +198,7 @@ class Components {
                 )); ?>
 
                 <select name="<?php printf( '%s[coupon][coupon_code]', $index ); ?>" class="form-select get-coupon-code">
-                    <option value="none" <?php selected( $settings['coupon_code'] ?? '', 'none', true ) ?>><?php esc_html_e( 'Não enviar nenhum cupom', 'fc-recovery-carts' ); ?></option>
+                    <option value="none" <?php selected( $settings['coupon_code'] ?? '', 'none', true ) ?>><?php esc_html_e( 'Selecione um cupom de desconto', 'fc-recovery-carts' ); ?></option>
 
                     <?php foreach ( $coupons as $coupon ) : 
                         $coupon_code = get_the_title( $coupon->ID ); ?>
@@ -229,7 +229,7 @@ class Components {
 
             <div class="coupon-allow-free-shipping-wrapper mb-4 d-flex align-items-center">
                 <label class="form-label text-left me-3"><?php esc_html_e( 'Permitir frete grátis:', 'fc-recovery-carts' ); ?></label>
-                <input type="checkbox" class="toggle-switch toggle-switch-sm get-coupon-allow-free-shipping" name="<?php printf( '%s[coupon][allow_free_shipping]', $index ); ?>" <?php checked( $settings['allow_free_shipping'] ?? '', 'yes' ); ?>>
+                <input type="checkbox" class="toggle-switch toggle-switch-sm get-coupon-allow-free-shipping" name="<?php printf( '%s[coupon][allow_free_shipping]', $index ); ?>" value="yes" <?php checked( $settings['allow_free_shipping'] === 'yes' ); ?>>
             </div>
 
             <div class="coupon-expire-time-wrapper mb-4">
@@ -245,8 +245,6 @@ class Components {
                     </select>
                 </div>
             </div>
-
-            <div class="container-separator"></div>
 
             <div class="restrictions-wrapper mb-4">
                 <span class="d-block text-left mb-4 fs-6"><?php esc_html_e( 'Restrições:', 'fc-recovery-carts' ); ?></span>

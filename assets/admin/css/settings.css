@@ -511,9 +511,8 @@ table tr {
 }
 
 input.form-control:focus {
-    border-color: var(--fc-recovery-carts-primary) !important;
-    box-shadow: none !important;
-    outline: none !important;
+    outline: 0;
+    box-shadow: 0 0 0 0.25rem rgba(var(--fc-recovery-carts-primary-rgb), 0.25);
     z-index: 2;
 }
 
@@ -529,9 +528,8 @@ input.form-control:disabled {
 }
 
 input.form-control-color:focus {
-    border-color: var(--fc-recovery-carts-primary) !important;
-    box-shadow: none !important;
-    outline: none !important;
+    outline: 0;
+    box-shadow: 0 0 0 0.25rem rgba(var(--fc-recovery-carts-primary-rgb), 0.25);
 }
 
 input[type="color"] {
@@ -592,9 +590,8 @@ textarea.form-control {
 }
 
 .form-select:focus {
-    border-color: var(--fc-recovery-carts-primary) !important;
-    box-shadow: none !important;
-    outline: none !important;
+    outline: 0;
+    box-shadow: 0 0 0 0.25rem rgba(var(--fc-recovery-carts-primary-rgb), 0.25) !important;
 }
 
 a:focus {
@@ -1444,8 +1441,19 @@ table.popup-table th {
 }
 
 textarea.form-control:focus {
-    border-color: var(--fc-recovery-carts-primary) !important;
-    box-shadow: none;
+    outline: 0;
+    box-shadow: 0 0 0 0.25rem rgba(var(--fc-recovery-carts-primary-rgb), 0.25);
+}
+
+.add-emoji-picker.focused {
+    outline: 0;
+    box-shadow: 0 0 0 .25rem rgba(var(--fc-recovery-carts-primary-rgb), 0.25);
+}
+
+.emojionearea .emojionearea-editor {
+    padding: 0 !important;
+    font-size: 1rem !important;
+    text-align: left;
 }
 
 .card {

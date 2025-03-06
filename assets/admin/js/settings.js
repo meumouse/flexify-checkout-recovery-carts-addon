@@ -29,8 +29,9 @@
 			this.deleteFollowUp();
 			this.collectLeadSettings();
 			this.selectColor();
-			this.adjustTextareaHeight();
 			this.integrationSettings();
+			this.emojiPicker();
+			this.visibilityControllerForCoupons();
 		},
 
 		/**
@@ -297,7 +298,19 @@
 						delay_type: follow_up_delay_type.val(),
 						whatsapp: whatsapp_channel.prop('checked') ? 'yes' : 'no',
 						email: '',
-						coupon: coupon.val(),
+						coupon: {
+							enabled: '',
+							generate_coupon: '',
+							coupon_prefix: '',
+							coupon_code: '',
+							discount_type: '',
+							discount_value: '',
+							allow_free_shipping: '',
+							expiration_time: '',
+							expiration_time_unit: '',
+							limit_usages: '',
+							limit_usages_per_user: '',
+						},
 					},
 					beforeSend: function() {
 						btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm"></span>');
@@ -489,45 +502,6 @@
 			});
 		},
 
-
-		/**
-		 * Adjust textarea height based on content
-		 * 
-		 * @since 1.0.0
-		 */
-		adjustTextareaHeight: function() {
-			/**
-			 * Adjust the height of a textarea based on its content
-			 * 
-			 * @since 1.0.0
-			 * @param {object} textarea | Textarea element
-			 */
-			function adjustHeight(textarea) {
-				if (textarea.length === 0) return; // Ensure the element exists
-		
-				textarea.css({
-					"height": "auto", // Reset height to recalculate
-					"min-height": "40px", // Prevent height from being 0px
-				});
-		
-				setTimeout(() => {
-					let newHeight = textarea[0].scrollHeight;
-
-					if (newHeight > 0) {
-						textarea.css("height", newHeight + "px"); // Set new height based on content
-					}
-				}, 10); // Slight delay for better calculation
-			}
-		
-			$('.get-follow-up-message').each(function() {
-				adjustHeight($(this)); // Adjust on page load
-		
-				$(this).on('input', function () {
-					adjustHeight($(this)); // Adjust on input
-				});
-			});
-		},
-
 		/**
 		 * Display Joinotify integration settings
 		 * 
@@ -551,19 +525,142 @@
 		},
 
 		/**
-		 * 
-		 */
-		visibilityControllerForCoupons: function() {
-
-		},
-
-		/**
-		 * Get coupon settings for each follow up
+		 * Visibility controller for coupons
 		 * 
 		 * @since 1.0.0
 		 */
-		getCouponSettings: function() {
+		visibilityControllerForCoupons: function() {
+			/**
+			 * Display or hide coupon wrappers
+			 * 
+			 * @since 1.0.0
+			 * @param {string} container | Container selector
+			 * @param {string} toggle | Toggle selector
+			 */
+			function display_coupon_wrappers(container, toggle) {
+				let generate_enabled = container.siblings('.generate-coupon-wrapper').find('.enable-generate-coupon').prop('checked');
 
+				container.siblings('.generate-coupon-wrapper').toggleClass('d-none', ! toggle);
+				container.siblings('.coupon-preset-wrapper').toggleClass('d-none', ! toggle);
+				container.siblings('.coupon-prefix-wrapper').toggleClass('d-none', ! toggle);
+				container.siblings('.discount-type-wrapper').toggleClass('d-none', ! toggle);
+				container.siblings('.coupon-value-wrapper').toggleClass('d-none', ! toggle);
+				container.siblings('.coupon-allow-free-shipping-wrapper').toggleClass('d-none', ! toggle);
+				container.siblings('.coupon-expire-time-wrapper').toggleClass('d-none', ! toggle);
+				container.siblings('.restrictions-wrapper').toggleClass('d-none', ! toggle);
+
+				// send coupon is active
+				if ( toggle ) {
+					if ( generate_enabled ) {
+						container.siblings('.coupon-preset-wrapper').addClass('d-none');
+						container.siblings('.coupon-prefix-wrapper').removeClass('d-none');
+					} else {
+						container.siblings('.coupon-preset-wrapper').removeClass('d-none');
+						container.siblings('.coupon-prefix-wrapper').addClass('d-none');
+					}
+				}
+			}
+
+			// hide/show coupon settings on change
+			$(document).on('change', '.enable-send-coupon', function() {
+				let enabled = $(this).prop('checked');
+				let container = $(this).parent('.enable-send-coupon-wrapper');
+
+				display_coupon_wrappers(container, enabled);
+			});
+			
+			// hide/show coupon settings on load page
+			$('.enable-send-coupon').each( function() {
+				let enabled = $(this).prop('checked');
+				let container = $(this).parent('.enable-send-coupon-wrapper');
+
+				setTimeout(() => {
+					display_coupon_wrappers(container, enabled);
+				}, 500 );
+			});
+
+			$(document).on('change', '.enable-generate-coupon', function() {
+				let enabled = $(this).prop('checked');
+				let container = $(this).parent('.generate-coupon-wrapper');
+
+				container.siblings('.coupon-preset-wrapper').toggleClass('d-none', enabled);
+				container.siblings('.coupon-prefix-wrapper').toggleClass('d-none', ! enabled);
+			});
+
+			$('.enable-generate-coupon').each( function() {
+				let enabled = $(this).prop('checked');
+				let container = $(this).parent('.generate-coupon-wrapper');
+
+				container.siblings('.coupon-preset-wrapper').toggleClass('d-none', enabled);
+				container.siblings('.coupon-prefix-wrapper').toggleClass('d-none', ! enabled);
+			});
+		},
+
+		/**
+		 * Emoji picker
+		 * 
+		 * @since 1.0.0
+		 */
+		emojiPicker: function() {
+			var i18n = params.i18n.emoji_picker;
+
+			// check if emoji picker is already initialized
+			if ( ! $('.add-emoji-picker').hasClass('emoji-initialized') ) {
+				// wait DOM is ready for initialize	
+				setTimeout( () => {
+					// initialize emoji picker
+					$('.add-emoji-picker').emojioneArea({
+						tones: true,
+						hidePickerOnBlur: true,
+						recentEmojis: true,
+						pickerPosition: 'bottom',
+						searchPlaceholder: i18n.placeholder,
+						buttonTitle: i18n.button_title,
+						filters: {
+							tones: {
+								title: i18n.filters.tones_title,
+							},
+							recent: {
+								title: i18n.filters.recent_title,
+							},
+							smileys_people: {
+								title: i18n.filters.smileys_people_title,
+							},
+							animals_nature: {
+								title: i18n.filters.animals_nature_title,
+							},
+							food_drink: {
+								title: i18n.filters.food_drink_title,
+							},
+							activity: {
+								title: i18n.filters.activity_title,
+							},
+							travel_places: {
+								title: i18n.filters.travel_places_title,
+							},
+							objects: {
+								title: i18n.filters.objects_title,
+							},
+							symbols: {
+								title: i18n.filters.symbols_title,
+							},
+							flags: {
+								title: i18n.filters.flags_title,
+							},
+						},
+					});
+				}, 600);
+
+				// initialize emoji picker
+				$('.add-emoji-picker').addClass('emoji-initialized');
+			}
+
+			// Update the textarea on keyup event in the emojionearea editor
+			$(document).on('keyup change', '.emojionearea-editor', function() {
+				var content = $(this).html();
+
+				$(this).closest('.add-emoji-picker').val(content); // Update the textarea with the current content
+		  	});
 		},
 	};
 

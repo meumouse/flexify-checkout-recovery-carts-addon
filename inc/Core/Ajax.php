@@ -144,7 +144,19 @@ class Ajax {
                 'channels' => array(
                     'whatsapp' => $whatsapp,
                 ),
-                'coupon' => $coupon,
+                'coupon' => array(
+                    'enabled' => '',
+                    'generate_coupon' => '',
+                    'coupon_prefix' => '',
+                    'coupon_code' => '',
+                    'discount_type' => '',
+                    'discount_value' => '',
+                    'allow_free_shipping' => '',
+                    'expiration_time' => '',
+                    'expiration_time_unit' => '',
+                    'limit_usages' => '',
+                    'limit_usages_per_user' => '',
+                ),
             );
 
             // update options
