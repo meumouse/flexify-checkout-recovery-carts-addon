@@ -132,8 +132,8 @@ if ( ! class_exists('Flexify_Checkout_Recovery_Carts') ) {
 			$this->define( 'FC_RECOVERY_CARTS_DOCS_URL', 'https://ajuda.meumouse.com/docs/fc-recovery-carts/overview' );
 			$this->define( 'FC_RECOVERY_CARTS_SLUG', self::$slug );
 			$this->define( 'FC_RECOVERY_CARTS_VERSION', self::$version );
-            $this->define( 'FC_RECOVERY_CARTS_DEBUG_MODE', true );
-			$this->define( 'FC_RECOVERY_CARTS_DEV_MODE', true );
+            $this->define( 'FC_RECOVERY_CARTS_DEBUG_MODE', false );
+			$this->define( 'FC_RECOVERY_CARTS_DEV_MODE', false );
         }
 
 

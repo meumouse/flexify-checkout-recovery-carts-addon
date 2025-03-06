@@ -63,7 +63,7 @@ class Recovery_Handler {
     public function check_abandoned_carts() {
         $time_limit_seconds = Helpers::get_abandonment_time_seconds();
 
-        $args = array(
+        $query = new \WP_Query( array(
             'post_type' => 'fc-recovery-carts',
             'post_status' => array('shopping', 'abandoned'),
             'posts_per_page' => -1,
@@ -75,9 +75,7 @@ class Recovery_Handler {
                     'type' => 'NUMERIC',
                 ),
             ),
-        );
-
-        $query = new \WP_Query( $args );
+        ));
 
         if ( $query->have_posts() ) {
             while ( $query->have_posts() ) {

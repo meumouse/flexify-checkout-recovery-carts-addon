@@ -92,7 +92,7 @@ class Order_Abandonment {
             return;
         }
 
-        $cart_id = WC()->session->get('fcrc_cart_id');
+        $cart_id = get_post_meta( $order_id, '_fcrc_cart_id', true );
 
         if ( ! $cart_id ) {
             return;
@@ -118,7 +118,7 @@ class Order_Abandonment {
 
 
     /**
-     * Saves the cart ID to the order meta when a new order is created
+     * Saves the cart ID, products, and billing details to the order meta when a new order is created
      *
      * @since 1.0.0
      * @param int $order_id | The order ID
@@ -129,16 +129,91 @@ class Order_Abandonment {
             return;
         }
 
-        // try to get the cart_id from the session or cookie
+        $order = wc_get_order( $order_id );
+
+        if ( ! $order ) {
+            return;
+        }
+
+        // Try to get the cart ID from the session or cookie
         $cart_id = WC()->session->get('fcrc_cart_id') ?: ( $_COOKIE['fcrc_cart_id'] ?? null );
 
-        if ( $cart_id ) {
-            update_post_meta( $order_id, '_fcrc_cart_id', $cart_id );
+        if ( ! $cart_id ) {
+            return;
+        }
 
-            if ( FC_RECOVERY_CARTS_DEV_MODE ) {
-                error_log( "Cart ID {$cart_id} saved to order {$order_id}" );
+        // Retrieve stored cart meta
+        $stored_meta = get_post_meta( $cart_id );
+
+        // Get billing information from the order
+        $billing_first_name = $order->get_billing_first_name();
+        $billing_last_name = $order->get_billing_last_name();
+        $billing_full_name = sprintf( '%s %s', $billing_first_name, $billing_last_name );
+        $billing_phone = $order->get_billing_phone();
+        $billing_email = $order->get_billing_email();
+        $order_total = $order->get_total();
+        $user_id = $order->get_user_id();
+
+        // Prepare updated meta data
+        $updated_meta = array(
+            '_fcrc_first_name' => $billing_first_name,
+            '_fcrc_last_name' => $billing_last_name,
+            '_fcrc_full_name' => $billing_full_name,
+            '_fcrc_cart_phone' => $billing_phone,
+            '_fcrc_cart_email' => $billing_email,
+            '_fcrc_cart_total' => $order_total,
+            '_fcrc_user_id' => $user_id ?: 0,
+        );
+
+        // Compare existing meta and update only if different
+        foreach ( $updated_meta as $meta_key => $new_value ) {
+            $stored_value = isset( $stored_meta[$meta_key][0] ) ? $stored_meta[$meta_key][0] : null;
+
+            if ( $stored_value !== $new_value ) {
+                update_post_meta( $cart_id, $meta_key, $new_value );
             }
         }
+
+        // Retrieve order items
+        $order_items = array();
+        foreach ( $order->get_items() as $item_id => $item ) {
+            $product_id = $item->get_product_id();
+            $quantity = $item->get_quantity();
+            $price = floatval( $item->get_total() ) / $quantity;
+
+            $order_items[$product_id] = array(
+                'product_id' => $product_id,
+                'quantity' => $quantity,
+                'price' => $price,
+                'total' => $item->get_total(),
+                'name' => $item->get_name(),
+                'image' => get_the_post_thumbnail_url( $product_id, 'thumbnail' ),
+            );
+        }
+
+        // Compare and update cart items only if changed
+        $stored_cart_items = get_post_meta( $cart_id, '_fcrc_cart_items', true ) ?: array();
+        
+        if ( json_encode( $stored_cart_items ) !== json_encode( $order_items ) ) {
+            update_post_meta( $cart_id, '_fcrc_cart_items', $order_items );
+        }
+
+        // Mark cart as purchased
+        update_post_meta( $cart_id, '_fcrc_purchased', true );
+        update_post_meta( $order_id, '_fcrc_cart_id', $cart_id );
+
+        if ( FC_RECOVERY_CARTS_DEV_MODE ) {
+            error_log( "Cart ID {$cart_id} updated with billing info for order {$order_id}" );
+        }
+
+        /**
+         * Fire a hook when a cart is recovered
+         *
+         * @since 1.0.0
+         * @param int $cart_id | The cart ID
+         * @param int $order_id | The WooCommerce order ID
+         */
+        do_action( 'Flexify_Checkout/Recovery_Carts/Cart_Recovered', $cart_id, $order_id );
     }
 
 
@@ -169,8 +244,7 @@ class Order_Abandonment {
             'post_status' => 'recovered',
         ));
 
-        // Remove abandoned time meta since the cart is recovered
-        delete_post_meta( $cart_id, '_fcrc_abandoned_time' );
+        update_post_meta( $cart_id, '_fcrc_purchased', true );
 
         if ( FC_RECOVERY_CARTS_DEV_MODE ) {
             error_log( "Cart ID {$cart_id} linked to Order ID {$order_id} marked as recovered." );

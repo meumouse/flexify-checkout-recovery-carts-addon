@@ -5,6 +5,7 @@ namespace MeuMouse\Flexify_Checkout\Recovery_Carts\Integrations;
 use MeuMouse\Flexify_Checkout\Recovery_Carts\Admin\Admin;
 use MeuMouse\Flexify_Checkout\Recovery_Carts\Core\Placeholders;
 use MeuMouse\Flexify_Checkout\Recovery_Carts\Core\Helpers;
+use MeuMouse\Flexify_Checkout\Recovery_Carts\Core\Coupons;
 
 use MeuMouse\Joinotify\Core\Helpers as Joinotify_Helpers;
 
@@ -86,20 +87,22 @@ class Joinotify extends Integrations_Base {
      * @return void
      */
     public function send_coupon_message( $cart_id, $lead_data ) {
+        $modal_data = Admin::get_setting('collect_lead_modal');
+
         // check if message must be sent
-        if ( Admin::get_switch('enable_modal_add_to_cart') !== 'yes' || Admin::get_setting('collect_lead_modal')['coupon']['enabled'] !== 'yes' ) {
+        if ( Admin::get_switch('enable_modal_add_to_cart') !== 'yes' || $modal_data['coupon']['enabled'] !== 'yes' ) {
             return;
         }
 
-        $generate_coupon = Admin::get_setting('collect_lead_modal')['coupon']['generate_coupon'];
+        $generate_coupon = $modal_data['coupon']['generate_coupon'];
 
         // get coupon code
         if ( $generate_coupon === 'yes' ) {
-            Helpers::generate_wc_coupon( Admin::get_setting('collect_lead_modal')['coupon'], $cart_id );
+            Coupons::generate_wc_coupon( $modal_data['coupon'], $cart_id );
             
             $coupon_code = get_post_meta( $cart_id, '_fcrc_coupon_code', true );
         } else {
-            $coupon_code = Admin::get_setting('collect_lead_modal')['coupon']['coupon_code'];
+            $coupon_code = $modal_data['coupon']['coupon_code'];
         }
 
         // check if Joinotify is active
@@ -112,10 +115,17 @@ class Joinotify extends Integrations_Base {
             );
 
             // Replace placeholders in the message
-            $message = Placeholders::replace_placeholders( Admin::get_setting('collect_lead_modal')['message'], $replacement );
+            $message = Placeholders::replace_placeholders( $modal_data['message'], $replacement );
             $sender = Admin::get_setting('joinotify_sender_phone');
             $receiver = function_exists('joinotify_prepare_receiver') ? joinotify_prepare_receiver( $lead_data['phone'] ) : $lead_data['phone'];
 
+            if ( FC_RECOVERY_CARTS_DEV_MODE ) {
+                error_log( 'Sending coupon message for cart: ' . $cart_id );
+                error_log( 'Message: ' . print_r( $message, true ) );
+                error_log( 'Sender: ' . $sender );
+                error_log( 'Receiver: ' . $receiver );
+            }
+            
             joinotify_send_whatsapp_message_text( $sender, $receiver, $message );
         }
     }

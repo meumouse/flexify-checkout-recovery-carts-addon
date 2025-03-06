@@ -210,7 +210,17 @@ class Carts_Table extends WP_List_Table {
             return esc_html( date( 'd/m/Y H:i', strtotime( $abandoned_time ) ) );
         }
 
-        return __( 'Carrinho ainda ativo', 'fc-recovery-carts' );
+        $purchased = get_post_meta( $item->ID, '_fcrc_purchased', true );
+
+        if ( isset( $purchased ) && $purchased ) {
+            return esc_html__( 'Pedido realizado', 'fc-recovery-carts' );
+        }
+
+        if ( get_post_status( $item->ID ) === 'shopping' ) {
+            return esc_html__( 'Carrinho ainda ativo', 'fc-recovery-carts' );
+        }
+
+        return esc_html__( 'N/A', 'fc-recovery-carts' );
     }
 
 

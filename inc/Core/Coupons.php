@@ -31,15 +31,25 @@ class Coupons {
         $coupon_prefix = $coupon_data['coupon_prefix'];
     
         // Generate coupon code
-        $coupon_code = ( isset( $coupon_data['generate_coupon'] ) && $coupon_data['generate_coupon'] === 'yes' ) 
-            ? strtoupper( $coupon_prefix . wp_generate_password( 6, false ) ) 
-            : '';
+        $coupon_code = ( isset( $coupon_data['generate_coupon'] ) && $coupon_data['generate_coupon'] === 'yes' ) ? strtoupper( $coupon_prefix . wp_generate_password( 6, false ) ) : '';
     
         // Check if coupon already exists
-        if ( get_page_by_title( $coupon_code, OBJECT, 'shop_coupon' ) ) {
+        $query = new \WP_Query( array(
+            'post_type' => 'shop_coupon',
+            'title' => $coupon_code,
+            'post_status' => 'publish',
+            'posts_per_page' => 1,
+            'fields' => 'ids',
+        ));
+
+        if ( $query->have_posts() ) {
             error_log( 'Coupon already exists.' );
+            
             return new \WP_Error( 'duplicate_coupon', __( 'O cupom já existe.', 'fc-recovery-carts' ) );
         }
+
+        // reset query
+        wp_reset_postdata();
     
         // Create WooCommerce coupon object
         $coupon = new \WC_Coupon();
@@ -50,9 +60,7 @@ class Coupons {
     
         // Determine expiration time
         $time_now = time();
-        $expiry_seconds = ! empty( $coupon_data['expiration_time'] ) 
-            ? self::convert_to_seconds( $coupon_data['expiration_time'], $coupon_data['expiration_time_unit'] ) 
-            : 0;
+        $expiry_seconds = ! empty( $coupon_data['expiration_time'] ) ? Helpers::convert_to_seconds( $coupon_data['expiration_time'], $coupon_data['expiration_time_unit'] ) : 0;
     
         // Adjust expiration logic
         if ( $expiry_seconds < DAY_IN_SECONDS ) {
@@ -81,7 +89,9 @@ class Coupons {
         update_post_meta( $cart_id, '_fcrc_coupon_expiration_date', $expiry_timestamp );
     
         // Schedule an event to update expiration to the previous day
-        wp_schedule_single_event( $expiry_timestamp, 'fcrc_update_coupon_expiration', array( $coupon->get_id() ) );
+        if ( ! empty( $coupon_data['expiration_time'] ) ) {
+            wp_schedule_single_event( $expiry_timestamp, 'fcrc_update_coupon_expiration', array( $coupon->get_id() ) );
+        }
 
         if (  FC_RECOVERY_CARTS_DEV_MODE ) {
             error_log( 'Coupon ID: ' . $coupon->get_id() );

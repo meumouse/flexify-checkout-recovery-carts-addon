@@ -79,7 +79,7 @@ class Cart_Events {
             }
         }
 
-        $this->sync_cart_with_post();
+        self::sync_cart_with_post();
     }
 
 
@@ -93,8 +93,9 @@ class Cart_Events {
      * @return void
      */
     public function update_cart_post_on_change( $cart_item_key, $cart ) {
-        $this->sync_cart_with_post();
+        self::sync_cart_with_post();
     }
+    
 
     /**
      * Handles the cart being emptied and resets the cart post.
@@ -125,10 +126,16 @@ class Cart_Events {
      * Synchronizes WooCommerce cart data with the recovery cart post
      *
      * @since 1.0.0
+     * @param string $cart_id | The cart ID
      * @return void
      */
-    private function sync_cart_with_post() {
-        $recovery_cart_id = WC()->session->get('fcrc_cart_id');
+    public static function sync_cart_with_post( $cart_id = null ) {
+
+        if ( ! empty( $cart_id ) ) {
+            $recovery_cart_id = $cart_id;
+        } else {
+            $recovery_cart_id = WC()->session->get('fcrc_cart_id');
+        }
 
         if ( ! $recovery_cart_id ) {
             return;
@@ -165,7 +172,6 @@ class Cart_Events {
         // Update cart post metadata
         update_post_meta( $recovery_cart_id, '_fcrc_cart_items', $cart_items );
         update_post_meta( $recovery_cart_id, '_fcrc_cart_total', $cart_total );
-        update_post_meta( $recovery_cart_id, '_fcrc_abandoned_time', '' );
         update_post_meta( $recovery_cart_id, '_fcrc_cart_updated_time', time() );
 
         // Set status to "shopping"

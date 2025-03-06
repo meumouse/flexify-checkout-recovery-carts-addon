@@ -77,7 +77,7 @@
 				
 				timeout = setTimeout( function() {
 					self.collectLeadData();
-				}, 1000); // Delay to prevent multiple requests
+				}, 2000); // Delay to prevent multiple requests
 			});
 		},
 
