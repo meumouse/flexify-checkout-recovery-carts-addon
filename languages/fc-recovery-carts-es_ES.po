@@ -1,0 +1,751 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: Flexify Checkout - Recuperação de carrinhos abandonados\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2025-03-06 19:32+0000\n"
+"PO-Revision-Date: 2025-03-06 19:33+0000\n"
+"Last-Translator: \n"
+"Language-Team: Spanish (Spain)\n"
+"Language: es_ES\n"
+"Plural-Forms: nplurals=2; plural=n != 1;\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: Loco https://localise.biz/\n"
+"X-Loco-Version: 2.7.1; wp-6.7.2\n"
+"X-Domain: fc-recovery-carts"
+
+#: inc/Core/Carts_Table.php:158
+#, php-format
+msgid "%s - Qtd: %d"
+msgstr ""
+
+#: inc/Frontend/Lead_Capture.php:97
+msgid "+55 11 91234-5678"
+msgstr ""
+
+#: inc/Admin/Components.php:115 inc/Views/Settings/Tabs/FollowUp.php:60
+msgid "1"
+msgstr ""
+
+#: flexify-checkout-recovery-carts-addon.php:177
+msgid ""
+"<strong>Flexify Checkout - Recuperação de carrinhos abandonados</strong> "
+"requer o plugin Flexify Checkout para WooCommerce."
+msgstr ""
+
+#: flexify-checkout-recovery-carts-addon.php:163
+msgid ""
+"<strong>Flexify Checkout - Recuperação de Carrinhos</strong> requer PHP 7.4 "
+"ou superior. Atualize seu ambiente de hospedagem."
+msgstr ""
+
+#: inc/Core/Updater.php:241
+msgid ""
+"A versão do plugin <strong>Flexify Checkout - Recuperação de carrinhos "
+"abandonados</strong> é a mais recente."
+msgstr ""
+
+#: inc/Core/Carts_Table.php:240
+msgid "Abandonado"
+msgstr ""
+
+#: inc/Admin/Admin.php:384
+msgctxt "add new on admin bar"
+msgid "Carrinho"
+msgstr ""
+
+#: inc/Views/Settings/Tabs/FollowUp.php:72
+msgid "Adicionar"
+msgstr ""
+
+#: inc/Admin/Admin.php:386
+msgid "Adicionar novo carrinho"
+msgstr ""
+
+#: inc/Views/Settings/Tabs/FollowUp.php:19
+msgid "Adicionar novo evento"
+msgstr ""
+
+#: inc/Views/Settings/Tabs/FollowUp.php:24
+msgid "Adicionar novo follow up"
+msgstr ""
+
+#: inc/Admin/Admin.php:383
+msgctxt "admin menu"
+msgid "Carrinhos"
+msgstr ""
+
+#: inc/Core/Assets.php:75
+msgid "Animais e Natureza"
+msgstr ""
+
+#: inc/Core/Ajax.php:98
+msgid "As configurações foram atualizadas!"
+msgstr ""
+
+#: inc/Admin/Components.php:186
+msgid "Ativar envio de cupom:"
+msgstr ""
+
+#: inc/Views/Settings/Tabs/General.php:21
+msgid "Ativar modal de coleta de lead"
+msgstr ""
+
+#: inc/Views/Settings/Tabs/General.php:61
+msgid "Ativar telefone internacional no modal"
+msgstr ""
+
+#: inc/Views/Settings_Info.php:28
+msgid ""
+"Ative a versão Pro do Flexify Checkout para liberar as configurações deste "
+"plugin"
+msgstr ""
+
+#: inc/Views/Settings/Tabs/General.php:72
+msgid ""
+"Ative essa opção para exibir o modal de coleta de leads apenas para usuários "
+"logados."
+msgstr ""
+
+#: inc/Views/Settings/Tabs/General.php:22 inc/Views/Settings/Tabs/Styles.php:21
+msgid ""
+"Ative essa opção para exibir o modal de coleta informações de contato quando "
+"o usuário adicionar um produto ao carrinho."
+msgstr ""
+
+#: inc/Views/Settings/Tabs/General.php:62
+msgid ""
+"Ative essa opção para exibir o seletor de lista de países dentro do modal de "
+"coleta de leads (Recomendado)."
+msgstr ""
+
+#: inc/Core/Assets.php:77
+msgid "Atividades"
+msgstr ""
+
+#: inc/Admin/Components.php:112 inc/Views/Settings/Tabs/FollowUp.php:57
+msgid "Atraso: *"
+msgstr ""
+
+#: inc/Core/Assets.php:81
+msgid "Bandeiras"
+msgstr ""
+
+#: inc/Admin/Components.php:99 inc/Views/Settings/Tabs/FollowUp.php:44
+msgid "Canal da notificação: *"
+msgstr ""
+
+#: inc/Core/Carts_Table.php:32
+msgid "Carrinho"
+msgstr ""
+
+#: inc/Admin/Admin.php:385
+msgctxt "carrinho"
+msgid "Adicionar novo"
+msgstr ""
+
+#: inc/Core/Carts_Table.php:220
+msgid "Carrinho ainda ativo"
+msgstr ""
+
+#: inc/Admin/Admin.php:392
+msgid "Carrinho pai:"
+msgstr ""
+
+#: inc/Core/Carts_Table.php:33
+msgid "Carrinhos"
+msgstr ""
+
+#. label
+#: inc/Admin/Admin.php:46
+msgid "Carrinhos abandonados"
+msgstr ""
+
+#: inc/Views/Settings.php:15 inc/Views/Settings_Info.php:13
+msgid "Central de ajuda"
+msgstr ""
+
+#: inc/Core/Assets.php:76
+msgid "Comidas e Bebidas"
+msgstr ""
+
+#: inc/Core/Carts_Table.php:239
+msgid "Comprando"
+msgstr ""
+
+#: inc/Integrations/Joinotify.php:45 inc/Views/Settings/Tabs/General.php:27
+msgid "Configurar"
+msgstr ""
+
+#: inc/Views/Settings/Tabs/General.php:32
+msgid "Configurar modal de coleta de leads"
+msgstr ""
+
+#: inc/Views/Settings/Tabs/General.php:150
+msgid "Configurar tempo de atraso para formas de pagamentos"
+msgstr ""
+
+#. parent page slug
+#. page title
+#: flexify-checkout-recovery-carts-addon.php:192 inc/Admin/Admin.php:68
+#: inc/Admin/Admin.php:69 inc/Admin/Admin.php:77 inc/Admin/Admin.php:78
+msgid "Configurações"
+msgstr ""
+
+#: inc/Integrations/Joinotify.php:50
+msgid "Configurações da integração: Joinotify"
+msgstr ""
+
+#: inc/Core/Carts_Table.php:49
+msgid "Contato"
+msgstr ""
+
+#: inc/Views/Settings/Tabs/Styles.php:20
+msgid "Cor primária"
+msgstr ""
+
+#: inc/Admin/Components.php:196
+msgid "Cupom de desconto: *"
+msgstr ""
+
+#: inc/Admin/Components.php:217
+msgid "CUPOM_"
+msgstr ""
+
+#: inc/Core/Helpers.php:43
+msgid "Código do cupom"
+msgstr ""
+
+#: inc/Frontend/Lead_Capture.php:90
+msgid "da Silva"
+msgstr ""
+
+#: inc/Core/Coupons.php:27
+msgid "Dados insuficientes para criar o cupom."
+msgstr ""
+
+#: inc/Core/Carts_Table.php:53
+msgid "Data de abandono"
+msgstr ""
+
+#: inc/Admin/Admin.php:399
+msgid "Descrição."
+msgstr ""
+
+#: inc/Admin/Components.php:120 inc/Admin/Components.php:248
+#: inc/Admin/Components.php:287 inc/Views/Settings/Tabs/FollowUp.php:65
+#: inc/Views/Settings/Tabs/General.php:142
+msgid "Dias"
+msgstr ""
+
+#: inc/Core/Assets.php:72
+msgid "Diversidade"
+msgstr ""
+
+#: flexify-checkout-recovery-carts-addon.php:212
+msgid "Documentação"
+msgstr ""
+
+#: inc/Integrations/Integrations_Base.php:36
+msgid "E-mail"
+msgstr ""
+
+#: inc/Admin/Components.php:74
+msgid "Editar"
+msgstr ""
+
+#: inc/Admin/Admin.php:388
+msgid "Editar carrinho"
+msgstr ""
+
+#: inc/Admin/Components.php:79
+msgid "Editar evento de follow up"
+msgstr ""
+
+#: inc/Views/Settings/Tabs/Integrations.php:44
+msgid "Em breve..."
+msgstr ""
+
+#: inc/Views/Settings/Tabs/Integrations.php:59
+msgid ""
+"Este plugin precisa estar instalado e ativo para ativar esta integração."
+msgstr ""
+
+#: inc/Admin/Components.php:46
+msgid "Estilos"
+msgstr ""
+
+#: inc/Core/Carts_Table.php:258
+msgid "Excluir"
+msgstr ""
+
+#: inc/Views/Settings/Tabs/General.php:122
+msgid "Fallback para nome do usuário"
+msgstr ""
+
+#: inc/Admin/Components.php:80 inc/Core/Assets.php:66
+#: inc/Frontend/Lead_Capture.php:61 inc/Integrations/Joinotify.php:51
+#: inc/Views/Settings/Tabs/FollowUp.php:25
+#: inc/Views/Settings/Tabs/General.php:33
+msgid "Fechar"
+msgstr ""
+
+#. Name of the plugin
+msgid "Flexify Checkout - Recuperação de carrinhos abandonados"
+msgstr ""
+
+#: inc/Admin/Components.php:34
+msgid "Follow Up"
+msgstr ""
+
+#: inc/Admin/Components.php:28
+msgid "Geral"
+msgstr ""
+
+#: inc/Admin/Components.php:191
+msgid "Gerar cupom automaticamente:"
+msgstr ""
+
+#: inc/Admin/Admin.php:119
+msgid "Gerenciar carrinhos"
+msgstr ""
+
+#: inc/Admin/Components.php:119 inc/Admin/Components.php:247
+#: inc/Admin/Components.php:286 inc/Views/Settings/Tabs/FollowUp.php:64
+#: inc/Views/Settings/Tabs/General.php:141
+msgid "Horas"
+msgstr ""
+
+#. Author URI of the plugin
+msgid "https://meumouse.com/"
+msgstr ""
+
+#. URI of the plugin
+msgid ""
+"https://meumouse.com/plugins/flexify-checkout-para-woocommerce/?"
+"utm_source=plugins_list&utm_medium=flexify_checkout_recovery_cart&utm_campaign=plugin_addon"
+msgstr ""
+
+#: inc/Core/Carts_Table.php:48
+msgid "ID"
+msgstr ""
+
+#: inc/Admin/Components.php:40
+msgid "Integrações"
+msgstr ""
+
+#: inc/Frontend/Lead_Capture.php:104
+msgid "joaodasilva@email.com"
+msgstr ""
+
+#: inc/Integrations/Integrations_Base.php:25
+msgid "Joinotify"
+msgstr ""
+
+#: inc/Frontend/Lead_Capture.php:85
+msgid "João"
+msgstr ""
+
+#: inc/Core/Carts_Table.php:238
+msgid "Lead"
+msgstr ""
+
+#: inc/Admin/Components.php:262
+msgid "Limite de uso por cliente:"
+msgstr ""
+
+#: inc/Admin/Components.php:257
+msgid "Limite de uso por cupom:"
+msgstr ""
+
+#: inc/Core/Helpers.php:42
+msgid "Link de recuperação do carrinho"
+msgstr ""
+
+#: inc/Core/Carts_Table.php:50
+msgid "Localização"
+msgstr ""
+
+#: inc/Core/Carts_Table.php:260
+msgid "Marcar como abandonado"
+msgstr ""
+
+#: inc/Core/Carts_Table.php:259
+msgid "Marcar como perdido"
+msgstr ""
+
+#: inc/Core/Carts_Table.php:261
+msgid "Marcar como recuperado"
+msgstr ""
+
+#: inc/Views/Settings/Tabs/General.php:97
+msgid "Mensagem a ser enviada"
+msgstr ""
+
+#: inc/Admin/Components.php:91 inc/Views/Settings/Tabs/FollowUp.php:36
+msgid "Mensagem que será enviada"
+msgstr ""
+
+#: inc/Views/Settings/Tabs/General.php:98
+msgid "Mensagem que será enviada ao usuário ao enviar os dados do formulário."
+msgstr ""
+
+#: inc/Admin/Components.php:90 inc/Views/Settings/Tabs/FollowUp.php:35
+msgid "Mensagem: *"
+msgstr ""
+
+#. Author of the plugin
+msgid "MeuMouse.com"
+msgstr ""
+
+#: inc/Admin/Components.php:118 inc/Admin/Components.php:246
+#: inc/Admin/Components.php:285 inc/Views/Settings/Tabs/FollowUp.php:63
+#: inc/Views/Settings/Tabs/General.php:140
+msgid "Minutos"
+msgstr ""
+
+#: inc/Views/Settings/Tabs/General.php:71
+msgid "Mostrar modal apenas para usuários logados"
+msgstr ""
+
+#: inc/Core/Carts_Table.php:192 inc/Core/Carts_Table.php:223
+msgid "N/A"
+msgstr ""
+
+#: inc/Admin/Admin.php:394
+msgid "Nenhum carrinho encontrado na lixeira."
+msgstr ""
+
+#: inc/Admin/Admin.php:393
+msgid "Nenhum carrinho encontrado."
+msgstr ""
+
+#: inc/Admin/Components.php:138
+msgid "Nenhum evento de follow up adicionado ainda."
+msgstr ""
+
+#: inc/Core/Carts_Table.php:149
+msgid "Nenhum produto"
+msgstr ""
+
+#: inc/Admin/Components.php:86 inc/Views/Settings/Tabs/FollowUp.php:31
+msgid "Nome do evento"
+msgstr ""
+
+#: inc/Admin/Components.php:85 inc/Views/Settings/Tabs/FollowUp.php:30
+msgid "Nome do evento: *"
+msgstr ""
+
+#: inc/Frontend/Lead_Capture.php:84
+msgid "Nome: *"
+msgstr ""
+
+#: inc/Integrations/Integrations_Base.php:37
+msgid ""
+"Notifique seus usuários e clientes com e-mails personalizados da sua marca."
+msgstr ""
+
+#: inc/Admin/Admin.php:387
+msgid "Novo carrinho"
+msgstr ""
+
+#: inc/Core/Cart_Events.php:62
+#, php-format
+msgid "Novo carrinho - %s"
+msgstr ""
+
+#: inc/Core/Ajax.php:175
+msgid "Não foi possível adicionar o novo evento."
+msgstr ""
+
+#: inc/Core/Ajax.php:218 inc/Core/Ajax.php:226
+msgid "Não foi possível remover o evento."
+msgstr ""
+
+#: inc/Core/Updater.php:248
+msgid ""
+"Não foi possível verificar atualizações para o plugin <strong>Flexify "
+"Checkout - Recuperação de carrinhos abandonados.</strong>"
+msgstr ""
+
+#: inc/Core/Carts_Table.php:133 inc/Core/Carts_Table.php:188
+msgid "Não informado"
+msgstr ""
+
+#: inc/Core/Coupons.php:48
+msgid "O cupom já existe."
+msgstr ""
+
+#: inc/Core/Ajax.php:168
+msgid "O evento foi adicionado com sucesso!"
+msgstr ""
+
+#: inc/Core/Ajax.php:211
+msgid "O evento foi removido com sucesso!"
+msgstr ""
+
+#: inc/Core/Assets.php:79
+msgid "Objetos"
+msgstr ""
+
+#: inc/Core/Ajax.php:174 inc/Core/Ajax.php:217 inc/Core/Ajax.php:225
+msgid "Ops! Ocorreu um erro"
+msgstr ""
+
+#: inc/Views/Settings/Tabs/General.php:82
+msgid ""
+"Os seletores são os componentes HTML que ao passar o mouse sobre o elemento "
+"mostra o modal. Exemplo: button[name=\"add-to-cart\"]"
+msgstr ""
+
+#: inc/Core/Carts_Table.php:241
+msgid "Pedido abandonado"
+msgstr ""
+
+#: inc/Core/Carts_Table.php:216
+msgid "Pedido realizado"
+msgstr ""
+
+#: inc/Admin/Components.php:225
+msgid "Percentual (%)"
+msgstr ""
+
+#: inc/Core/Carts_Table.php:243
+msgid "Perdido"
+msgstr ""
+
+#: inc/Views/Settings/Tabs/General.php:133
+msgid ""
+"Permite definir o tempo para que um carrinho seja considerado abandonado e a "
+"cadência de follow up seja iniciada."
+msgstr ""
+
+#: inc/Views/Settings/Tabs/General.php:151
+msgid ""
+"Permite definir o tempo para que um pedido seja considerado abandonado de "
+"acordo com a forma de pagamento."
+msgstr ""
+
+#: inc/Admin/Components.php:235
+msgid "Permitir frete grátis:"
+msgstr ""
+
+#: inc/Core/Assets.php:69 inc/Core/Assets.php:137
+msgid "Pesquisar"
+msgstr ""
+
+#: inc/Admin/Admin.php:391
+msgid "Pesquisar carrinhos"
+msgstr ""
+
+#: inc/Admin/Admin.php:381
+msgctxt "post type general name"
+msgid "Carrinhos"
+msgstr ""
+
+#: inc/Admin/Admin.php:382
+msgctxt "post type singular name"
+msgid "Carrinho"
+msgstr ""
+
+#: inc/Admin/Components.php:216
+msgid "Prefixo do cupom: *"
+msgstr ""
+
+#: inc/Core/Helpers.php:40
+msgid "Primeiro nome"
+msgstr ""
+
+#: inc/Core/Carts_Table.php:156
+msgid "Produto desconhecido"
+msgstr ""
+
+#: inc/Core/Carts_Table.php:51
+msgid "Produtos"
+msgstr ""
+
+#: inc/Core/Assets.php:73
+msgid "Recentes"
+msgstr ""
+
+#: inc/Core/Carts_Table.php:242
+msgid "Recuperado"
+msgstr ""
+
+#: inc/Admin/Admin.php:45
+msgid "Recuperação de carrinhos abandonados"
+msgstr ""
+
+#. Description of the plugin
+msgid ""
+"Recupere carrinhos e pedidos abandonados com follow up cadenciado. Plugin "
+"adicional do Flexify Checkout para WooCommerce."
+msgstr ""
+
+#: inc/Views/Settings.php:14 inc/Views/Settings_Info.php:12
+msgid ""
+"Recupere carrinhos e pedidos abandonados com follow up cadenciado. Se "
+"precisar de ajuda para configurar, acesse nossa"
+msgstr ""
+
+#: inc/Views/Settings/Tabs/Styles.php:29
+msgid "Redefinir para cor padrão"
+msgstr ""
+
+#: inc/Integrations/Joinotify.php:59
+msgid "Remetente das notificações"
+msgstr ""
+
+#: inc/Admin/Components.php:254
+msgid "Restrições:"
+msgstr ""
+
+#: inc/Views/Settings.php:52
+msgid "Salvar alterações"
+msgstr ""
+
+#: inc/Core/Ajax.php:97 inc/Core/Ajax.php:167 inc/Core/Ajax.php:210
+msgid "Salvo com sucesso"
+msgstr ""
+
+#: inc/Admin/Components.php:205
+msgid "Selecione um cupom de desconto"
+msgstr ""
+
+#: inc/Integrations/Joinotify.php:64
+msgid "Selecione um remetente"
+msgstr ""
+
+#: inc/Integrations/Joinotify.php:60
+msgid ""
+"Selecione um remetente que fará o envio das notificações de recuperações de "
+"carrinhos e pedidos."
+msgstr ""
+
+#: inc/Views/Settings/Tabs/General.php:81
+msgid "Seletores de acionamento do modal"
+msgstr ""
+
+#: inc/Frontend/Lead_Capture.php:103
+msgid "Seu melhor e-mail: *"
+msgstr ""
+
+#: inc/Core/Helpers.php:41
+msgid "Sobrenome"
+msgstr ""
+
+#: inc/Frontend/Lead_Capture.php:89
+msgid "Sobrenome: *"
+msgstr ""
+
+#: inc/Core/Assets.php:74
+msgid "Sorrisos e Pessoas"
+msgstr ""
+
+#: inc/Core/Carts_Table.php:54
+msgid "Status"
+msgstr ""
+
+#: inc/Core/Assets.php:80
+msgid "Símbolos"
+msgstr ""
+
+#: inc/Frontend/Lead_Capture.php:96
+msgid "Telefone / WhatsApp: *"
+msgstr ""
+
+#: inc/Core/Assets.php:67
+msgid "Tem certeza que deseja excluir este evento?"
+msgstr ""
+
+#: inc/Admin/Components.php:240
+msgid "Tempo de expiração do cupom: *"
+msgstr ""
+
+#: inc/Views/Settings/Tabs/General.php:132
+msgid "Tempo para um carrinho ser considerado abandonado"
+msgstr ""
+
+#: inc/Views/Settings/Tabs/General.php:123
+msgid ""
+"Texto alternativo para quando não for possível recuperar o nome do usuário."
+msgstr ""
+
+#: inc/Admin/Components.php:221
+msgid "Tipo do desconto: *"
+msgstr ""
+
+#. parent page slug
+#. page title
+#: inc/Admin/Admin.php:58 inc/Admin/Admin.php:59 inc/Admin/Admin.php:390
+msgid "Todos os carrinhos"
+msgstr ""
+
+#: inc/Views/Settings/Tabs/General.php:51
+msgid "Título do botão de ação do modal"
+msgstr ""
+
+#: inc/Views/Settings/Tabs/General.php:41
+msgid "Título do modal de de coleta de leads"
+msgstr ""
+
+#: inc/Views/Settings/Tabs/General.php:42
+msgid "Título exibido dentro do modal de coleta de leads."
+msgstr ""
+
+#: inc/Views/Settings/Tabs/General.php:52
+msgid "Título exibido no botão dentro do modal de coleta de leads."
+msgstr ""
+
+#: inc/Core/Updater.php:227
+msgid ""
+"Uma nova versão do plugin <strong>Flexify Checkout - Recuperação de "
+"carrinhos abandonados</strong> está disponível."
+msgstr ""
+
+#: inc/Core/Assets.php:70
+msgid "Use a tecla TAB para inserir um emoji rapidamente"
+msgstr ""
+
+#: inc/Integrations/Integrations_Base.php:26
+msgid ""
+"Use o melhor e mais completo construtor de automações com WhatsApp para "
+"notificar seus usuários."
+msgstr ""
+
+#: inc/Core/Carts_Table.php:52
+msgid "Valor do carrinho"
+msgstr ""
+
+#: inc/Admin/Components.php:230
+msgid "Valor do cupom: *"
+msgstr ""
+
+#: inc/Admin/Components.php:224
+msgid "Valor fixo"
+msgstr ""
+
+#: inc/Admin/Components.php:155
+msgid "Variáveis de texto:"
+msgstr ""
+
+#: inc/Admin/Admin.php:389
+msgid "Ver carrinho"
+msgstr ""
+
+#: inc/Core/Carts_Table.php:106
+msgid "Ver usuário"
+msgstr ""
+
+#: inc/Core/Updater.php:285
+msgid "Verificar atualizações"
+msgstr ""
+
+#: inc/Core/Assets.php:78
+msgid "Viajens e Lugares"
+msgstr ""
+
+#: inc/Admin/Components.php:102 inc/Views/Settings/Tabs/FollowUp.php:47
+msgid "WhatsApp (Joinotify)"
+msgstr ""
