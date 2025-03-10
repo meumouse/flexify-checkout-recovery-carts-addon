@@ -9,6 +9,7 @@ defined('ABSPATH') || exit;
  * Handles cart recovery events, such as tracking and updating cart data
  *
  * @since 1.0.0
+ * @version 1.0.1
  * @package MeuMouse.com
  */
 class Cart_Events {
@@ -35,6 +36,7 @@ class Cart_Events {
      * Updates the cart post when a product is added
      *
      * @since 1.0.0
+     * @version 1.0.1
      * @param string  $cart_id          The cart item key
      * @param integer $product_id       The ID of the product added to the cart
      * @param integer $request_quantity The quantity of the item added to the cart
@@ -52,7 +54,11 @@ class Cart_Events {
             return;
         }
 
-        $cart_id = WC()->session->get('fcrc_cart_id') ?: ( $_COOKIE['fcrc_cart_id'] ?? null );
+        if ( function_exists('WC') && WC()->session instanceof WC_Session ) {
+            $cart_id = WC()->session->get('fcrc_cart_id') ?: ( $_COOKIE['fcrc_cart_id'] ?? null );
+        } else {
+            $cart_id = $_COOKIE['fcrc_cart_id'] ?? null;
+        }
 
         if ( ! $cart_id ) {
             // Create new cart post
@@ -101,10 +107,15 @@ class Cart_Events {
      * Handles the cart being emptied and resets the cart post.
      *
      * @since 1.0.0
+     * @version 1.0.1
      * @return void
      */
     public function handle_cart_emptied() {
-        $recovery_cart_id = WC()->session->get('fcrc_cart_id');
+        if ( function_exists('WC') && WC()->session instanceof WC_Session ) {
+            $cart_id = WC()->session->get('fcrc_cart_id') ?: ( $_COOKIE['fcrc_cart_id'] ?? null );
+        } else {
+            $cart_id = $_COOKIE['fcrc_cart_id'] ?? null;
+        }
 
         if ( ! $recovery_cart_id ) {
             return;
@@ -126,6 +137,7 @@ class Cart_Events {
      * Synchronizes WooCommerce cart data with the recovery cart post
      *
      * @since 1.0.0
+     * @version 1.0.1
      * @param string $cart_id | The cart ID
      * @return void
      */
@@ -134,7 +146,11 @@ class Cart_Events {
         if ( ! empty( $cart_id ) ) {
             $recovery_cart_id = $cart_id;
         } else {
-            $recovery_cart_id = WC()->session->get('fcrc_cart_id');
+            if ( function_exists('WC') && WC()->session instanceof WC_Session ) {
+                $cart_id = WC()->session->get('fcrc_cart_id') ?: ( $_COOKIE['fcrc_cart_id'] ?? null );
+            } else {
+                $cart_id = $_COOKIE['fcrc_cart_id'] ?? null;
+            }
         }
 
         if ( ! $recovery_cart_id ) {
@@ -186,10 +202,15 @@ class Cart_Events {
      * Updates the cart's last modified time when it's updated
      *
      * @since 1.0.0
+     * @version 1.0.1
      * @return void
      */
     public function update_last_modified_cart_time() {
-        $cart_id = WC()->session->get('fcrc_cart_id');
+        if ( function_exists('WC') && WC()->session instanceof WC_Session ) {
+            $cart_id = WC()->session->get('fcrc_cart_id') ?: ( $_COOKIE['fcrc_cart_id'] ?? null );
+        } else {
+            $cart_id = $_COOKIE['fcrc_cart_id'] ?? null;
+        }
 
         if ( ! $cart_id ) {
             return;

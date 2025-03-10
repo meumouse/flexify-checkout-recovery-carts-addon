@@ -11,6 +11,7 @@ defined('ABSPATH') || exit;
  * Handles order abandonment tracking based on payment method delay
  *
  * @since 1.0.0
+ * @version 1.0.1
  * @package MeuMouse.com
  */
 class Order_Abandonment {
@@ -121,6 +122,7 @@ class Order_Abandonment {
      * Saves the cart ID, products, and billing details to the order meta when a new order is created
      *
      * @since 1.0.0
+     * @version 1.0.1
      * @param int $order_id | The order ID
      * @return void
      */
@@ -135,8 +137,11 @@ class Order_Abandonment {
             return;
         }
 
-        // Try to get the cart ID from the session or cookie
-        $cart_id = WC()->session->get('fcrc_cart_id') ?: ( $_COOKIE['fcrc_cart_id'] ?? null );
+        if ( function_exists('WC') && WC()->session instanceof WC_Session ) {
+            $cart_id = WC()->session->get('fcrc_cart_id') ?: ( $_COOKIE['fcrc_cart_id'] ?? null );
+        } else {
+            $cart_id = $_COOKIE['fcrc_cart_id'] ?? null;
+        }
 
         if ( ! $cart_id ) {
             return;
