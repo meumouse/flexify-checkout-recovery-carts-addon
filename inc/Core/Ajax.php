@@ -30,6 +30,7 @@ class Ajax {
             'fcrc_lead_collected' => 'fcrc_lead_collected_callback',
             'fcrc_cart_ping' => 'fcrc_cart_ping_callback',
             'fcrc_save_checkout_lead' => 'fcrc_save_checkout_lead_callback',
+            'fcrc_update_location' => 'fcrc_update_location_callback',
         );
 
         // loop for each ajax action
@@ -42,6 +43,7 @@ class Ajax {
             'fcrc_lead_collected' => 'fcrc_lead_collected_callback',
             'fcrc_cart_ping' => 'fcrc_cart_ping_callback',
             'fcrc_save_checkout_lead' => 'fcrc_save_checkout_lead_callback',
+            'fcrc_update_location' => 'fcrc_update_location_callback',
         );
 
         // loop for each nopriv ajax action
@@ -406,5 +408,37 @@ class Ajax {
                 ));
             }
         }
+    }
+
+
+    /**
+     * Get location data from IP address
+     * 
+     * @since 1.0.1
+     * @return void
+     */
+    public function fcrc_update_location_callback() {
+        if ( ! isset( $_POST['cart_id'], $_POST['country_data'] ) ) {
+            wp_send_json_error( array( 'message' => 'Missing parameters.' ) );
+        }
+    
+        $cart_id = intval( $_POST['cart_id'] );
+        $country_data = json_decode( stripslashes( $_POST['country_data'] ), true );
+
+        if ( FC_RECOVERY_CARTS_DEV_MODE ) {
+            error_log( 'Location data received: ' . print_r( $country_data, true ) );
+        }
+    
+        if ( empty( $cart_id ) || empty( $country_data ) ) {
+            wp_send_json_error( array( 'message' => 'Invalid data.' ) );
+        }
+    
+        update_post_meta( $cart_id, '_fcrc_location_country_code', sanitize_text_field( $country_data['country_code'] ) );
+        update_post_meta( $cart_id, '_fcrc_location_country_name', sanitize_text_field( $country_data['country_name'] ) );
+        update_post_meta( $cart_id, '_fcrc_location_state', sanitize_text_field( $country_data['region'] ) );
+        update_post_meta( $cart_id, '_fcrc_location_city', sanitize_text_field( $country_data['city'] ) );
+        update_post_meta( $cart_id, '_fcrc_location_ip', sanitize_text_field( $country_data['ip'] ) );
+    
+        wp_send_json_success( array( 'message' => 'Location data updated successfully.' ) );
     }
 }

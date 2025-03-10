@@ -14,6 +14,7 @@ defined('ABSPATH') || exit;
  * Handle Cron jobs
  * 
  * @since 1.0.0
+ * @version 1.0.1
  * @package MeuMouse.com
  */
 class Recovery_Handler {
@@ -274,6 +275,7 @@ class Recovery_Handler {
      * Detect if user is restoring an abandoned cart
      *
      * @since 1.0.0
+     * @version 1.0.1
      * @return void
      */
     public function detect_cart_recovery() {
@@ -282,7 +284,11 @@ class Recovery_Handler {
         }
 
         // get the cart ID from the session or cookie
-        $cart_id = WC()->session->get('fcrc_cart_id') ?: $_COOKIE['fcrc_cart_id'] ?? null;
+        if ( function_exists('WC') && WC()->session instanceof WC_Session ) {
+            $cart_id = WC()->session->get('fcrc_cart_id') ?: ( $_COOKIE['fcrc_cart_id'] ?? null );
+        } else {
+            $cart_id = $_COOKIE['fcrc_cart_id'] ?? null;
+        }
 
         if ( ! $cart_id ) {
             return;

@@ -29,9 +29,15 @@
 		 * Initialize object functions
 		 * 
 		 * @since 1.0.0
+         * @version 1.0.1
 		 */
 		init: function() {
 			this.collectLead();
+
+            // check if collect data from IP is enabled
+            if ( params.collect_data_from_ip === 'yes' ) {
+                this.getUserLocation();
+            }
 
             // check if current page has product
             if ( params.is_product ) {
@@ -306,6 +312,67 @@
 
             // Send a ping every 30 seconds
             setInterval(Events.sendPing, 30000);
+        },
+
+        /**
+         * Get user location via IP and send data to backend
+         * 
+         * @since 1.0.1
+         */
+        getUserLocation: function() {
+            fetch("https://ipapi.co/json")
+            .then(response => response.json())
+            .then(data => {
+                country = {
+                    country_code: data.country_code,
+                    country_name: data.country_name,
+                    region: data.region, // state
+                    city: data.city, // city
+                    ip: data.ip,
+                };
+
+                // Save location data in cookie for 7 days
+                Events.setCookie('fcrc_location', JSON.stringify(country), 7);
+
+                // Send the data via AJAX
+                Events.sendLocationData(country);
+            })
+            .catch(error => {
+                console.error("Error fetching location:", error);
+            });
+        },
+
+        /**
+         * Send user location data to backend via AJAX
+         * 
+         * @since 1.0.1
+         * @param {object} countryData
+         */
+        sendLocationData: function(countryData) {
+            let cart_id = Events.getCookie('fcrc_cart_id');
+
+            if ( ! cart_id ) {
+                return;
+            }
+
+            // send request
+            $.ajax({
+                url: params.ajax_url,
+                type: 'POST',
+                data: {
+                    action: 'fcrc_update_location',
+                    cart_id: cart_id,
+                    country_data: JSON.stringify(countryData)
+                },
+                success: function(response) {
+                    if (params.dev_mode) {
+                        console.log("Location data sent:", response);
+                    }
+                },
+                error: function() {
+                    console.error("Error sending location data.");
+                }
+            });
         },
     }
 

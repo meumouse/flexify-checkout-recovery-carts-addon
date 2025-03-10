@@ -128,6 +128,7 @@ class Admin {
      * Set default options
      * 
      * @since 1.0.0
+     * @version 1.0.1
      * @return array
      */
     public static function set_default_options() {
@@ -151,6 +152,7 @@ class Admin {
                 'enable_joinotify_integration' => 'yes',
                 'enable_email_integration' => 'no',
                 'display_modal_for_logged_users' => 'no',
+                'enable_get_location_from_ip' => 'yes',
             ),
             'follow_up_events' => array(
                 'mensagem_em_1_hora' => array(

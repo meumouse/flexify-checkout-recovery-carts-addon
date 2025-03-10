@@ -119,6 +119,16 @@ defined('ABSPATH') || exit; ?>
 
             <tr>
                 <th>
+                    <?php esc_html_e( 'Ativar coleta de localização através do IP', 'fc-recovery-carts' ); ?>
+                    <span class="fc-recovery-carts-description"><?php esc_html_e( 'Ative essa opção coletar a localização do usuário através do seu IP.', 'fc-recovery-carts' ); ?></span>
+                </th>
+                <td>
+                    <input type="checkbox" id="enable_get_location_from_ip" class="toggle-switch" name="toggle_switchs[enable_get_location_from_ip]" value="yes" <?php checked( Admin::get_switch('enable_get_location_from_ip') === 'yes' ); ?> />
+                </td>
+            </tr>
+
+            <tr>
+                <th>
                     <?php esc_html_e( 'Fallback para nome do usuário', 'fc-recovery-carts' ); ?>
                     <span class="fc-recovery-carts-description"><?php esc_html_e( 'Texto alternativo para quando não for possível recuperar o nome do usuário.', 'fc-recovery-carts' ); ?></span>
                 </th>
