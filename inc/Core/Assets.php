@@ -109,12 +109,13 @@ class Assets {
      * Register frontend scripts
      * 
      * @since 1.0.0
+     * @version 1.0.1
      * @return void
      */
     public function frontend_scripts() {
         $min_file = FC_RECOVERY_CARTS_DEBUG_MODE ? '' : '.min';
 
-        if ( Helpers::is_product() ) {
+        if ( Helpers::is_product() && ! is_flexify_checkout() ) {
             if ( Admin::get_switch('enable_international_phone_modal') === 'yes' ) {
                 wp_enqueue_style( 'fc-recovery-carts-events-intl-tel-input-styles', FC_RECOVERY_CARTS_ASSETS . 'vendor/intl-tel-input/css/intlTelInput'. $min_file .'.css', array(), '24.6.0' );
                 wp_enqueue_style( 'fc-recovery-carts-events-intl-tel-input-styles-flag-offset-2x', FC_RECOVERY_CARTS_ASSETS . 'vendor/intl-tel-input/css/flag-offset-2x.min.css', array(), FC_RECOVERY_CARTS_VERSION );
@@ -139,6 +140,7 @@ class Assets {
             'enable_international_phone' => Admin::get_switch('enable_international_phone_modal'),
             'is_product' => Helpers::is_product(),
             'abandonment_time_seconds' => Helpers::get_abandonment_time_seconds(),
+            'collect_data_from_ip' => Admin::get_switch('enable_get_location_from_ip'),
         ));
 
         // add checkout events

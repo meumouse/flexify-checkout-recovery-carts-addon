@@ -25,7 +25,6 @@ class Cart_Events {
         add_action( 'woocommerce_add_to_cart', array( $this, 'update_cart_post' ), 10, 6 );
         add_action( 'woocommerce_cart_item_removed', array( $this, 'update_cart_post_on_change' ), 10, 2 );
         add_action( 'woocommerce_after_cart_item_quantity_update', array( $this, 'update_cart_post_on_change' ), 10, 2 );
-        add_action( 'woocommerce_cart_emptied', array( $this, 'handle_cart_emptied' ) );
 
         // update last modified cart time
         add_action( 'woocommerce_cart_updated', array( $this, 'update_last_modified_cart_time' ) );
@@ -60,6 +59,21 @@ class Cart_Events {
             $cart_id = $_COOKIE['fcrc_cart_id'] ?? null;
         }
 
+        if ( is_user_logged_in() ) {
+            $user = wp_get_current_user();
+            $first_name = $user->first_name ?: '';
+            $last_name = $user->last_name ?: '';
+            $email = $user->user_email ?: '';
+            $phone = get_user_meta( $user->ID, 'billing_phone', true ) ?: '';
+        } else {
+            // get customer data from checkout session
+            $customer_fields = WC()->session->get('flexify_checkout_customer_fields');
+            $first_name = $customer_fields['billing_first_name'] ?? '';
+            $last_name = $customer_fields['billing_last_name'] ?? '';
+            $email = $customer_fields['billing_email'] ?? '';
+            $phone = $customer_fields['billing_phone'] ?? '';
+        }
+
         if ( ! $cart_id ) {
             // Create new cart post
             $cart_id = wp_insert_post( array(
@@ -71,6 +85,11 @@ class Cart_Events {
                     '_fcrc_cart_total' => 0,
                     '_fcrc_cart_updated_time' => time(),
                     '_fcrc_abandoned_time' => '',
+                    '_fcrc_first_name' => $first_name,
+                    '_fcrc_last_name' => $last_name,
+                    '_fcrc_full_name' => $contact_name,
+                    '_fcrc_cart_phone' => $international_phone,
+                    '_fcrc_cart_email' => $email,
                 ),
             ));
 
@@ -78,10 +97,19 @@ class Cart_Events {
             WC()->session->set( 'fcrc_cart_id', $cart_id );
 
             // Store in cookie
-            setcookie( 'fcrc_cart_id', $cart_id, time() + ( 7 * 24 * 60 * 60 ), COOKIEPATH, COOKIE_DOMAIN ); // Expira em 7 dias
+            setcookie( 'fcrc_cart_id', $cart_id, time() + ( 7 * 24 * 60 * 60 ), COOKIEPATH, COOKIE_DOMAIN ); // Expires in 7 days
+
+            /**
+             * Fires when a new cart is created
+             * 
+             * @since 1.0.1
+             * @param int $cart_id | The cart ID
+             */
+            do_action( 'Flexify_Checkout/Recovery_Carts/New_Cart_Created', $cart_id );
 
             if ( FC_RECOVERY_CARTS_DEV_MODE ) {
                 error_log( "New cart created: " . $cart_id );
+                error_log( "Customer data: " . print_r( $customer_fields, true ) );
             }
         }
 
@@ -101,36 +129,6 @@ class Cart_Events {
     public function update_cart_post_on_change( $cart_item_key, $cart ) {
         self::sync_cart_with_post();
     }
-    
-
-    /**
-     * Handles the cart being emptied and resets the cart post.
-     *
-     * @since 1.0.0
-     * @version 1.0.1
-     * @return void
-     */
-    public function handle_cart_emptied() {
-        if ( function_exists('WC') && WC()->session instanceof WC_Session ) {
-            $cart_id = WC()->session->get('fcrc_cart_id') ?: ( $_COOKIE['fcrc_cart_id'] ?? null );
-        } else {
-            $cart_id = $_COOKIE['fcrc_cart_id'] ?? null;
-        }
-
-        if ( ! $recovery_cart_id ) {
-            return;
-        }
-
-        // Update cart post status and clear items
-        update_post_meta( $recovery_cart_id, '_fcrc_cart_items', array() );
-        update_post_meta( $recovery_cart_id, '_fcrc_cart_total', 0 );
-
-        // Change cart status to "abandoned"
-        wp_update_post( array(
-            'ID' => $recovery_cart_id,
-            'post_status' => 'abandoned',
-        ));
-    }
 
 
     /**
@@ -142,20 +140,50 @@ class Cart_Events {
      * @return void
      */
     public static function sync_cart_with_post( $cart_id = null ) {
-
         if ( ! empty( $cart_id ) ) {
             $recovery_cart_id = $cart_id;
         } else {
             if ( function_exists('WC') && WC()->session instanceof WC_Session ) {
-                $cart_id = WC()->session->get('fcrc_cart_id') ?: ( $_COOKIE['fcrc_cart_id'] ?? null );
+                $recovery_cart_id = WC()->session->get('fcrc_cart_id') ?: ( $_COOKIE['fcrc_cart_id'] ?? null );
             } else {
-                $cart_id = $_COOKIE['fcrc_cart_id'] ?? null;
+                $recovery_cart_id = $_COOKIE['fcrc_cart_id'] ?? null;
             }
         }
 
         if ( ! $recovery_cart_id ) {
             return;
         }
+
+        if ( is_user_logged_in() ) {
+            $user = wp_get_current_user();
+            $first_name = $user->first_name ?: '';
+            $last_name = $user->last_name ?: '';
+            $email = $user->user_email ?: '';
+            $phone = get_user_meta( $user->ID, 'billing_phone', true ) ?: '';
+        } else {
+            // get customer data from checkout session
+            $customer_fields = WC()->session->get('flexify_checkout_customer_fields');
+            $first_name = $customer_fields['billing_first_name'] ?? '';
+            $last_name = $customer_fields['billing_last_name'] ?? '';
+            $email = $customer_fields['billing_email'] ?? '';
+            $phone = $customer_fields['billing_phone'] ?? '';
+        }
+
+        /**
+         * Update contact phone
+         * 
+         * @since 1.0.1
+         * @param string $phone | The phone number
+         */
+        $phone = apply_filters( 'Flexify_Checkout/Recovery_Carts/Contact_Phone', $phone );
+        $contact_name = sprintf( '%s %s', $first_name, $last_name );
+
+        // update contact data
+        update_post_meta( $recovery_cart_id, '_fcrc_first_name', $first_name );
+        update_post_meta( $recovery_cart_id, '_fcrc_last_name', $last_name );
+        update_post_meta( $recovery_cart_id, '_fcrc_full_name', $contact_name );
+        update_post_meta( $recovery_cart_id, '_fcrc_cart_phone', $phone );
+        update_post_meta( $recovery_cart_id, '_fcrc_cart_email', $email );
 
         // Get WooCommerce cart contents
         $cart_items_data = WC()->cart->get_cart();
@@ -206,16 +234,6 @@ class Cart_Events {
      * @return void
      */
     public function update_last_modified_cart_time() {
-        if ( function_exists('WC') && WC()->session instanceof WC_Session ) {
-            $cart_id = WC()->session->get('fcrc_cart_id') ?: ( $_COOKIE['fcrc_cart_id'] ?? null );
-        } else {
-            $cart_id = $_COOKIE['fcrc_cart_id'] ?? null;
-        }
-
-        if ( ! $cart_id ) {
-            return;
-        }
-
-        update_post_meta( $cart_id, '_fcrc_cart_updated_time', time() );
+        self::sync_cart_with_post();
     }
 }

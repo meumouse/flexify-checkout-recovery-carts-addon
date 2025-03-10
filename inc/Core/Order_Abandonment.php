@@ -119,7 +119,7 @@ class Order_Abandonment {
 
 
     /**
-     * Saves the cart ID, products, and billing details to the order meta when a new order is created
+     * Saves the cart ID, products, billing details, and location to the order meta when a new order is created.
      *
      * @since 1.0.0
      * @version 1.0.1
@@ -159,6 +159,15 @@ class Order_Abandonment {
         $order_total = $order->get_total();
         $user_id = $order->get_user_id();
 
+        // Get billing location information from the order
+        $billing_city = $order->get_billing_city();
+        $billing_state = $order->get_billing_state();
+        $billing_zipcode = $order->get_billing_postcode();
+        $billing_country = $order->get_billing_country();
+
+        // Get stored IP address from cart meta
+        $billing_ip = get_post_meta( $cart_id, '_fcrc_location_ip', true );
+
         // Prepare updated meta data
         $updated_meta = array(
             '_fcrc_first_name' => $billing_first_name,
@@ -168,6 +177,11 @@ class Order_Abandonment {
             '_fcrc_cart_email' => $billing_email,
             '_fcrc_cart_total' => $order_total,
             '_fcrc_user_id' => $user_id ?: 0,
+            '_fcrc_location_city' => $billing_city,
+            '_fcrc_location_state' => $billing_state,
+            '_fcrc_location_zipcode' => $billing_zipcode,
+            '_fcrc_location_country_code' => $billing_country,
+            '_fcrc_location_ip' => $billing_ip,
         );
 
         // Compare existing meta and update only if different
@@ -181,6 +195,7 @@ class Order_Abandonment {
 
         // Retrieve order items
         $order_items = array();
+
         foreach ( $order->get_items() as $item_id => $item ) {
             $product_id = $item->get_product_id();
             $quantity = $item->get_quantity();
@@ -196,19 +211,19 @@ class Order_Abandonment {
             );
         }
 
-        // Compare and update cart items only if changed
-        $stored_cart_items = get_post_meta( $cart_id, '_fcrc_cart_items', true ) ?: array();
-        
-        if ( json_encode( $stored_cart_items ) !== json_encode( $order_items ) ) {
-            update_post_meta( $cart_id, '_fcrc_cart_items', $order_items );
-        }
+        wp_update_post( array(
+            'ID' => $cart_id,
+            'post_status' => 'purchased',
+        ));
 
-        // Mark cart as purchased
+        update_post_meta( $cart_id, '_fcrc_cart_items', $order_items );
         update_post_meta( $cart_id, '_fcrc_purchased', true );
+        update_post_meta( $cart_id, '_fcrc_order_id', $order_id );
+        update_post_meta( $cart_id, '_fcrc_order_date_created', $order->get_date_created() );
         update_post_meta( $order_id, '_fcrc_cart_id', $cart_id );
 
         if ( FC_RECOVERY_CARTS_DEV_MODE ) {
-            error_log( "Cart ID {$cart_id} updated with billing info for order {$order_id}" );
+            error_log( "Cart ID {$cart_id} updated with billing & location info for order {$order_id}" );
         }
 
         /**
