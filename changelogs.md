@@ -1,3 +1,6 @@
+Versão 1.0.2 (10/03/2025)
+* Recurso adicionado: Rotina de verificação de atualizações
+
 Versão 1.0.1 (10/03/2025)
 * Correção de bugs
 * Otimizações
