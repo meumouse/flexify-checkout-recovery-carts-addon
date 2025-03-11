@@ -17,7 +17,7 @@ defined('ABSPATH') || exit;
  * Class for handling plugin updates
  *
  * @since 1.0.0
- * @version 1.1.0
+ * @version 1.0.2
  * @package MeuMouse.com
  */
 class Updater {
@@ -37,6 +37,7 @@ class Updater {
      * Construct function
      *
      * @since 1.0.0
+     * @version 1.0.2
      * @return void
      */
     public function __construct() {
@@ -65,6 +66,17 @@ class Updater {
             add_action( 'init', array( $this, 'schedule_auto_update' ) );
             add_action( 'fc_recovery_carts_auto_update_event', array( $this, 'auto_update_plugin' ) );
         }
+
+        // schedule daily updates
+        if ( ! wp_next_scheduled('fc_recovery_carts_check_daily_update') ) {
+            wp_schedule_event( time(), 'daily', 'fc_recovery_carts_check_daily_update' );
+        }
+
+        // check daily updates
+        add_action( 'fc_recovery_carts_check_daily_update', array( $this, 'check_daily_update' ) );
+
+        // display new update on plugins list
+        add_action( 'admin_notices', array( $this, 'admin_update_notice' ) );
     }
 
 
@@ -399,6 +411,54 @@ class Updater {
             wp_schedule_event( time(), 'daily', 'fc_recovery_carts_auto_update_event' );
         }
     }
-}
 
-new Updater();
+
+    /**
+     * Check if has a new update one time per day
+     *
+     * @since 1.0.2
+     * @return void
+     */
+    public function check_daily_update() {
+        delete_transient( $this->cache_key );
+        delete_transient( $this->cache_data_base_key );
+
+        $remote_data = $this->request();
+
+        if ( ! $remote_data ) {
+            return;
+        }
+
+        // compare versions
+        $current_version = $this->version;
+        $latest_version = $remote_data->version;
+
+        if ( version_compare( $current_version, $latest_version, '<' ) ) {
+            // storage the information in the database for later display
+            update_option( 'fc_recovery_carts_update_available', $latest_version );
+        } else {
+            // remove option if it's already updated
+            delete_option('fc_recovery_carts_update_available');
+        }
+    }
+
+
+    /**
+     * Display update notice in the admin panel
+     *
+     * @since 1.0.2
+     * @return void
+     */
+    public function admin_update_notice() {
+        $latest_version = get_option('fc_recovery_carts_update_available');
+
+        if ( ! $latest_version ) {
+            return;
+        }
+
+        $update_url = admin_url('plugins.php');
+        $message = sprintf( __( 'Uma nova versão do plugin <strong>Flexify Checkout - Recuperação de carrinhos abandonados</strong> (%s) está disponível. <a href="%s">Atualize agora</a>.', 'fc-recovery-carts' ), esc_html( $latest_version ), esc_url( $update_url ) );
+
+        echo '<div class="notice notice-success is-dismissible"><p>' . $message . '</p></div>';
+    }
+}

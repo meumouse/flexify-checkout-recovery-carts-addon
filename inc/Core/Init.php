@@ -9,6 +9,7 @@ defined('ABSPATH') || exit;
  * Class for initialize classes
  * 
  * @since 1.0.0
+ * @version 1.0.2
  * @package MeuMouse.com
  */
 class Init {
@@ -28,6 +29,7 @@ class Init {
      * Instance classes after load Composer
      * 
      * @since 1.0.0
+     * @version 1.0.2
      * @return void
      */
     public static function instance_classes() {
@@ -43,6 +45,7 @@ class Init {
             '\MeuMouse\Flexify_Checkout\Recovery_Carts\Cron\Recovery_Handler',
             '\MeuMouse\Flexify_Checkout\Recovery_Carts\Core\Session_Handler',
             '\MeuMouse\Flexify_Checkout\Recovery_Carts\Core\Order_Abandonment',
+            '\MeuMouse\Flexify_Checkout\Recovery_Carts\Core\Updater',
         ));
 
         foreach ( $classes as $class ) {

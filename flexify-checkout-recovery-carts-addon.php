@@ -7,7 +7,7 @@
  * Requires Plugins: 		flexify-checkout-for-woocommerce, woocommerce
  * Author:                  MeuMouse.com
  * Author URI:              https://meumouse.com/
- * Version:                 1.0.1
+ * Version:                 1.0.2
  * Requires PHP:            7.4
  * Tested up to:            6.7.2
  * WC requires at least:    6.0.0
@@ -44,7 +44,7 @@ if ( ! class_exists('Flexify_Checkout_Recovery_Carts') ) {
          * @var string
          * @since 1.0.0
          */
-        public static $slug = 'fc-recovery-carts';
+        public static $slug = 'flexify-checkout-recovery-carts-addon';
 
         /**
          * The plugin version
@@ -52,7 +52,7 @@ if ( ! class_exists('Flexify_Checkout_Recovery_Carts') ) {
          * @var string
          * @since 1.0.0
          */
-        public static $version = '1.0.1';
+        public static $version = '1.0.2';
 
 
         /**
