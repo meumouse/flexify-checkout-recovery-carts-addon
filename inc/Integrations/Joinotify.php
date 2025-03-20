@@ -16,6 +16,7 @@ defined('ABSPATH') || exit;
  * Joinotify integration class
  * 
  * @since 1.0.0
+ * @version 1.1.0
  * @package MeuMouse.com
  */
 class Joinotify extends Integrations_Base {
@@ -38,6 +39,7 @@ class Joinotify extends Integrations_Base {
      * Display Joinotify settings
      * 
      * @since 1.0.0
+     * @version 1.1.0
      * @return void
      */
     public function joinotify_settings() {
@@ -63,9 +65,13 @@ class Joinotify extends Integrations_Base {
                                     <select class="form-select" id="joinotify_sender_phone" name="joinotify_sender_phone">
                                         <option value="none" <?php selected( Admin::get_setting('joinotify_sender_phone') ?? '', 'none', true ) ?>><?php esc_html_e( 'Selecione um remetente', 'fc-recovery-carts' ) ?></option>
                                         
-                                        <?php foreach ( get_option('joinotify_get_phones_senders') as $phone ) : ?>
-                                            <option value="<?php esc_attr_e( $phone ) ?>" <?php selected( Admin::get_setting('joinotify_sender_phone') ?? '', $phone, true ) ?> class="get-sender-number"><?php echo class_exists('MeuMouse\Joinotify\Core\Helpers') ? esc_html( Joinotify_Helpers::validate_and_format_phone( $phone ) ) : esc_html( $phone ); ?></option>
-                                        <?php endforeach; ?>
+                                        <?php $current_senders = get_option('joinotify_get_phones_senders');
+                                        
+                                        if ( is_array( $current_senders ) ) :
+                                            foreach ( $current_senders as $sender ) : ?>
+                                                <option value="<?php esc_attr_e( $sender ) ?>" <?php selected( Admin::get_setting('joinotify_sender_phone') ?? '', $sender, true ) ?> class="get-sender-number"><?php echo class_exists('MeuMouse\Joinotify\Core\Helpers') ? esc_html( Joinotify_Helpers::validate_and_format_phone( $sender ) ) : esc_html( $sender ); ?></option>
+                                            <?php endforeach;
+                                        endif; ?>
                                     </select>
                                 </td>
                             </tr>

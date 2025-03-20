@@ -42,7 +42,7 @@ class Recovery_Handler {
         add_action( 'fcrc_send_follow_up_message', array( $this, 'send_follow_up_message_callback' ), 10, 2 );
 
         // Hook to handle the scheduled final cart status check
-        add_action( 'check_final_cart_status', array( $this, 'check_final_cart_status' ), 10, 1 );
+        add_action( 'check_final_cart_status', array( $this, 'check_final_cart_status_callback' ), 10, 1 );
 
         // Listen for cart changes for clear cart id reference
         add_action( 'Flexify_Checkout/Recovery_Carts/Cart_Lost', array( '\MeuMouse\Flexify_Checkout\Recovery_Carts\Core\Helpers', 'clear_cart_id_reference' ) );
@@ -119,35 +119,71 @@ class Recovery_Handler {
      * Schedules follow-up messages based on admin settings
      *
      * @since 1.0.0
-     * @param int $cart_id The abandoned cart ID
+     * @version 1.1.0
+     * @param int $cart_id | The abandoned cart ID
      * @return void
      */
     public function recovery_carts( $cart_id ) {
         $follow_up_events = Admin::get_setting('follow_up_events');
-
+    
         if ( ! $follow_up_events || ! is_array( $follow_up_events ) ) {
             return;
         }
-
+    
+        // allowed times
+        $start_time = Admin::get_setting('follow_up_time_interval_start');
+        $end_time = Admin::get_setting('follow_up_time_interval_end');
+    
+        // convert to timestamp of the current day
+        $current_time = current_time('timestamp');
+        $start_time_ts = strtotime( date( 'Y-m-d', $current_time ) . ' ' . $start_time );
+        $end_time_ts = strtotime( date( 'Y-m-d', $current_time ) . ' ' . $end_time );
+    
+        // if the end time is smaller than the start time, it means the interval crosses midnight
+        if ( $end_time_ts < $start_time_ts ) {
+            $end_time_ts = strtotime( '+1 day', $end_time_ts );
+        }
+    
         $max_delay = 0;
-
+    
         foreach ( $follow_up_events as $event_key => $event_data ) {
             $delay = Helpers::convert_to_seconds( $event_data['delay_time'], $event_data['delay_type'] );
-
+    
             if ( $delay ) {
-                wp_schedule_single_event( time() + $delay, "fcrc_send_follow_up_message", array( 'cart_id' => $cart_id, 'event_key' => $event_key ) );
+                $event_time = $current_time + $delay;
+    
+                // check if the event is within the allowed time interval
+                if ( $event_time < $start_time_ts ) {
+                    // if the event time is before the allowed interval, reschedule it for the start of the period
+                    $event_time = $start_time_ts;
+                } elseif ( $event_time > $end_time_ts ) {
+                    // if the event time is after the allowed interval, reschedule it the start of the next allowed period
 
+                    $event_time = strtotime( '+1 day', $start_time_ts );
+                }
+    
+                wp_schedule_single_event( $event_time, "fcrc_send_follow_up_message", array( 'cart_id' => $cart_id, 'event_key' => $event_key ) );
+    
                 // update the maximum delay found
-                if ( $delay > $max_delay ) {
-                    $max_delay = $delay;
+                if ( $event_time - $current_time > $max_delay ) {
+                    $max_delay = $event_time - $current_time;
                 }
             }
         }
-
-        // if has follow-ups scheduled, schedule the final check 1 hour after the last follow-up
+    
+        // if has follow up scheduled, schedule the final check
         if ( $max_delay > 0 ) {
             $final_check_delay = $max_delay + Helpers::convert_to_seconds( 1, 'hours' );
-            wp_schedule_single_event( time() + $final_check_delay, "check_final_cart_status", array( 'cart_id' => $cart_id ) );
+            $final_check_time = $current_time + $final_check_delay;
+    
+            // ensures that the final check is within the allowed time range
+            if ( $final_check_time < $start_time_ts ) {
+                $final_check_time = $start_time_ts;
+            } elseif ( $final_check_time > $end_time_ts ) {
+                $final_check_time = strtotime( '+1 day', $start_time_ts );
+            }
+    
+            wp_schedule_single_event( $final_check_time, "check_final_cart_status", array( 'cart_id' => $cart_id ) );
         }
     }
 
@@ -203,10 +239,11 @@ class Recovery_Handler {
      * Checks the final status of the abandoned cart after the last follow-up.
      *
      * @since 1.0.0
+     * @version 1.1.0
      * @param int $cart_id The abandoned cart ID
      * @return void
      */
-    public function check_final_cart_status( $cart_id ) {
+    public function check_final_cart_status_callback( $cart_id ) {
         $cart_status = get_post_status( $cart_id );
 
         // if still abandoned after 1 hour, mark as "lost"

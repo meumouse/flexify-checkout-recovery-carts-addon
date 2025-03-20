@@ -9,6 +9,7 @@ defined('ABSPATH') || exit;
  * Admin actions class
  * 
  * @since 1.0.0
+ * @version 1.1.0
  * @package MeuMouse.com
  */
 class Admin {
@@ -128,7 +129,7 @@ class Admin {
      * Set default options
      * 
      * @since 1.0.0
-     * @version 1.0.1
+     * @version 1.1.0
      * @return array
      */
     public static function set_default_options() {
@@ -295,6 +296,8 @@ class Admin {
                     'limit_usages_per_user' => 1,
                 ),
             ),
+            'follow_up_time_interval_start' => '07:00',
+            'follow_up_time_interval_end' => '22:00',
         ));
     }
 

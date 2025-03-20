@@ -307,6 +307,7 @@ class Carts_Table extends WP_List_Table {
      * Process bulk actions
      * 
      * @since 1.0.0
+     * @version 1.1.0
      * @return void
      */
     public function process_bulk_action() {
@@ -348,10 +349,10 @@ class Carts_Table extends WP_List_Table {
                         /**
                          * Fire hook when cart is abandoned manually
                          * 
-                         * @since 1.0.0
+                         * @since 1.1.0
                          * @param int $cart_id | Cart ID | Post ID
                          */
-                        do_action( 'Flexify_Checkout/Recovery_Carts/Cart_Abandoned', $cart_id );
+                        do_action( 'Flexify_Checkout/Recovery_Carts/Cart_Abandoned_Manually', $cart_id );
                     }
 
                     break;

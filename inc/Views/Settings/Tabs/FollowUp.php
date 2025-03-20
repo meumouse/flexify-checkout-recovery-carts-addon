@@ -1,11 +1,13 @@
 <?php
 
+use MeuMouse\Flexify_Checkout\Recovery_Carts\Admin\Admin;
 use MeuMouse\Flexify_Checkout\Recovery_Carts\Admin\Components as Admin_Components;
 
 /**
  * Tab file for follow up on settings page
  * 
  * @since 1.0.0
+ * @version 1.1.0
  * @package MeuMouse.com
  */
 
@@ -13,7 +15,24 @@ use MeuMouse\Flexify_Checkout\Recovery_Carts\Admin\Components as Admin_Component
 defined('ABSPATH') || exit; ?>
 
 <div id="follow_up" class="nav-content">
-    <div class="ps-5">
+    <table class="form-table">
+        <tbody>
+            <tr>
+                <th>
+                    <?php esc_html_e( 'Intervalo de horários permitidos para envio de mensagens', 'fc-recovery-carts' ); ?>
+                    <span class="fc-recovery-carts-description"><?php esc_html_e( 'Permite definir o tempo para que um carrinho seja considerado abandonado e a cadência de follow up seja iniciada.', 'fc-recovery-carts' ); ?></span>
+                </th>
+                <td>
+                    <div class="input-group">
+                        <input type="time" class="form-control" id="follow_up_time_interval_start" name="follow_up_time_interval_start" value="<?php echo Admin::get_setting('follow_up_time_interval_start') ?>">
+                        <input type="time" class="form-control" id="follow_up_time_interval_end" name="follow_up_time_interval_end" value="<?php echo Admin::get_setting('follow_up_time_interval_end') ?>">
+                    </div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+
+    <div class="ps-5 mt-5">
         <?php echo Admin_Components::follow_up_list(); ?>
 
         <button id="fcrc_add_new_follow_up_trigger" class="btn btn-primary mt-3"><?php esc_html_e( 'Adicionar novo evento', 'fc-recovery-carts' ); ?></button>
@@ -50,7 +69,7 @@ defined('ABSPATH') || exit; ?>
                     </div>
 
                     <div class="mb-5">
-                        <?php echo Admin_Components::render_coupon_form( 'follow_up_events' ); ?>
+                        <?php echo Admin_Components::render_coupon_form( 'new_follow_up_event' ); ?>
                     </div>
 
                     <div class="mb-5">

@@ -79,6 +79,7 @@
          * Open pre checkout modal
          * 
          * @since 1.0.0
+         * @version 1.1.0
          */
         openModal: function() {
             var triggers = params.triggers_list;
@@ -86,7 +87,7 @@
             // open modal using event delegation
             $(triggers).hover( function(e) {
                 // check if lead was already collected or rejected
-                if ( $('body').hasClass('fcrc-lead-collected') || $('body').hasClass('fcrc-lead-rejected') ) {
+                if ( $('body').hasClass('fcrc-lead-collected') || $('body').hasClass('fcrc-lead-rejected') || Events.getCookie('fcrc_lead_collected') === 'yes' ) {
                     return;
                 }
 
@@ -106,6 +107,7 @@
          * Collect lead event
          * 
          * @since 1.0.0
+         * @version 1.1.0
          */
         collectLead: function() {
             // send request on click trigger button
@@ -114,10 +116,10 @@
 
                 var btn = $(this);
                 var btn_state = Events.keepButtonState(btn);
-                var get_first_name = $('.fcrc-get-first-name').val();
-                var get_last_name = $('.fcrc-get-last-name').val();
-                var get_phone = $('.fcrc-get-phone').val();
-                var get_email = $('.fcrc-get-email').val();
+                var get_first_name = $('.fcrc-get-first-name').val() || Events.getCookie('fcrc_first_name');
+                var get_last_name = $('.fcrc-get-last-name').val() || Events.getCookie('fcrc_last_name');
+                var get_phone = $('.fcrc-get-phone').val() || Events.getCookie('fcrc_phone');
+                var get_email = $('.fcrc-get-email').val() || Events.getCookie('fcrc_email');
 
                 // send ajax request
                 $.ajax({
@@ -148,10 +150,10 @@
                                 Events.setCookie('fcrc_cart_id', response.cart_id, 7);
 
                                 // save lead data on cookie for 30 days
-                                Events.setCookie('fcrc_first_name', get_first_name, 30);
-                                Events.setCookie('fcrc_last_name', get_last_name, 30);
-                                Events.setCookie('fcrc_phone', get_phone, 30);
-                                Events.setCookie('fcrc_email', get_email, 30);
+                                Events.setCookie('fcrc_first_name', get_first_name, 365);
+                                Events.setCookie('fcrc_last_name', get_last_name, 365);
+                                Events.setCookie('fcrc_phone', get_phone, 365);
+                                Events.setCookie('fcrc_email', get_email, 365);
                                 Events.setCookie('fcrc_lead_collected', 'yes', 365);
                             } else {
                                 $('body').removeClass('fcrc-lead-collected');
@@ -318,6 +320,7 @@
          * Get user location via IP and send data to backend
          * 
          * @since 1.0.1
+         * @version 1.1.0
          */
         getUserLocation: function() {
             fetch("https://ipapi.co/json")
@@ -331,8 +334,8 @@
                     ip: data.ip,
                 };
 
-                // Save location data in cookie for 7 days
-                Events.setCookie('fcrc_location', JSON.stringify(country), 7);
+                // Save location data in cookie for 365 days
+                Events.setCookie('fcrc_location', JSON.stringify(country), 365);
 
                 // Send the data via AJAX
                 Events.sendLocationData(country);

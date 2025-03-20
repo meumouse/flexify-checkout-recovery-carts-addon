@@ -9,7 +9,7 @@ defined('ABSPATH') || exit;
  * Handles cart recovery events, such as tracking and updating cart data
  *
  * @since 1.0.0
- * @version 1.0.1
+ * @version 1.1.0
  * @package MeuMouse.com
  */
 class Cart_Events {
@@ -35,7 +35,7 @@ class Cart_Events {
      * Updates the cart post when a product is added
      *
      * @since 1.0.0
-     * @version 1.0.1
+     * @version 1.1.0
      * @param string  $cart_id          The cart item key
      * @param integer $product_id       The ID of the product added to the cart
      * @param integer $request_quantity The quantity of the item added to the cart
@@ -65,13 +65,18 @@ class Cart_Events {
             $last_name = $user->last_name ?: '';
             $email = $user->user_email ?: '';
             $phone = get_user_meta( $user->ID, 'billing_phone', true ) ?: '';
-        } else {
+        } elseif ( isset( WC()->session ) && WC()->session->get('flexify_checkout_customer_fields') ) {
             // get customer data from checkout session
             $customer_fields = WC()->session->get('flexify_checkout_customer_fields');
             $first_name = $customer_fields['billing_first_name'] ?? '';
             $last_name = $customer_fields['billing_last_name'] ?? '';
             $email = $customer_fields['billing_email'] ?? '';
             $phone = $customer_fields['billing_phone'] ?? '';
+        } else {
+            $first_name = $_COOKIE['fcrc_first_name'] ?? '';
+            $last_name = $_COOKIE['fcrc_last_name'] ?? '';
+            $email = $_COOKIE['fcrc_email'] ?? '';
+            $phone = $_COOKIE['fcrc_phone'] ?? '';
         }
 
         if ( ! $cart_id ) {
@@ -87,8 +92,8 @@ class Cart_Events {
                     '_fcrc_abandoned_time' => '',
                     '_fcrc_first_name' => $first_name,
                     '_fcrc_last_name' => $last_name,
-                    '_fcrc_full_name' => $contact_name,
-                    '_fcrc_cart_phone' => $international_phone,
+                    '_fcrc_full_name' => sprintf( '%s %s', $first_name, $last_name ),
+                    '_fcrc_cart_phone' => $phone,
                     '_fcrc_cart_email' => $email,
                 ),
             ));
@@ -109,7 +114,6 @@ class Cart_Events {
 
             if ( FC_RECOVERY_CARTS_DEV_MODE ) {
                 error_log( "New cart created: " . $cart_id );
-                error_log( "Customer data: " . print_r( $customer_fields, true ) );
             }
         }
 
@@ -135,7 +139,7 @@ class Cart_Events {
      * Synchronizes WooCommerce cart data with the recovery cart post
      *
      * @since 1.0.0
-     * @version 1.0.1
+     * @version 1.1.0
      * @param string $cart_id | The cart ID
      * @return void
      */
@@ -160,13 +164,18 @@ class Cart_Events {
             $last_name = $user->last_name ?: '';
             $email = $user->user_email ?: '';
             $phone = get_user_meta( $user->ID, 'billing_phone', true ) ?: '';
-        } else {
+        } elseif ( isset( WC()->session ) && WC()->session->get('flexify_checkout_customer_fields') ) {
             // get customer data from checkout session
             $customer_fields = WC()->session->get('flexify_checkout_customer_fields');
             $first_name = $customer_fields['billing_first_name'] ?? '';
             $last_name = $customer_fields['billing_last_name'] ?? '';
             $email = $customer_fields['billing_email'] ?? '';
             $phone = $customer_fields['billing_phone'] ?? '';
+        } else {
+            $first_name = $_COOKIE['fcrc_first_name'] ?? '';
+            $last_name = $_COOKIE['fcrc_last_name'] ?? '';
+            $email = $_COOKIE['fcrc_email'] ?? '';
+            $phone = $_COOKIE['fcrc_phone'] ?? '';
         }
 
         /**
@@ -179,11 +188,46 @@ class Cart_Events {
         $contact_name = sprintf( '%s %s', $first_name, $last_name );
 
         // update contact data
-        update_post_meta( $recovery_cart_id, '_fcrc_first_name', $first_name );
-        update_post_meta( $recovery_cart_id, '_fcrc_last_name', $last_name );
-        update_post_meta( $recovery_cart_id, '_fcrc_full_name', $contact_name );
-        update_post_meta( $recovery_cart_id, '_fcrc_cart_phone', $phone );
-        update_post_meta( $recovery_cart_id, '_fcrc_cart_email', $email );
+        if ( ! empty( $first_name ) ) {
+            update_post_meta( $recovery_cart_id, '_fcrc_first_name', $first_name );
+        }
+        
+        if ( ! empty( $last_name ) ) {
+            update_post_meta( $recovery_cart_id, '_fcrc_last_name', $last_name );
+        }
+        
+        if ( ! empty( $contact_name ) ) {
+            update_post_meta( $recovery_cart_id, '_fcrc_full_name', $contact_name );
+        }
+        
+        if ( ! empty( $phone ) ) {
+            update_post_meta( $recovery_cart_id, '_fcrc_cart_phone', $phone );
+        }
+
+        if ( ! empty( $email ) ) {
+            update_post_meta( $recovery_cart_id, '_fcrc_cart_email', $email );
+        }
+
+        $get_location_data = $_COOKIE['fcrc_location'];
+
+        // has location data
+        if ( ! empty( $get_location_data ) ) {
+            if ( ! empty( $get_location_data['city'] ) ) {
+                update_post_meta( $recovery_cart_id, '_fcrc_location_city', $get_location_data['city'] ?? '' );
+            }
+
+            if ( ! empty( $get_location_data['region'] ) ) {
+                update_post_meta( $recovery_cart_id, '_fcrc_location_state', $get_location_data['region'] ?? '' );
+            }
+
+            if ( ! empty( $get_location_data['country_code'] ) ) {
+                update_post_meta( $recovery_cart_id, '_fcrc_location_country_code', $get_location_data['country_code'] ?? '' );
+            }
+
+            if ( ! empty( $get_location_data['ip'] ) ) {
+                update_post_meta( $recovery_cart_id, '_fcrc_location_ip', $get_location_data['ip'] ?? '' );
+            }
+        }
 
         // Get WooCommerce cart contents
         $cart_items_data = WC()->cart->get_cart();

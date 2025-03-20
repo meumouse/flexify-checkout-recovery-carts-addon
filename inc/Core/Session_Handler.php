@@ -11,6 +11,7 @@ defined('ABSPATH') || exit;
  * Extends WooCommerce session handler to detect expired sessions
  *
  * @since 1.0.0
+ * @version 1.1.0
  * @package MeuMouse.com
  */
 class Session_Handler extends WC_Session_Handler {
@@ -49,6 +50,7 @@ class Session_Handler extends WC_Session_Handler {
      * Overrides the session cleanup function to detect abandoned carts
      *
      * @since 1.0.0
+     * @version 1.1.0
      * @return void
      */
     public function cleanup_sessions() {
@@ -79,14 +81,6 @@ class Session_Handler extends WC_Session_Handler {
                         'ID' => $cart_id,
                         'post_status' => 'abandoned',
                     ));
-
-                    /**
-                     * Fire hook when cart is abandoned
-                     * 
-                     * @since 1.0.0
-                     * @param int $cart_id | Cart ID | Post ID
-                     */
-                    do_action( 'Flexify_Checkout/Recovery_Carts/Cart_Abandoned', $cart_id );
                 }
             }
         }
