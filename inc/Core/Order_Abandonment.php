@@ -278,5 +278,42 @@ class Order_Abandonment {
          * @param int $order_id | The WooCommerce order ID
          */
         do_action( 'Flexify_Checkout/Recovery_Carts/Cart_Recovered', $cart_id, $order_id );
+
+        // Get the order object
+        $order = wc_get_order( $order_id );
+
+        if ( ! $order ) {
+            return;
+        }
+
+        $cart_items = array();
+        $cart_total = 0;
+
+        foreach ( $order->get_items() as $item ) {
+            $product = $item->get_product();
+
+            if ( ! $product ) {
+                continue;
+            }
+
+            $product_id = $product->get_id();
+            $quantity = $item->get_quantity();
+            $price = floatval( $item->get_total() ) / max( 1, $quantity ); // unit price
+            $total_price = floatval( $item->get_total() );
+            $cart_total += $total_price;
+
+            $cart_items[ $product_id ] = array(
+                'product_id' => $product_id,
+                'quantity' => $quantity,
+                'price' => $price,
+                'total' => $total_price,
+                'name' => $product->get_name(),
+                'image' => get_the_post_thumbnail_url( $product_id, 'thumbnail' ),
+            );
+        }
+
+        // Save updated items to cart post
+        update_post_meta( $cart_id, '_fcrc_cart_items', $cart_items );
+        update_post_meta( $cart_id, '_fcrc_cart_total', $cart_total );
     }
 }

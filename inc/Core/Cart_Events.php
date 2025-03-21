@@ -208,7 +208,7 @@ class Cart_Events {
             update_post_meta( $recovery_cart_id, '_fcrc_cart_email', $email );
         }
 
-        $get_location_data = $_COOKIE['fcrc_location'];
+        $get_location_data = $_COOKIE['fcrc_location'] ?? null;
 
         // has location data
         if ( ! empty( $get_location_data ) ) {

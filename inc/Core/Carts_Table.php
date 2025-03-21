@@ -17,7 +17,7 @@ if ( ! class_exists('WP_List_Table') ) {
  * Carts table class
  * 
  * @since 1.0.0
- * @version 1.0.1
+ * @version 1.1.0
  * @package MeuMouse.com
  */
 class Carts_Table extends WP_List_Table {
@@ -34,6 +34,85 @@ class Carts_Table extends WP_List_Table {
             'plural' => __('Carrinhos', 'fc-recovery-carts'),
             'ajax' => false,
         ));
+    }
+
+    
+    /**
+     * Display the admin page content
+     * 
+     * @since 1.1.0
+     * @return void
+     */
+    public function display_page() {
+        echo '<div class="wrap"><h1 class="wp-heading-inline">' . __( 'Gerenciar carrinhos', 'fc-recovery-carts' ) . '</h1>';
+       
+        echo '<form method="post">';
+            $this->display();
+        echo '</form></div>';
+    }
+
+
+    /**
+     * Display navigation tabs for filtering carts by status
+     * 
+     * @since 1.1.0
+     * @return void
+     */
+    public function display_navigation_tabs() {
+        global $wpdb;
+
+        $statuses = array(
+            'all' => __( 'Todos', 'fc-recovery-carts' ),
+            'shopping' => __( 'Comprando', 'fc-recovery-carts' ),
+            'abandoned' => __( 'Abandonado', 'fc-recovery-carts' ),
+            'order_abandoned' => __( 'Pedido Abandonado', 'fc-recovery-carts' ),
+            'recovered' => __( 'Recuperado', 'fc-recovery-carts' ),
+            'lead' => __( 'Lead', 'fc-recovery-carts' ),
+            'lost' => __( 'Perdido', 'fc-recovery-carts' ),
+        );
+
+        $current_status = isset( $_GET['post_status'] ) ? sanitize_text_field( $_GET['post_status'] ) : 'all';
+
+        // count the number of carts for each status
+        $counts = array();
+
+        foreach ( $statuses as $status => $label ) {
+            if ( $status === 'all' ) {
+                $counts[$status] = $wpdb->get_var("SELECT COUNT(*) FROM {$wpdb->posts} WHERE post_type = 'fc-recovery-carts'");
+            } else {
+                $counts[$status] = $wpdb->get_var( $wpdb->prepare(
+                    "SELECT COUNT(*) FROM {$wpdb->posts} WHERE post_type = 'fc-recovery-carts' AND post_status = %s",
+                    $status
+                ));
+            }
+        }
+
+        echo '<ul class="subsubsub">';
+
+        $links = array();
+
+        foreach ( $statuses as $status => $label ) {
+            $url = add_query_arg( 'post_status', $status, admin_url('admin.php?page=fc-recovery-carts') );
+            $class = ( $status === $current_status ) ? 'current' : '';
+    
+            $links[] = sprintf( '<li><a href="%s" class="%s">%s <span class="count">(%d)</span></a></li>', esc_url( $url ), esc_attr( $class ), esc_html( $label ), intval( $counts[$status] ?? 0 ) );
+        }
+
+        echo implode(' | ', $links);
+        echo '</ul>';
+    }
+
+
+    /**
+     * Render the navigation tabs and the table
+     * 
+     * @since 1.1.0
+     * @return void
+     */
+    public function display() {
+        $this->display_navigation_tabs();
+
+        parent::display();
     }
 
 
@@ -224,7 +303,7 @@ class Carts_Table extends WP_List_Table {
      * Render the abandoned date column
      * 
      * @since 1.0.0
-     * @version 1.0.1
+     * @version 1.1.0
      * @param object $item | Cart data
      * @return string
      */
@@ -240,7 +319,11 @@ class Carts_Table extends WP_List_Table {
         if ( isset( $purchased ) && $purchased ) {
             if ( isset( $order_date ) && isset( $order_id ) ) {
                 $order_edit_link = get_edit_post_link( $order_id );
-                $order_text = sprintf( __( '%s - #%s', 'fc-recovery-carts' ), esc_html( date( __( 'd/m/Y H:i', 'fc-recovery-carts' ), strtotime( $order_date ) ) ), esc_html( $order_id ) );
+    
+                // convert the date to the WordPress timezone
+                $formatted_date = wp_date( 'd/m/Y H:i', strtotime( $order_date ) );
+    
+                $order_text = sprintf( __( '%s - #%s', 'fc-recovery-carts' ), esc_html( $formatted_date ), esc_html( $order_id ) );
     
                 if ( $order_edit_link ) {
                     return sprintf( '<a href="%s">%s</a>', esc_url( $order_edit_link ), $order_text );
@@ -382,30 +465,39 @@ class Carts_Table extends WP_List_Table {
      * Prepare items for display in the table
      * 
      * @since 1.0.0
-     * @version 1.0.1
+     * @version 1.1.0
      * @return void
      */
     public function prepare_items() {
         $this->process_bulk_action();
-    
-        $per_page = 10;
-        $current_page = $this->get_pagenum();
-    
+
+        $per_page = $per_page = $this->get_items_per_page( 'fc_recovery_carts_per_page', 20 );        ;
+        $current_page  = $this->get_pagenum();
+        $post_status = isset( $_GET['post_status'] ) ? sanitize_key( $_GET['post_status'] ) : 'all';
+
+        // Sets query arguments based on the selected tab
         $args = array(
             'post_type' => 'fc-recovery-carts',
             'posts_per_page' => $per_page,
             'paged' => $current_page,
-            'post_status' => array( 'lead', 'shopping', 'purchased', 'abandoned', 'order_abandoned', 'recovered', 'lost' ),
         );
-    
+
+        // Sets the status of posts based on the selected tab
+        if ( $post_status !== 'all' ) {
+            $args['post_status'] = $post_status;
+        } else {
+            $args['post_status'] = array( 'lead', 'shopping', 'abandoned', 'order_abandoned', 'recovered', 'lost', 'purchased' );
+        }
+
         $query = new \WP_Query( $args );
+        $total_items = $query->found_posts;
         $this->items = $query->posts;
-        $this->_column_headers = array( $this->get_columns(), array(), array() );
-    
+        $this->_column_headers = array( $this->get_columns(), array(), $this->get_sortable_columns() );
+
         $this->set_pagination_args( array(
-            'total_items' => $query->found_posts,
+            'total_items' => $total_items,
             'per_page' => $per_page,
-            'total_pages' => ceil( $query->found_posts / $per_page ),
+            'total_pages' => ceil( $total_items / $per_page ),
         ));
     }
 }

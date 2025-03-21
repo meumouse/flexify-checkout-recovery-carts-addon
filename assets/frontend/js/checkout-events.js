@@ -21,9 +21,11 @@
 		 * Initialize object functions
 		 * 
 		 * @since 1.0.0
+		 * @version 1.1.0
 		 */
 		init: function() {
 			this.bindEvents();
+			this.fillCheckoutFields();
 		},
         
         /**
@@ -79,6 +81,34 @@
 					self.collectLeadData();
 				}, 2000); // Delay to prevent multiple requests
 			});
+		},
+
+		/**
+		 * Fill  checkout fields on load page
+		 * 
+		 * @since 1.1.0
+		 */
+		fillCheckoutFields: function() {
+			let first_name = Checkout_Events.getCookie('fcrc_first_name');
+			let last_name = Checkout_Events.getCookie('fcrc_last_name');
+			let phone = Checkout_Events.getCookie('fcrc_phone');
+			let email = Checkout_Events.getCookie('fcrc_email');
+
+			if ( $('#billing_first_name').val() === '' ) {
+				$('#billing_first_name').val(first_name);
+			}
+
+			if ( $('#billing_last_name').val() === '' ) {
+				$('#billing_last_name').val(last_name);
+			}
+
+			if ( $('#billing_phone').val() === '' ) {
+				$('#billing_phone').val(phone);
+			}
+
+			if ( $('#billing_email').val() === '' ) {
+				$('#billing_email').val(email);
+			}
 		},
 
 		/**

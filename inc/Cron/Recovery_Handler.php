@@ -130,18 +130,24 @@ class Recovery_Handler {
             return;
         }
     
+        $timezone = wp_timezone(); // get the WordPress timezone
+        $current_time = current_time('timestamp');
+    
         // allowed times
         $start_time = Admin::get_setting('follow_up_time_interval_start');
         $end_time = Admin::get_setting('follow_up_time_interval_end');
     
-        // convert to timestamp of the current day
-        $current_time = current_time('timestamp');
-        $start_time_ts = strtotime( date( 'Y-m-d', $current_time ) . ' ' . $start_time );
-        $end_time_ts = strtotime( date( 'Y-m-d', $current_time ) . ' ' . $end_time );
+        // create DateTime objects for start and end times with the current date and WP time
+        $start_dt = new \DateTime( date( 'Y-m-d', $current_time ) . ' ' . $start_time, $timezone );
+        $end_dt = new \DateTime( date( 'Y-m-d', $current_time ) . ' ' . $end_time, $timezone );
     
-        // if the end time is smaller than the start time, it means the interval crosses midnight
+        $start_time_ts = $start_dt->getTimestamp();
+        $end_time_ts = $end_dt->getTimestamp();
+    
+        // if interval crosses midnight
         if ( $end_time_ts < $start_time_ts ) {
-            $end_time_ts = strtotime( '+1 day', $end_time_ts );
+            $end_dt->modify('+1 day');
+            $end_time_ts = $end_dt->getTimestamp();
         }
     
         $max_delay = 0;
@@ -152,38 +158,37 @@ class Recovery_Handler {
             if ( $delay ) {
                 $event_time = $current_time + $delay;
     
-                // check if the event is within the allowed time interval
+                // fix the schedule if out of interval
                 if ( $event_time < $start_time_ts ) {
-                    // if the event time is before the allowed interval, reschedule it for the start of the period
                     $event_time = $start_time_ts;
                 } elseif ( $event_time > $end_time_ts ) {
-                    // if the event time is after the allowed interval, reschedule it the start of the next allowed period
-
-                    $event_time = strtotime( '+1 day', $start_time_ts );
+                    $event_time = ( clone $start_dt )->modify('+1 day')->getTimestamp();
                 }
     
-                wp_schedule_single_event( $event_time, "fcrc_send_follow_up_message", array( 'cart_id' => $cart_id, 'event_key' => $event_key ) );
+                // schedule the event
+                wp_schedule_single_event( $event_time, 'fcrc_send_follow_up_message', array(
+                    'cart_id' => $cart_id,
+                    'event_key' => $event_key,
+                ));
     
-                // update the maximum delay found
                 if ( $event_time - $current_time > $max_delay ) {
                     $max_delay = $event_time - $current_time;
                 }
             }
         }
     
-        // if has follow up scheduled, schedule the final check
+        // Final check
         if ( $max_delay > 0 ) {
             $final_check_delay = $max_delay + Helpers::convert_to_seconds( 1, 'hours' );
             $final_check_time = $current_time + $final_check_delay;
     
-            // ensures that the final check is within the allowed time range
             if ( $final_check_time < $start_time_ts ) {
                 $final_check_time = $start_time_ts;
             } elseif ( $final_check_time > $end_time_ts ) {
-                $final_check_time = strtotime( '+1 day', $start_time_ts );
+                $final_check_time = ( clone $start_dt )->modify('+1 day')->getTimestamp();
             }
     
-            wp_schedule_single_event( $final_check_time, "check_final_cart_status", array( 'cart_id' => $cart_id ) );
+            wp_schedule_single_event( $final_check_time, 'check_final_cart_status', array( 'cart_id' => $cart_id ) );
         }
     }
 
