@@ -332,6 +332,14 @@
          * @version 1.1.0
          */
         getUserLocation: function() {
+            var location_data = Events.getCookie('fcrc_location');
+
+            if ( location_data ) {
+                Events.sendLocationData(location_data);
+
+                return;
+            }
+
             fetch('https://ipapi.co/json')
             .then(response => response.json())
             .then(data => {
@@ -343,8 +351,8 @@
                     ip: data.ip,
                 };
 
-                // Save location data in cookie for 365 days
-                Events.setCookie('fcrc_location', JSON.stringify(country), 365);
+                // Save location data in cookie for 7 days
+                Events.setCookie('fcrc_location', JSON.stringify(country), 7);
 
                 // Send the data via AJAX
                 Events.sendLocationData(country);

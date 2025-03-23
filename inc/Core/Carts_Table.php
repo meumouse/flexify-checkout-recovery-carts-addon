@@ -47,6 +47,10 @@ class Carts_Table extends WP_List_Table {
         echo '<div class="wrap"><h1 class="wp-heading-inline">' . __( 'Gerenciar carrinhos', 'fc-recovery-carts' ) . '</h1>';
        
         echo '<form method="post">';
+            echo '<input type="hidden" name="page" value="' . esc_attr( $_REQUEST['page'] ?? '' ) . '" />';
+            echo '<input type="hidden" name="post_status" value="' . esc_attr( $_REQUEST['post_status'] ?? '' ) . '" />';
+
+            $this->search_box( __( 'Buscar carrinhos', 'fc-recovery-carts' ), 'fcrc_cart_search' );
             $this->display();
         echo '</form></div>';
     }
@@ -130,7 +134,7 @@ class Carts_Table extends WP_List_Table {
             'location'    => __('Localização', 'fc-recovery-carts'),
             'products'    => __('Produtos', 'fc-recovery-carts'),
             'total'       => __('Valor do carrinho', 'fc-recovery-carts'),
-            'abandoned'   => __('Data de abandono', 'fc-recovery-carts'),
+            'abandoned'   => __('Data do evento', 'fc-recovery-carts'),
             'status'      => __('Status', 'fc-recovery-carts'),
         );
 
@@ -321,12 +325,12 @@ class Carts_Table extends WP_List_Table {
                 $order_edit_link = get_edit_post_link( $order_id );
     
                 // convert the date to the WordPress timezone
-                $formatted_date = wp_date( 'd/m/Y H:i', strtotime( $order_date ) );
+                $formatted_date = wp_date( get_option('date_format') . ' - ' . get_option('time_format'), strtotime( $order_date ) );
     
-                $order_text = sprintf( __( '%s - #%s', 'fc-recovery-carts' ), esc_html( $formatted_date ), esc_html( $order_id ) );
+                $order_text = sprintf( __( 'Pedido #%s', 'fc-recovery-carts' ), esc_html( $order_id ) );
     
                 if ( $order_edit_link ) {
-                    return sprintf( '<a href="%s">%s</a>', esc_url( $order_edit_link ), $order_text );
+                    return sprintf( '<div><a href="%s">%s</a><p>%s</p></div>', esc_url( $order_edit_link ), $order_text, esc_html( $formatted_date ), );
                 }
     
                 return $order_text;
@@ -470,7 +474,6 @@ class Carts_Table extends WP_List_Table {
      */
     public function prepare_items() {
         $this->process_bulk_action();
-
         $per_page = $per_page = $this->get_items_per_page( 'fc_recovery_carts_per_page', 20 );        ;
         $current_page  = $this->get_pagenum();
         $post_status = isset( $_GET['post_status'] ) ? sanitize_key( $_GET['post_status'] ) : 'all';
@@ -487,6 +490,48 @@ class Carts_Table extends WP_List_Table {
             $args['post_status'] = $post_status;
         } else {
             $args['post_status'] = array( 'lead', 'shopping', 'abandoned', 'order_abandoned', 'recovered', 'lost', 'purchased' );
+        }
+
+        // filter posts based on search
+        $search = isset( $_REQUEST['s'] ) ? sanitize_text_field( $_REQUEST['s'] ) : '';
+
+        if ( $search ) {
+            $meta_query = array(
+                'relation' => 'OR',
+                array(
+                    'key' => '_fcrc_full_name',
+                    'value' => $search,
+                    'compare' => 'LIKE',
+                ),
+                array(
+                    'key' => '_fcrc_cart_email',
+                    'value' => $search,
+                    'compare' => 'LIKE',
+                ),
+                array(
+                    'key' => '_fcrc_cart_phone',
+                    'value' => $search,
+                    'compare' => 'LIKE',
+                ),
+                array(
+                    'key' => '_fcrc_cart_items',
+                    'value' => $search,
+                    'compare' => 'LIKE',
+                ),
+            );
+
+            // if is numeric, also search by post ID and order ID
+            if ( is_numeric( $search ) ) {
+                $args['post__in'] = array( intval( $search ) );
+
+                $meta_query[] = array(
+                    'key' => '_fcrc_order_id',
+                    'value' => $search,
+                    'compare' => '=',
+                );
+            }
+
+            $args['meta_query'] = $meta_query;
         }
 
         $query = new \WP_Query( $args );
