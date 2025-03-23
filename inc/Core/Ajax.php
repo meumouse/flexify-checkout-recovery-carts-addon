@@ -334,6 +334,7 @@ class Ajax {
      * Handles cart activity pings from the frontend
      *
      * @since 1.0.0
+     * @version 1.1.0
      * @return void
      */
     public function fcrc_cart_ping_callback() {
@@ -341,8 +342,15 @@ class Ajax {
             $cart_id = intval( $_POST['cart_id'] );
 
             if ( FC_RECOVERY_CARTS_DEV_MODE ) {
-                error_log('Ping received from cart ID: ' . $cart_id);
+                error_log('Ping received from cart ID: ' . $cart_id . ' current time: ' . time());
             }
+
+            // check post type
+            if ( get_post_type( $cart_id ) !== 'fc-recovery-carts' ) {
+                wp_send_json_error( array( 'message' => 'Invalid cart post type.' ) );
+
+                return;
+            }            
 
             if ( $cart_id ) {
                 update_post_meta( $cart_id, '_fcrc_cart_last_ping', time() );

@@ -49,7 +49,11 @@
                 this.internationalPhone();
             }
 
-			this.startPingTracking();
+            if ( ! window.fcrcPingStarted ) {
+			    this.startPingTracking();
+
+                window.fcrcPingStarted = true;
+            }
 		},
 
         /**
@@ -301,6 +305,7 @@
          * Starts ping tracking to detect abandonment
          *
          * @since 1.0.0
+         * @version 1.1.0
          */
         startPingTracking: function() {
             let cart_id = Events.getCookie('fcrc_cart_id');
@@ -309,11 +314,15 @@
                 return;
             }
 
-            // Send an initial ping immediately
-            Events.sendPing();
+            // Send an initial ping immediately if page is visible
+            if ( document.visibilityState === 'visible' ) {
+                Events.sendPing();
+            }
+
+            var interval = params.get_heartbeat_interval * 1000;
 
             // Send a ping every 30 seconds
-            setInterval(Events.sendPing, 30000);
+            setInterval(Events.sendPing, interval);
         },
 
         /**
@@ -323,7 +332,7 @@
          * @version 1.1.0
          */
         getUserLocation: function() {
-            fetch("https://ipapi.co/json")
+            fetch('https://ipapi.co/json')
             .then(response => response.json())
             .then(data => {
                 country = {

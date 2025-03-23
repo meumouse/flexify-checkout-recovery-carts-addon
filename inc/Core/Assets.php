@@ -11,6 +11,7 @@ defined('ABSPATH') || exit;
  * Enqueue assets class
  * 
  * @since 1.0.0
+ * @version 1.1.0
  * @package MeuMouse.com
  */
 class Assets {
@@ -141,6 +142,7 @@ class Assets {
             'is_product' => Helpers::is_product(),
             'abandonment_time_seconds' => Helpers::get_abandonment_time_seconds(),
             'collect_data_from_ip' => Admin::get_switch('enable_get_location_from_ip'),
+            'get_heartbeat_interval' => Admin::get_setting('fcrc_heartbeat_interval'),
         ));
 
         // add checkout events

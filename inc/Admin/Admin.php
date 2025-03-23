@@ -349,8 +349,7 @@ class Admin {
                     'limit_usages_per_user' => 1,
                 ),
             ),
-            'follow_up_time_interval_start' => '07:00',
-            'follow_up_time_interval_end' => '22:00',
+            'fcrc_heartbeat_interval' => 30,
         ));
     }
 

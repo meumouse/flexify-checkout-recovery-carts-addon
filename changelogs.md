@@ -1,3 +1,8 @@
+Versão 1.1.0 (21/03/2025)
+* Correção de bugs
+* Otimizações
+* Recurso adicionado: Intervalo de requisições
+
 Versão 1.0.2 (10/03/2025)
 * Recurso adicionado: Rotina de verificação de atualizações
 

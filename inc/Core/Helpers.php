@@ -11,6 +11,7 @@ defined('ABSPATH') || exit;
  * Helpers class
  * 
  * @since 1.0.0
+ * @version 1.1.0
  * @package MeuMouse.com
  */
 class Helpers {
@@ -230,4 +231,26 @@ class Helpers {
             error_log( 'Cart ID removed from session and cookies.' );
         }
     }
+
+
+    /**
+     * Checks if the cart cycle is finished
+     * 
+     * @since 1.1.0
+     * @param int $cart_id | The cart ID to check
+     * @return bool
+     */
+    public static function is_cart_cycle_finished( $cart_id = null ) {
+        if ( ! $cart_id ) {
+            $cart_id = WC()->session->get('fcrc_cart_id') ?? ( $_COOKIE['fcrc_cart_id'] ?? null );
+        }
+    
+        if ( ! $cart_id ) {
+            return false;
+        }
+    
+        $status = get_post_status( $cart_id );
+    
+        return in_array( $status, array( 'recovered', 'purchased', 'completed', 'order_abandoned', 'lost' ), true );
+    }    
 }

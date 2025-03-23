@@ -2,6 +2,9 @@
 
 namespace MeuMouse\Flexify_Checkout\Recovery_Carts\Core;
 
+use MeuMouse\Flexify_Checkout\Recovery_Carts\Core\Helpers;
+use MeuMouse\Flexify_Checkout\Recovery_Carts\Cron\Recovery_Handler;
+
 // Exit if accessed directly.
 defined('ABSPATH') || exit;
 
@@ -59,6 +62,39 @@ class Cart_Events {
             $cart_id = $_COOKIE['fcrc_cart_id'] ?? null;
         }
 
+        // check if cycle has already finished
+        if ( $cart_id && Helpers::is_cart_cycle_finished( $cart_id ) ) {
+            if ( FC_RECOVERY_CARTS_DEV_MODE ) {
+                error_log( 'Cart already finished. Skipping cart update. ID: ' . $cart_id );
+            }
+            return;
+        }
+
+        if ( ! $cart_id ) {
+            $create_cart_id = self::create_cart_post();
+        }
+
+        $get_cart_id = isset( $create_cart_id ) ? $create_cart_id : $cart_id;
+
+        self::sync_cart_with_post( $get_cart_id );
+    }
+
+
+    /**
+     * Creates a new cart post if none exists
+     * 
+     * @since 1.1.0
+     * @return int $cart_id | The cart ID
+     */
+    public static function create_cart_post() {
+        if ( Helpers::is_cart_cycle_finished() ) {
+            if ( FC_RECOVERY_CARTS_DEV_MODE ) {
+                error_log( 'Cart completed detected — do not create new cart post.' );
+            }
+
+            return;
+        }
+
         if ( is_user_logged_in() ) {
             $user = wp_get_current_user();
             $first_name = $user->first_name ?: '';
@@ -79,45 +115,44 @@ class Cart_Events {
             $phone = $_COOKIE['fcrc_phone'] ?? '';
         }
 
-        if ( ! $cart_id ) {
-            // Create new cart post
-            $cart_id = wp_insert_post( array(
-                'post_type' => 'fc-recovery-carts',
-                'post_status' => 'shopping',
-                'post_title' => sprintf( __( 'Novo carrinho - %s', 'fc-recovery-carts' ), current_time('mysql') ),
-                'meta_input' => array(
-                    '_fcrc_cart_items' => array(),
-                    '_fcrc_cart_total' => 0,
-                    '_fcrc_cart_updated_time' => time(),
-                    '_fcrc_abandoned_time' => '',
-                    '_fcrc_first_name' => $first_name,
-                    '_fcrc_last_name' => $last_name,
-                    '_fcrc_full_name' => sprintf( '%s %s', $first_name, $last_name ),
-                    '_fcrc_cart_phone' => $phone,
-                    '_fcrc_cart_email' => $email,
-                ),
-            ));
+        // Create new cart post
+        $cart_id = wp_insert_post( array(
+            'post_type' => 'fc-recovery-carts',
+            'post_status' => 'shopping',
+            'post_title' => sprintf( __( 'Novo carrinho - %s', 'fc-recovery-carts' ), current_time('mysql') ),
+            'meta_input' => array(
+                '_fcrc_cart_items' => array(),
+                '_fcrc_cart_total' => 0,
+                '_fcrc_cart_updated_time' => time(),
+                '_fcrc_cart_last_ping' => time(),
+                '_fcrc_abandoned_time' => '',
+                '_fcrc_first_name' => $first_name,
+                '_fcrc_last_name' => $last_name,
+                '_fcrc_full_name' => sprintf( '%s %s', $first_name, $last_name ),
+                '_fcrc_cart_phone' => $phone,
+                '_fcrc_cart_email' => $email,
+            ),
+        ));
 
-            // Store in session
-            WC()->session->set( 'fcrc_cart_id', $cart_id );
+        // Store in session
+        WC()->session->set( 'fcrc_cart_id', $cart_id );
 
-            // Store in cookie
-            setcookie( 'fcrc_cart_id', $cart_id, time() + ( 7 * 24 * 60 * 60 ), COOKIEPATH, COOKIE_DOMAIN ); // Expires in 7 days
+        // Store in cookie
+        setcookie( 'fcrc_cart_id', $cart_id, time() + ( 7 * 24 * 60 * 60 ), COOKIEPATH, COOKIE_DOMAIN ); // Expires in 7 days
 
-            /**
-             * Fires when a new cart is created
-             * 
-             * @since 1.0.1
-             * @param int $cart_id | The cart ID
-             */
-            do_action( 'Flexify_Checkout/Recovery_Carts/New_Cart_Created', $cart_id );
+        /**
+         * Fires when a new cart is created
+         * 
+         * @since 1.0.1
+         * @param int $cart_id | The cart ID
+         */
+        do_action( 'Flexify_Checkout/Recovery_Carts/New_Cart_Created', $cart_id );
 
-            if ( FC_RECOVERY_CARTS_DEV_MODE ) {
-                error_log( "New cart created: " . $cart_id );
-            }
+        if ( FC_RECOVERY_CARTS_DEV_MODE ) {
+            error_log( "New cart created: " . $cart_id );
         }
 
-        self::sync_cart_with_post();
+        return $cart_id;
     }
 
 
@@ -154,8 +189,27 @@ class Cart_Events {
             }
         }
 
-        if ( ! $recovery_cart_id ) {
+        // check if is a cart completed
+        if ( Helpers::is_cart_cycle_finished() ) {
+            if ( FC_RECOVERY_CARTS_DEV_MODE ) {
+                error_log( 'Cart completed detected — do not create new cart post.' );
+            }
+
             return;
+        } else {
+            Recovery_Handler::detect_cart_recovery();
+        }
+
+        // if there is no cart ID, create a new one
+        if ( ! $recovery_cart_id ) {
+            self::create_cart_post();
+        }
+
+        $has_post = get_post( $recovery_cart_id );
+        $cart_status = get_post_status( $recovery_cart_id );
+
+        if ( ! $has_post || in_array( $cart_status, array( 'recovered', 'purchased' ), true ) ) {
+            self::create_cart_post();
         }
 
         if ( is_user_logged_in() ) {
@@ -261,12 +315,10 @@ class Cart_Events {
         update_post_meta( $recovery_cart_id, '_fcrc_cart_items', $cart_items );
         update_post_meta( $recovery_cart_id, '_fcrc_cart_total', $cart_total );
         update_post_meta( $recovery_cart_id, '_fcrc_cart_updated_time', time() );
-
-        // Set status to "shopping"
-        wp_update_post( array(
-            'ID' => $recovery_cart_id,
-            'post_status' => 'shopping',
-        ));
+        
+        if ( ! is_admin() ) {
+            update_post_meta( $recovery_cart_id, '_fcrc_cart_last_ping', time() );
+        }
     }
 
 
@@ -274,7 +326,7 @@ class Cart_Events {
      * Updates the cart's last modified time when it's updated
      *
      * @since 1.0.0
-     * @version 1.0.1
+     * @version 1.1.0
      * @return void
      */
     public function update_last_modified_cart_time() {
