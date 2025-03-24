@@ -11,7 +11,7 @@ defined('ABSPATH') || exit;
  * Helpers class
  * 
  * @since 1.0.0
- * @version 1.1.0
+ * @version 1.1.2
  * @package MeuMouse.com
  */
 class Helpers {
@@ -262,13 +262,20 @@ class Helpers {
      * Get current cart ID from WooCommerce session or cookie
      * 
      * @since 1.1.0
+     * @version 1.1.2
      * @return string|null
      */
     public static function get_current_cart_id() {
         if ( function_exists('WC') && WC()->session instanceof WC_Session && WC()->session->get('fcrc_cart_id') !== null ) {
-            return WC()->session->get('fcrc_cart_id');
+            $cart_id = WC()->session->get('fcrc_cart_id');
         } else {
-            return $_COOKIE['fcrc_cart_id'] ?? null;
+            $cart_id = $_COOKIE['fcrc_cart_id'] ?? null;
         }
+
+        if ( FC_RECOVERY_CARTS_DEV_MODE ) {
+            error_log( 'Current cart ID: ' . $cart_id );
+        }
+
+        return $cart_id;
     }
 }

@@ -218,9 +218,18 @@
          * Initialize international phone input
          * 
          * @since 1.0.0
+         * @version 1.1.2
          */
         internationalPhone: function() {
             const input = document.querySelector('.fcrc-input.fcrc-get-phone');
+
+            if ( ! input ) {
+                if ( params.dev_mode ) {
+                    console.warn('fcrc-get-phone input not found');
+                }
+                
+                return;
+            }
 
             // initialize intl tel input
             const iti = window.intlTelInput( input, {

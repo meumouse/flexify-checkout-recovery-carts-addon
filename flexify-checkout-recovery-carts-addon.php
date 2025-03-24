@@ -7,7 +7,7 @@
  * Requires Plugins: 		flexify-checkout-for-woocommerce, woocommerce
  * Author:                  MeuMouse.com
  * Author URI:              https://meumouse.com/
- * Version:                 1.1.0
+ * Version:                 1.1.2
  * Requires PHP:            7.4
  * Tested up to:            6.7.2
  * WC requires at least:    6.0.0
@@ -52,7 +52,7 @@ if ( ! class_exists('Flexify_Checkout_Recovery_Carts') ) {
          * @var string
          * @since 1.0.0
          */
-        public static $version = '1.1.0';
+        public static $version = '1.1.2';
 
 
         /**

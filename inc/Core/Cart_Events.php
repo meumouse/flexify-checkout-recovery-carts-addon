@@ -5,6 +5,8 @@ namespace MeuMouse\Flexify_Checkout\Recovery_Carts\Core;
 use MeuMouse\Flexify_Checkout\Recovery_Carts\Core\Helpers;
 use MeuMouse\Flexify_Checkout\Recovery_Carts\Cron\Recovery_Handler;
 
+use WC;
+
 // Exit if accessed directly.
 defined('ABSPATH') || exit;
 
@@ -12,7 +14,7 @@ defined('ABSPATH') || exit;
  * Handles cart recovery events, such as tracking and updating cart data
  *
  * @since 1.0.0
- * @version 1.1.0
+ * @version 1.1.2
  * @package MeuMouse.com
  */
 class Cart_Events {
@@ -85,11 +87,12 @@ class Cart_Events {
      * Creates a new cart post if none exists
      * 
      * @since 1.1.0
+     * @version 1.1.2
      * @return int $cart_id | The cart ID
      */
     public static function create_cart_post() {
-        // stop processing if the cart already exists or admin requests
-        if ( is_admin() || Helpers::is_cart_cycle_finished() ) {
+        // stop processing if the cart already exists, admin requests or if cart is empty
+        if ( is_admin() || Helpers::is_cart_cycle_finished() || WC()->cart->is_empty() ) {
             return;
         }
         
@@ -122,14 +125,45 @@ class Cart_Events {
             $phone = $_COOKIE['fcrc_phone'] ?? '';
         }
 
+        // Get WooCommerce cart contents
+        $cart_items_data = WC()->cart->get_cart();
+        $cart_items = array();
+        $cart_total = 0;
+
+        foreach ( $cart_items_data as $cart_item_key => $cart_item ) {
+            $product = wc_get_product( $cart_item['product_id'] );
+
+            if ( ! $product ) {
+                continue;
+            }
+
+            $product_id = $cart_item['product_id'];
+            $quantity = $cart_item['quantity'];
+            $price = floatval( $product->get_price() );
+            $total_price = $quantity * $price;
+            $cart_total += $total_price;
+
+            $cart_items[$product_id] = array(
+                'product_id' => $product_id,
+                'quantity' => $quantity,
+                'price' => $price,
+                'total' => $total_price,
+                'name' => $product->get_name(),
+                'image' => get_the_post_thumbnail_url( $product_id, 'thumbnail' ),
+            );
+        }
+
+        // get cached location data
+        $get_location_data = isset( $_COOKIE['fcrc_location'] ) ? json_decode( stripslashes( $_COOKIE['fcrc_location'] ), true ) : null;
+
         // Create new cart post
         $cart_id = wp_insert_post( array(
             'post_type' => 'fc-recovery-carts',
             'post_status' => 'shopping',
             'post_title' => sprintf( __( 'Novo carrinho - %s', 'fc-recovery-carts' ), current_time('mysql') ),
             'meta_input' => array(
-                '_fcrc_cart_items' => array(),
-                '_fcrc_cart_total' => 0,
+                '_fcrc_cart_items' => $cart_items,
+                '_fcrc_cart_total' => $cart_total,
                 '_fcrc_cart_updated_time' => time(),
                 '_fcrc_cart_last_ping' => time(),
                 '_fcrc_abandoned_time' => '',
@@ -138,6 +172,10 @@ class Cart_Events {
                 '_fcrc_full_name' => sprintf( '%s %s', $first_name, $last_name ),
                 '_fcrc_cart_phone' => $phone,
                 '_fcrc_cart_email' => $email,
+                '_fcrc_location_city' => $get_location_data['city'] ?? '',
+                '_fcrc_location_state' => $get_location_data['region'] ?? '',
+                '_fcrc_location_country_code' => $get_location_data['country_code'] ?? '',
+                '_fcrc_location_ip' => $get_location_data['ip'] ?? '',
             ),
         ));
 
@@ -184,12 +222,12 @@ class Cart_Events {
      * Synchronizes WooCommerce cart data with the recovery cart post
      *
      * @since 1.0.0
-     * @version 1.1.0
+     * @version 1.1.2
      * @param string $cart_id | The cart ID
      * @return void
      */
     public static function sync_cart_with_post( $cart_id = null ) {
-        if ( is_admin() ) {
+        if ( is_admin() || WC()->cart->is_empty() ) {
             return;
         }
 
@@ -205,6 +243,8 @@ class Cart_Events {
 
         // check if is a cart completed
         if ( Helpers::is_cart_cycle_finished() ) {
+            Helpers::clear_active_cart();
+
             if ( FC_RECOVERY_CARTS_DEV_MODE ) {
                 error_log( 'Cart completed detected — do not create new cart post.' );
             }
