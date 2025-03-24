@@ -1,3 +1,8 @@
+Versão 1.1.2 (24/03/2025)
+* Correção de bugs
+    Criação do carrinho apenas se usuário tem produtos no carrinho
+* Otimizações
+
 Versão 1.1.0 (24/03/2025)
 * Correção de bugs
 * Otimizações
