@@ -44,7 +44,7 @@ class Init {
             '\MeuMouse\Flexify_Checkout\Recovery_Carts\Core\Cart_Events',
             '\MeuMouse\Flexify_Checkout\Recovery_Carts\Cron\Recovery_Handler',
             '\MeuMouse\Flexify_Checkout\Recovery_Carts\Core\Session_Handler',
-            '\MeuMouse\Flexify_Checkout\Recovery_Carts\Core\Order_Abandonment',
+            '\MeuMouse\Flexify_Checkout\Recovery_Carts\Core\Order_Events',
             '\MeuMouse\Flexify_Checkout\Recovery_Carts\Core\Updater',
         ));
 

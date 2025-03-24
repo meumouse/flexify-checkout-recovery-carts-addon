@@ -8,18 +8,19 @@ use MeuMouse\Flexify_Checkout\Recovery_Carts\Admin\Admin;
 defined('ABSPATH') || exit;
 
 /**
- * Handles order abandonment tracking based on payment method delay
+ * Handles with orders events
  *
  * @since 1.0.0
- * @version 1.0.1
+ * @version 1.1.0
  * @package MeuMouse.com
  */
-class Order_Abandonment {
+class Order_Events {
 
     /**
      * Construct function
      *
      * @since 1.0.0
+     * @version 1.1.0
      * @return void
      */
     public function __construct() {
@@ -30,7 +31,7 @@ class Order_Abandonment {
         add_action( 'fcrc_check_order_payment_status', array( $this, 'check_order_payment_status' ), 10, 1 );
 
         // save cart id on order meta data
-        add_action( 'woocommerce_new_order', array( $this, 'save_cart_id_to_order_meta' ), 10, 1 );
+        add_action( 'woocommerce_checkout_order_processed', array( $this, 'save_cart_id_to_order_meta' ), 10, 1 );
 
         // Listen for order status changes
         add_action( 'woocommerce_order_status_changed', array( $this, 'mark_cart_as_recovered' ), 10, 3 );
@@ -227,13 +228,13 @@ class Order_Abandonment {
         }
 
         /**
-         * Fire a hook when a cart is recovered
+         * Fire a hook when user purchases a cart
          *
          * @since 1.0.0
          * @param int $cart_id | The cart ID
          * @param int $order_id | The WooCommerce order ID
          */
-        do_action( 'Flexify_Checkout/Recovery_Carts/Cart_Recovered', $cart_id, $order_id );
+        do_action( 'Flexify_Checkout/Recovery_Carts/Purchased_Cart', $cart_id, $order_id );
     }
 
 

@@ -124,6 +124,7 @@
                 var get_last_name = $('.fcrc-get-last-name').val() || Events.getCookie('fcrc_last_name');
                 var get_phone = $('.fcrc-get-phone').val() || Events.getCookie('fcrc_phone');
                 var get_email = $('.fcrc-get-email').val() || Events.getCookie('fcrc_email');
+                var get_cart_id = Events.getCookie('fcrc_cart_id') || '';
 
                 // send ajax request
                 $.ajax({
@@ -136,6 +137,7 @@
                         phone: get_phone,
                         email: get_email,
                         country_data: JSON.stringify(country),
+                        cart_id: get_cart_id,
                     },
                     beforeSend: function() {
                         btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm"></span>');
@@ -335,6 +337,9 @@
             var location_data = Events.getCookie('fcrc_location');
 
             if ( location_data ) {
+                location_data = JSON.parse(location_data);
+                location_data.cache = true;
+
                 Events.sendLocationData(location_data);
 
                 return;

@@ -170,17 +170,30 @@ class Carts_Table extends WP_List_Table {
      * Render the contact column
      * 
      * @since 1.0.0
+     * @version 1.1.0
      * @param object $item | Cart data
      * @return void
      */
     public function column_contact( $item ) {
-        $contact_name = get_post_meta( $item->ID, '_fcrc_full_name', true ) ?? Admin::get_setting('fallback_first_name');
+        $contact_name = get_post_meta( $item->ID, '_fcrc_full_name', true ) ?? esc_html__( 'Visitante', 'fc-recovery-carts' );
         $phone = get_post_meta( $item->ID, '_fcrc_cart_phone', true ) ?? '';
         $email = get_post_meta( $item->ID, '_fcrc_cart_email', true ) ?? '';
         $user_id = get_post_meta( $item->ID, '_fcrc_user_id', true ) ?? '';
 
+        if ( get_post_meta( $item->ID, '_fcrc_full_name', true ) === ' ' ) {
+            $contact_name = esc_html__( 'Visitante', 'fc-recovery-carts' );
+        }
+
+        if (  $contact_name ) {
+            echo esc_html( $contact_name );
+        }
+
+        if ( $phone ) {
+            echo '<br>'. esc_html( $phone );
+        }
+
         if ( $email ) {
-            echo esc_html( $contact_name ) . '<br>'. esc_html( $phone ) . '<br><a href="mailto:' . esc_attr( $email ) . '">' . esc_html( $email ) . '</a>';
+            echo '<br><a href="mailto:' . esc_attr( $email ) . '">' . esc_html( $email ) . '</a>';
         }
 
         // if has a user associated, display the link to the profile
@@ -196,7 +209,7 @@ class Carts_Table extends WP_List_Table {
      * Render the location column from user meta data
      *
      * @since 1.0.0
-     * @version 1.0.1
+     * @version 1.1.0
      * @param object $item | Cart data
      * @return string
      */
@@ -207,7 +220,7 @@ class Carts_Table extends WP_List_Table {
         $country = get_post_meta( $item->ID, '_fcrc_location_country_code', true );
         $ip = get_post_meta( $item->ID, '_fcrc_location_ip', true );
     
-        // Se os dados de localização não existirem no post_meta, tenta buscar no perfil do usuário
+        // if location data is empty, try to get the data from the user profile
         if ( empty( $city ) || empty( $state ) || empty( $country ) ) {
             $user_id = get_post_meta( $item->ID, '_fcrc_user_id', true );
     
@@ -221,13 +234,22 @@ class Carts_Table extends WP_List_Table {
     
         // formatt the location only if there are data available
         if ( ! empty( $city ) || ! empty( $state ) || ! empty( $country ) ) {
-            $formatted_location = sprintf(
-                '%s - %s (%s) - %s',
-                esc_html( $city ?: 'N/A' ),
-                esc_html( $state ?: 'N/A' ),
-                esc_html( $zipcode ?: 'N/A' ),
-                esc_html( $country ?: 'N/A' )
-            );
+            if ( ! empty( $zipcode ) ) {
+                $formatted_location = sprintf(
+                    '%s - %s (%s) - %s',
+                    esc_html( $city ?: 'N/A' ),
+                    esc_html( $state ?: 'N/A' ),
+                    esc_html__( $zipcode ?: 'N/A' ),
+                    esc_html( $country ?: 'N/A' )
+                );
+            } else {
+                $formatted_location = sprintf(
+                    '%s - %s - %s',
+                    esc_html( $city ?: 'N/A' ),
+                    esc_html( $state ?: 'N/A' ),
+                    esc_html( $country ?: 'N/A' )
+                );
+            }
     
             // add the IP if available
             if ( ! empty( $ip ) ) {
@@ -253,7 +275,7 @@ class Carts_Table extends WP_List_Table {
         $cart_items = is_array( $cart_items ) ? $cart_items : array();
 
         if ( empty( $cart_items ) ) {
-            return __('Nenhum produto', 'fc-recovery-carts');
+            return esc_html__('Nenhum produto', 'fc-recovery-carts');
         }
 
         $output = '<div class="fcrc-cart-products">';
@@ -419,10 +441,10 @@ class Carts_Table extends WP_List_Table {
                         /**
                          * Fire a hook when an order is considered lost manually
                          *
-                         * @since 1.0.0
+                         * @since 1.1.0
                          * @param int $cart_id | The abandoned cart ID
                          */
-                        do_action( 'Flexify_Checkout/Recovery_Carts/Cart_Lost', $cart_id );
+                        do_action( 'Flexify_Checkout/Recovery_Carts/Cart_Lost_Manually', $cart_id );
                     }
 
                     break;

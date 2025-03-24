@@ -21,6 +21,7 @@ class Cart_Events {
      * Constructor function
      *
      * @since 1.0.0
+     * @version 1.1.0
      * @return void
      */
     public function __construct() {
@@ -31,6 +32,9 @@ class Cart_Events {
 
         // update last modified cart time
         add_action( 'woocommerce_cart_updated', array( $this, 'update_last_modified_cart_time' ) );
+
+        add_action( 'wp_trash_post', array( $this, 'handle_cart_deletion' ), 10, 1 );
+        add_action( 'before_delete_post', array( $this, 'handle_cart_deletion' ), 10, 1 );
     }
 
 
@@ -50,23 +54,20 @@ class Cart_Events {
      */
     public function update_cart_post( $cart_id, $product_id, $request_quantity, $variation_id, $variation, $cart_item_data ) {
         // Check if we're in recovery mode
-        if ( WC()->session->get('fcrc_cart_recovery_mode') ) {
+        if ( function_exists('WC') && WC()->session instanceof WC_Session && WC()->session->get('fcrc_cart_recovery_mode') ) {
             WC()->session->__unset('fcrc_cart_recovery_mode'); // Clear recovery mode flag
             
             return;
         }
 
-        if ( function_exists('WC') && WC()->session instanceof WC_Session ) {
-            $cart_id = WC()->session->get('fcrc_cart_id') ?: ( $_COOKIE['fcrc_cart_id'] ?? null );
-        } else {
-            $cart_id = $_COOKIE['fcrc_cart_id'] ?? null;
-        }
+        $cart_id = Helpers::get_current_cart_id();
 
         // check if cycle has already finished
         if ( $cart_id && Helpers::is_cart_cycle_finished( $cart_id ) ) {
             if ( FC_RECOVERY_CARTS_DEV_MODE ) {
                 error_log( 'Cart already finished. Skipping cart update. ID: ' . $cart_id );
             }
+
             return;
         }
 
@@ -87,9 +88,15 @@ class Cart_Events {
      * @return int $cart_id | The cart ID
      */
     public static function create_cart_post() {
-        if ( Helpers::is_cart_cycle_finished() ) {
+        // stop processing if the cart already exists or admin requests
+        if ( is_admin() || Helpers::is_cart_cycle_finished() ) {
+            return;
+        }
+        
+        // check if cart already exists
+        if ( function_exists('WC') && WC()->session instanceof \WC_Session && WC()->session->get('fcrc_active_cart') ) {
             if ( FC_RECOVERY_CARTS_DEV_MODE ) {
-                error_log( 'Cart completed detected — do not create new cart post.' );
+                error_log('Cart already exists. Skipping cart creation. ' . 'Current cart ID: ' . Helpers::get_current_cart_id() );
             }
 
             return;
@@ -134,11 +141,14 @@ class Cart_Events {
             ),
         ));
 
-        // Store in session
+        // Store cart ID in session
         WC()->session->set( 'fcrc_cart_id', $cart_id );
 
-        // Store in cookie
+        // Store cart ID in cookie
         setcookie( 'fcrc_cart_id', $cart_id, time() + ( 7 * 24 * 60 * 60 ), COOKIEPATH, COOKIE_DOMAIN ); // Expires in 7 days
+
+        // set flag for prevent duplicate carts
+        WC()->session->set( 'fcrc_active_cart', true );
 
         /**
          * Fires when a new cart is created
@@ -179,13 +189,17 @@ class Cart_Events {
      * @return void
      */
     public static function sync_cart_with_post( $cart_id = null ) {
-        if ( ! empty( $cart_id ) ) {
-            $recovery_cart_id = $cart_id;
-        } else {
-            if ( function_exists('WC') && WC()->session instanceof WC_Session ) {
-                $recovery_cart_id = WC()->session->get('fcrc_cart_id') ?: ( $_COOKIE['fcrc_cart_id'] ?? null );
-            } else {
-                $recovery_cart_id = $_COOKIE['fcrc_cart_id'] ?? null;
+        if ( is_admin() ) {
+            return;
+        }
+
+        $cart_id = ! empty( $cart_id ) ? $cart_id : Helpers::get_current_cart_id();
+
+        if ( $cart_id && get_post_type( $cart_id ) !== 'fc-recovery-carts' ) {
+            Helpers::clear_active_cart();
+    
+            if ( FC_RECOVERY_CARTS_DEV_MODE ) {
+                error_log( 'Invalid cart reference found. Session cleared.' );
             }
         }
 
@@ -201,12 +215,12 @@ class Cart_Events {
         }
 
         // if there is no cart ID, create a new one
-        if ( ! $recovery_cart_id ) {
+        if ( ! $cart_id ) {
             self::create_cart_post();
         }
 
-        $has_post = get_post( $recovery_cart_id );
-        $cart_status = get_post_status( $recovery_cart_id );
+        $has_post = get_post( $cart_id );
+        $cart_status = get_post_status( $cart_id );
 
         if ( ! $has_post || in_array( $cart_status, array( 'recovered', 'purchased' ), true ) ) {
             self::create_cart_post();
@@ -243,43 +257,44 @@ class Cart_Events {
 
         // update contact data
         if ( ! empty( $first_name ) ) {
-            update_post_meta( $recovery_cart_id, '_fcrc_first_name', $first_name );
+            update_post_meta( $cart_id, '_fcrc_first_name', $first_name );
         }
         
         if ( ! empty( $last_name ) ) {
-            update_post_meta( $recovery_cart_id, '_fcrc_last_name', $last_name );
+            update_post_meta( $cart_id, '_fcrc_last_name', $last_name );
         }
         
         if ( ! empty( $contact_name ) ) {
-            update_post_meta( $recovery_cart_id, '_fcrc_full_name', $contact_name );
+            update_post_meta( $cart_id, '_fcrc_full_name', $contact_name );
         }
         
         if ( ! empty( $phone ) ) {
-            update_post_meta( $recovery_cart_id, '_fcrc_cart_phone', $phone );
+            update_post_meta( $cart_id, '_fcrc_cart_phone', $phone );
         }
 
         if ( ! empty( $email ) ) {
-            update_post_meta( $recovery_cart_id, '_fcrc_cart_email', $email );
+            update_post_meta( $cart_id, '_fcrc_cart_email', $email );
         }
 
-        $get_location_data = $_COOKIE['fcrc_location'] ?? null;
+        // get cached location data
+        $get_location_data = isset( $_COOKIE['fcrc_location'] ) ? json_decode( stripslashes( $_COOKIE['fcrc_location'] ), true ) : null;
 
         // has location data
         if ( ! empty( $get_location_data ) ) {
             if ( ! empty( $get_location_data['city'] ) ) {
-                update_post_meta( $recovery_cart_id, '_fcrc_location_city', $get_location_data['city'] ?? '' );
+                update_post_meta( $cart_id, '_fcrc_location_city', $get_location_data['city'] ?? '' );
             }
 
             if ( ! empty( $get_location_data['region'] ) ) {
-                update_post_meta( $recovery_cart_id, '_fcrc_location_state', $get_location_data['region'] ?? '' );
+                update_post_meta( $cart_id, '_fcrc_location_state', $get_location_data['region'] ?? '' );
             }
 
             if ( ! empty( $get_location_data['country_code'] ) ) {
-                update_post_meta( $recovery_cart_id, '_fcrc_location_country_code', $get_location_data['country_code'] ?? '' );
+                update_post_meta( $cart_id, '_fcrc_location_country_code', $get_location_data['country_code'] ?? '' );
             }
 
             if ( ! empty( $get_location_data['ip'] ) ) {
-                update_post_meta( $recovery_cart_id, '_fcrc_location_ip', $get_location_data['ip'] ?? '' );
+                update_post_meta( $cart_id, '_fcrc_location_ip', $get_location_data['ip'] ?? '' );
             }
         }
 
@@ -312,12 +327,12 @@ class Cart_Events {
         }
 
         // Update cart post metadata
-        update_post_meta( $recovery_cart_id, '_fcrc_cart_items', $cart_items );
-        update_post_meta( $recovery_cart_id, '_fcrc_cart_total', $cart_total );
-        update_post_meta( $recovery_cart_id, '_fcrc_cart_updated_time', time() );
+        update_post_meta( $cart_id, '_fcrc_cart_items', $cart_items );
+        update_post_meta( $cart_id, '_fcrc_cart_total', $cart_total );
+        update_post_meta( $cart_id, '_fcrc_cart_updated_time', time() );
         
         if ( ! is_admin() ) {
-            update_post_meta( $recovery_cart_id, '_fcrc_cart_last_ping', time() );
+            update_post_meta( $cart_id, '_fcrc_cart_last_ping', time() );
         }
     }
 
@@ -331,5 +346,27 @@ class Cart_Events {
      */
     public function update_last_modified_cart_time() {
         self::sync_cart_with_post();
+    }
+
+
+    /**
+     * Handle cart deletion to cancel follow-ups
+     *
+     * @since 1.1.0
+     * @param int $post_id | Post ID
+     * @return void
+     */
+    public function handle_cart_deletion( $post_id ) {
+        if ( get_post_type( $post_id ) !== 'fc-recovery-carts' ) {
+            return;
+        }
+
+        /**
+         * Fired when a cart is manually deleted
+         *
+         * @since 1.1.0
+         * @param int $post_id
+         */
+        do_action( 'Flexify_Checkout/Recovery_Carts/Cart_Deleted_Manually', $post_id );
     }
 }

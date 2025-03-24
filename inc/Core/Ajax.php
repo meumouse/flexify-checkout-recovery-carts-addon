@@ -4,6 +4,7 @@ namespace MeuMouse\Flexify_Checkout\Recovery_Carts\Core;
 
 use MeuMouse\Flexify_Checkout\Recovery_Carts\Admin\Admin;
 use MeuMouse\Flexify_Checkout\Recovery_Carts\Admin\Components as Admin_Components;
+use MeuMouse\Flexify_Checkout\Recovery_Carts\Core\Helpers;
 
 // Exit if accessed directly.
 defined('ABSPATH') || exit;
@@ -251,6 +252,7 @@ class Ajax {
             $country_dial_code = $country_data['dialCode'] ?? '';
             $format_phone = $country_dial_code . $phone;
             $international_phone = preg_replace( '/\D/', '', $format_phone );
+            $get_cart_id = isset( $_POST['cart_id'] ) ? sanitize_text_field( $_POST['cart_id'] ) : '';
 
             // get full name
             $contact_name = sprintf( '%s %s', $first_name, $last_name );
@@ -271,23 +273,33 @@ class Ajax {
                 update_user_meta( $user->ID, 'billing_country', strtoupper( $country_code ) );
             }
 
-            // create a new post of type 'fc-recovery-carts'
-            $cart_id = wp_insert_post( array(
-                'post_type' => 'fc-recovery-carts',
-                'post_status' => 'lead',
-                'post_title' => 'Lead: ' . $contact_name,
-                'post_content' => '',
-                'meta_input' => array(
-                    '_fcrc_first_name' => $first_name,
-                    '_fcrc_last_name' => $last_name,
-                    '_fcrc_full_name' => $contact_name,
-                    '_fcrc_cart_phone' => $international_phone,
-                    '_fcrc_cart_email' => $email,
-                    '_fcrc_cart_total' => $cart_total,
-                    '_fcrc_cart_items' => WC()->cart ? WC()->cart->get_cart() : array(),
-                    '_fcrc_user_id' => $user ? $user->ID : 0,
-                ),
-            ));
+            if ( ! $get_cart_id || empty( $get_cart_id ) ) {
+                // create a new post of type 'fc-recovery-carts'
+                $cart_id = wp_insert_post( array(
+                    'post_type' => 'fc-recovery-carts',
+                    'post_status' => 'lead',
+                    'post_title' => 'Lead: ' . $contact_name,
+                    'post_content' => '',
+                    'meta_input' => array(
+                        '_fcrc_first_name' => $first_name,
+                        '_fcrc_last_name' => $last_name,
+                        '_fcrc_full_name' => $contact_name,
+                        '_fcrc_cart_phone' => $international_phone,
+                        '_fcrc_cart_email' => $email,
+                        '_fcrc_cart_total' => $cart_total,
+                        '_fcrc_cart_items' => WC()->cart ? WC()->cart->get_cart() : array(),
+                        '_fcrc_user_id' => $user ? $user->ID : 0,
+                    ),
+                ));
+            } else {
+                $cart_id = $get_cart_id;
+
+                update_post_meta( $cart_id, '_fcrc_first_name', $first_name );
+                update_post_meta( $cart_id, '_fcrc_last_name', $last_name );
+                update_post_meta( $cart_id, '_fcrc_full_name', $contact_name );
+                update_post_meta( $cart_id, '_fcrc_cart_phone', $international_phone );
+                update_post_meta( $cart_id, '_fcrc_cart_email', $email );
+            }
 
             // storage cart id (post id) in session
             if ( $cart_id ) {
@@ -345,12 +357,12 @@ class Ajax {
                 error_log('Ping received from cart ID: ' . $cart_id . ' current time: ' . time());
             }
 
-            // check post type
-            if ( get_post_type( $cart_id ) !== 'fc-recovery-carts' ) {
-                wp_send_json_error( array( 'message' => 'Invalid cart post type.' ) );
+            // check post type and life cycle
+            if ( get_post_type( $cart_id ) !== 'fc-recovery-carts' || Helpers::is_cart_cycle_finished( $cart_id ) ) {
+                Helpers::clear_active_cart();
 
                 return;
-            }            
+            }
 
             if ( $cart_id ) {
                 update_post_meta( $cart_id, '_fcrc_cart_last_ping', time() );

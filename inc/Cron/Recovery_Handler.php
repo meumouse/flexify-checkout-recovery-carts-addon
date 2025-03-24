@@ -43,8 +43,14 @@ class Recovery_Handler {
         add_action( 'check_final_cart_status', array( $this, 'check_final_cart_status_callback' ), 10, 1 );
 
         // Listen for cart changes for clear cart id reference
-        add_action( 'Flexify_Checkout/Recovery_Carts/Cart_Lost', array( '\MeuMouse\Flexify_Checkout\Recovery_Carts\Core\Helpers', 'clear_cart_id_reference' ) );
-
+        add_action( 'Flexify_Checkout/Recovery_Carts/Cart_Lost', array( '\MeuMouse\Flexify_Checkout\Recovery_Carts\Core\Helpers', 'clear_active_cart' ) );
+        add_action( 'Flexify_Checkout/Recovery_Carts/Cart_Recovered', array( '\MeuMouse\Flexify_Checkout\Recovery_Carts\Core\Helpers', 'clear_active_cart' ) );
+        
+        // cancel follow up events
+        add_action( 'Flexify_Checkout/Recovery_Carts/Cart_Lost_Manually', array( $this, 'cancel_follow_up_events' ), 10, 1 );
+        add_action( 'Flexify_Checkout/Recovery_Carts/Cart_Recovered_Manually', array( $this, 'cancel_follow_up_events' ), 10, 1 );
+        add_action( 'Flexify_Checkout/Recovery_Carts/Cart_Deleted_Manually', array( $this, 'cancel_follow_up_events' ), 10, 1 );
+        
         // update coupon expiration
         add_action( 'fcrc_update_coupon_expiration', array( 'MeuMouse\Flexify_Checkout\Recovery_Carts\Core\Coupons', 'update_coupon_expiration' ), 10, 1 );
     }
@@ -316,11 +322,7 @@ class Recovery_Handler {
             return;
         }
         
-        if ( function_exists('WC') && WC()->session instanceof WC_Session ) {
-            $cart_id = WC()->session->get('fcrc_cart_id') ?: ( $_COOKIE['fcrc_cart_id'] ?? null );
-        } else {
-            $cart_id = $_COOKIE['fcrc_cart_id'] ?? null;
-        }
+        $cart_id = Helpers::get_current_cart_id();
     
         if ( ! $cart_id ) {
             return;
@@ -355,6 +357,9 @@ class Recovery_Handler {
         if ( FC_RECOVERY_CARTS_DEV_MODE ) {
             error_log( 'Cart resumed: ' . $cart_id );
         }
+
+        // set flag for prevent duplicate carts
+        WC()->session->set( 'fcrc_active_cart', true );
     
         // update status
         wp_update_post( array(

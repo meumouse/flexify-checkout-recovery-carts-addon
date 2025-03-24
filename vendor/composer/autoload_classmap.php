@@ -116,7 +116,7 @@ return array(
     'MeuMouse\\Flexify_Checkout\\Recovery_Carts\\Core\\Coupons' => $baseDir . '/inc/Core/Coupons.php',
     'MeuMouse\\Flexify_Checkout\\Recovery_Carts\\Core\\Helpers' => $baseDir . '/inc/Core/Helpers.php',
     'MeuMouse\\Flexify_Checkout\\Recovery_Carts\\Core\\Init' => $baseDir . '/inc/Core/Init.php',
-    'MeuMouse\\Flexify_Checkout\\Recovery_Carts\\Core\\Order_Abandonment' => $baseDir . '/inc/Core/Order_Abandonment.php',
+    'MeuMouse\\Flexify_Checkout\\Recovery_Carts\\Core\\Order_Events' => $baseDir . '/inc/Core/Order_Events.php',
     'MeuMouse\\Flexify_Checkout\\Recovery_Carts\\Core\\Placeholders' => $baseDir . '/inc/Core/Placeholders.php',
     'MeuMouse\\Flexify_Checkout\\Recovery_Carts\\Core\\Session_Handler' => $baseDir . '/inc/Core/Session_Handler.php',
     'MeuMouse\\Flexify_Checkout\\Recovery_Carts\\Core\\Updater' => $baseDir . '/inc/Core/Updater.php',
