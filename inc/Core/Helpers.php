@@ -11,6 +11,7 @@ defined('ABSPATH') || exit;
  * Helpers class
  * 
  * @since 1.0.0
+ * @version 1.1.0
  * @package MeuMouse.com
  */
 class Helpers {
@@ -125,11 +126,12 @@ class Helpers {
      * Generates a recovery cart link with initial products and UTM parameters
      *
      * @since 1.0.0
+     * @version 1.1.0
      * @param int $cart_id | The recovery cart post ID
      * @param string $medium | The medium of the link (whatsapp, email, etc.)
      * @return string The recovery cart URL
      */
-    public static function generate_recovery_cart_link( $cart_id, $medium = 'whatsapp' ) {
+    public static function generate_recovery_cart_link( $cart_id, $source = 'joinotify', $medium = 'whatsapp' ) {
         if ( ! $cart_id ) {
             return '';
         }
@@ -140,7 +142,7 @@ class Helpers {
         // Build query parameters
         $query_params = array(
             'recovery_cart' => $cart_id, // Cart ID identifier
-            'utm_source' => 'fc-recovery-carts',
+            'utm_source' => $source,
             'utm_medium' => $medium,
             'utm_campaign' => 'recovery_carts',
         );
@@ -212,12 +214,14 @@ class Helpers {
      * Clears the cart ID from session and cookie
      *
      * @since 1.0.0
+     * @version 1.1.0
      * @return void
      */
-    public static function clear_cart_id_reference() {
+    public static function clear_active_cart() {
         // Remove from WooCommerce session
         if ( WC()->session ) {
-            WC()->session->__unset('fcrc_cart_id');
+            WC()->session->set( 'fcrc_cart_id', null );
+            WC()->session->set( 'fcrc_active_cart', null );
         }
 
         // Remove from cookie
@@ -228,6 +232,43 @@ class Helpers {
 
         if ( FC_RECOVERY_CARTS_DEV_MODE ) {
             error_log( 'Cart ID removed from session and cookies.' );
+        }
+    }
+
+
+    /**
+     * Checks if the cart cycle is finished
+     * 
+     * @since 1.1.0
+     * @param int $cart_id | The cart ID to check
+     * @return bool
+     */
+    public static function is_cart_cycle_finished( $cart_id = null ) {
+        if ( ! $cart_id ) {
+            $cart_id = self::get_current_cart_id();
+        }
+    
+        if ( ! $cart_id ) {
+            return false;
+        }
+    
+        $status = get_post_status( $cart_id );
+    
+        return in_array( $status, array( 'recovered', 'purchased', 'completed', 'order_abandoned', 'lost' ), true );
+    }
+
+
+    /**
+     * Get current cart ID from WooCommerce session or cookie
+     * 
+     * @since 1.1.0
+     * @return string|null
+     */
+    public static function get_current_cart_id() {
+        if ( function_exists('WC') && WC()->session instanceof WC_Session && WC()->session->get('fcrc_cart_id') !== null ) {
+            return WC()->session->get('fcrc_cart_id');
+        } else {
+            return $_COOKIE['fcrc_cart_id'] ?? null;
         }
     }
 }

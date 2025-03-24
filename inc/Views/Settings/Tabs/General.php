@@ -144,7 +144,7 @@ defined('ABSPATH') || exit; ?>
                 </th>
                 <td>
                     <div class="input-group">
-                        <input type="number" id="time_for_lost_carts" class="form-control" name="time_for_lost_carts" value="<?php echo esc_attr( Admin::get_setting('time_for_lost_carts') ); ?>" />
+                        <input type="number" id="time_for_lost_carts" class="form-control" name="time_for_lost_carts" min="1" value="<?php echo esc_attr( Admin::get_setting('time_for_lost_carts') ); ?>" />
 
                         <select id="time_unit_for_lost_carts" class="form-select" name="time_unit_for_lost_carts">
                             <option value="minutes" <?php selected( Admin::get_setting('time_unit_for_lost_carts'), 'minutes', true ) ?>><?php esc_html_e( 'Minutos', 'fc-recovery-carts' ); ?></option>
@@ -152,6 +152,16 @@ defined('ABSPATH') || exit; ?>
                             <option value="days" <?php selected( Admin::get_setting('time_unit_for_lost_carts'), 'days', true ) ?>><?php esc_html_e( 'Dias', 'fc-recovery-carts' ); ?></option>
                         </select>
                     </div>
+                </td>
+            </tr>
+
+            <tr>
+                <th>
+                    <?php esc_html_e( 'Intervalo de requisições', 'fc-recovery-carts' ); ?>
+                    <span class="fc-recovery-carts-description"><?php esc_html_e( 'Define de quantos em quantos segundos o sistema verifica se o usuário ainda está ativo no site, através da comunicação entre o navegador e o servidor.', 'fc-recovery-carts' ); ?></span>
+                </th>
+                <td>
+                    <input type="number" id="fcrc_heartbeat_interval" class="form-control" name="fcrc_heartbeat_interval" min="15" value="<?php echo esc_attr( Admin::get_setting('fcrc_heartbeat_interval') ); ?>" />
                 </td>
             </tr>
 

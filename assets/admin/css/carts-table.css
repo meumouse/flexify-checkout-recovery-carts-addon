@@ -12,6 +12,9 @@
     --fc-recovery-carts-warning-rgb: 255, 186, 8;
     --fc-recovery-carts-dark: #212529;
     --fc-recovery-carts-dark-rgb: 33, 37, 41;
+    --fc-success-text-emphasis: #0a3622;
+    --fc-success-bg-subtle: #d1e7dd;
+    --fc-success-border-subtle: #a3cfbb;
 }
 
 .status-label {
@@ -35,10 +38,14 @@
 }
 
 .status-label.shopping,
-.status-label.recovered,
 .status-label.purchased {
     background-color: rgba(var(--fc-recovery-carts-success-rgb), 0.10);
     color: var(--fc-recovery-carts-success);
+}
+
+.status-label.recovered {
+    background-color: var(--fc-success-bg-subtle);
+    color: var(--fc-success-text-emphasis);
 }
 
 .status-label.abandoned,
@@ -54,6 +61,7 @@
 
 .fcrc-cart-products {
     display: flex;
+    flex-wrap: wrap;
     gap: 0.5rem;
     margin-top: 0.5rem;
 }

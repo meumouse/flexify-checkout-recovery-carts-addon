@@ -49,7 +49,11 @@
                 this.internationalPhone();
             }
 
-			this.startPingTracking();
+            if ( ! window.fcrcPingStarted ) {
+			    this.startPingTracking();
+
+                window.fcrcPingStarted = true;
+            }
 		},
 
         /**
@@ -79,6 +83,7 @@
          * Open pre checkout modal
          * 
          * @since 1.0.0
+         * @version 1.1.0
          */
         openModal: function() {
             var triggers = params.triggers_list;
@@ -86,7 +91,7 @@
             // open modal using event delegation
             $(triggers).hover( function(e) {
                 // check if lead was already collected or rejected
-                if ( $('body').hasClass('fcrc-lead-collected') || $('body').hasClass('fcrc-lead-rejected') ) {
+                if ( $('body').hasClass('fcrc-lead-collected') || $('body').hasClass('fcrc-lead-rejected') || Events.getCookie('fcrc_lead_collected') === 'yes' ) {
                     return;
                 }
 
@@ -106,6 +111,7 @@
          * Collect lead event
          * 
          * @since 1.0.0
+         * @version 1.1.0
          */
         collectLead: function() {
             // send request on click trigger button
@@ -114,10 +120,11 @@
 
                 var btn = $(this);
                 var btn_state = Events.keepButtonState(btn);
-                var get_first_name = $('.fcrc-get-first-name').val();
-                var get_last_name = $('.fcrc-get-last-name').val();
-                var get_phone = $('.fcrc-get-phone').val();
-                var get_email = $('.fcrc-get-email').val();
+                var get_first_name = $('.fcrc-get-first-name').val() || Events.getCookie('fcrc_first_name');
+                var get_last_name = $('.fcrc-get-last-name').val() || Events.getCookie('fcrc_last_name');
+                var get_phone = $('.fcrc-get-phone').val() || Events.getCookie('fcrc_phone');
+                var get_email = $('.fcrc-get-email').val() || Events.getCookie('fcrc_email');
+                var get_cart_id = Events.getCookie('fcrc_cart_id') || '';
 
                 // send ajax request
                 $.ajax({
@@ -130,6 +137,7 @@
                         phone: get_phone,
                         email: get_email,
                         country_data: JSON.stringify(country),
+                        cart_id: get_cart_id,
                     },
                     beforeSend: function() {
                         btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm"></span>');
@@ -148,10 +156,10 @@
                                 Events.setCookie('fcrc_cart_id', response.cart_id, 7);
 
                                 // save lead data on cookie for 30 days
-                                Events.setCookie('fcrc_first_name', get_first_name, 30);
-                                Events.setCookie('fcrc_last_name', get_last_name, 30);
-                                Events.setCookie('fcrc_phone', get_phone, 30);
-                                Events.setCookie('fcrc_email', get_email, 30);
+                                Events.setCookie('fcrc_first_name', get_first_name, 365);
+                                Events.setCookie('fcrc_last_name', get_last_name, 365);
+                                Events.setCookie('fcrc_phone', get_phone, 365);
+                                Events.setCookie('fcrc_email', get_email, 365);
                                 Events.setCookie('fcrc_lead_collected', 'yes', 365);
                             } else {
                                 $('body').removeClass('fcrc-lead-collected');
@@ -299,6 +307,7 @@
          * Starts ping tracking to detect abandonment
          *
          * @since 1.0.0
+         * @version 1.1.0
          */
         startPingTracking: function() {
             let cart_id = Events.getCookie('fcrc_cart_id');
@@ -307,20 +316,36 @@
                 return;
             }
 
-            // Send an initial ping immediately
-            Events.sendPing();
+            // Send an initial ping immediately if page is visible
+            if ( document.visibilityState === 'visible' ) {
+                Events.sendPing();
+            }
+
+            var interval = params.get_heartbeat_interval * 1000;
 
             // Send a ping every 30 seconds
-            setInterval(Events.sendPing, 30000);
+            setInterval(Events.sendPing, interval);
         },
 
         /**
          * Get user location via IP and send data to backend
          * 
          * @since 1.0.1
+         * @version 1.1.0
          */
         getUserLocation: function() {
-            fetch("https://ipapi.co/json")
+            var location_data = Events.getCookie('fcrc_location');
+
+            if ( location_data ) {
+                location_data = JSON.parse(location_data);
+                location_data.cache = true;
+
+                Events.sendLocationData(location_data);
+
+                return;
+            }
+
+            fetch('https://ipapi.co/json')
             .then(response => response.json())
             .then(data => {
                 country = {

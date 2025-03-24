@@ -9,6 +9,7 @@ defined('ABSPATH') || exit;
  * Admin actions class
  * 
  * @since 1.0.0
+ * @version 1.1.0
  * @package MeuMouse.com
  */
 class Admin {
@@ -17,6 +18,7 @@ class Admin {
      * Construct function
      * 
      * @since 1.0.0
+     * @version 1.1.0
      * @return void
      */
     public function __construct() {
@@ -31,17 +33,23 @@ class Admin {
 
         // register new post type
         add_action( 'init', array( $this, 'register_post_type' ) );
+
+        // add screen options to carts table
+        add_filter( 'set-screen-option', array( $this, 'set_screen_options' ), 10, 3 );
     }
 
-
+    
     /**
      * Add admin menu
      * 
      * @since 1.0.0
+     * @version 1.1.0
      * @return void
      */
     public function add_admin_menu() {
-        add_menu_page(
+        global $fc_recovery_carts_hook;
+
+        $fc_recovery_carts_hook = add_menu_page(
             esc_html__( 'Recuperação de carrinhos abandonados', 'fc-recovery-carts' ), // label
             esc_html__( 'Carrinhos abandonados', 'fc-recovery-carts' ), // menu label
             'manage_options', // capatibilities
@@ -50,6 +58,8 @@ class Admin {
             'data:image/svg+xml;base64,' . base64_encode('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 848.15 848.15"><defs><style>.cls-1{fill:#fff;}</style></defs><path class="cls-1" d="M514,116.38c-234.22,0-424.08,189.87-424.08,424.07S279.74,964.53,514,964.53,938,774.67,938,540.45,748.17,116.38,514,116.38Zm171.38,426.1c-141.76.37-257.11,117.69-257.4,259.45H339.72c0-191.79,153.83-347.42,345.62-347.42Zm0-176.64c-141.76.19-266.84,69.9-346,176.13V410.6C431,328.12,551.92,277.5,685.34,277.5Z" transform="translate(-89.88 -116.38)"/></svg>'),
             5, // menu priority
         );
+
+        add_action( "load-{$fc_recovery_carts_hook}", array( $this, 'load_screen_options' ) );
 
         if ( self::is_pro() ) {
             // Main page as first submenu item with a different name
@@ -85,6 +95,31 @@ class Admin {
 
 
     /**
+     * Load screen options for carts table
+     * 
+     * @since 1.1.0
+     * @return void
+     */
+    public function load_screen_options() {
+        $screen = get_current_screen();
+
+        if ( ! is_object( $screen ) || $screen->id !== 'toplevel_page_fc-recovery-carts' ) {
+            return;
+        }
+
+        $args = array(
+            'label' => __('Itens por página', 'fc-recovery-carts'),
+            'default' => 20,
+            'option' => 'fc_recovery_carts_per_page',
+        );
+
+        add_screen_option( 'per_page', $args );
+
+        new \MeuMouse\Flexify_Checkout\Recovery_Carts\Core\Carts_Table();
+    }
+
+
+    /**
      * Render menu page settings
      * 
      * @since 1.0.0
@@ -110,17 +145,36 @@ class Admin {
      * Display table with all carts
      * 
      * @since 1.0.0
+     * @version 1.1.0
      * @return void
      */
     public function carts_table_page() {
-        $cart_table = new \MeuMouse\Flexify_Checkout\Recovery_Carts\Core\Carts_Table();
-        $cart_table->prepare_items();
+        global $fc_recovery_carts_table;
 
-        echo '<div class="wrap"><h1 class="wp-heading-inline">' . __( 'Gerenciar carrinhos', 'fc-recovery-carts' ) . '</h1>';
+        if ( empty( $fc_recovery_carts_table ) ) {
+            $fc_recovery_carts_table = new \MeuMouse\Flexify_Checkout\Recovery_Carts\Core\Carts_Table();
+        }
 
-        echo '<form method="post">';
-            $cart_table->display();
-        echo '</form></div>';
+        $fc_recovery_carts_table->prepare_items();
+        $fc_recovery_carts_table->display_page();
+    }
+
+
+    /**
+     * Handles saving and loading screen options
+     * 
+     * @since 1.1.0
+     * @param mixed $status | The current status of the screen option
+     * @param string $option | The option name
+     * @param mixed $value | The option value
+     * @return mixed
+     */
+    public function set_screen_options( $status, $option, $value ) {
+        if ( $option === 'fc_recovery_carts_per_page' ) {
+            return (int) $value;
+        }
+
+        return $status;
     }
 
 
@@ -128,7 +182,7 @@ class Admin {
      * Set default options
      * 
      * @since 1.0.0
-     * @version 1.0.1
+     * @version 1.1.0
      * @return array
      */
     public static function set_default_options() {
@@ -295,6 +349,7 @@ class Admin {
                     'limit_usages_per_user' => 1,
                 ),
             ),
+            'fcrc_heartbeat_interval' => 30,
         ));
     }
 
@@ -376,6 +431,7 @@ class Admin {
      * Register "fc-recovery-carts" post type
      * 
      * @since 1.0.0
+     * @version 1.1.0
      * @return void
      */
     public function register_post_type() {
@@ -413,6 +469,20 @@ class Admin {
         );
     
         register_post_type( 'fc-recovery-carts', $args );
+
+        $custom_statuses = array( 'lead', 'shopping', 'abandoned', 'order_abandoned', 'recovered', 'lost', 'purchased' );
+
+        foreach ( $custom_statuses as $status ) {
+            register_post_status( $status, array(
+                'label'                     => ucfirst( $status ),
+                'public'                    => true,
+                'internal'                  => false,
+                'exclude_from_search'       => false,
+                'show_in_admin_all_list'    => true,
+                'show_in_admin_status_list' => true,
+                'label_count'               => _n_noop( ucfirst( $status ) . ' <span class="count">(%s)</span>', ucfirst( $status ) . ' <span class="count">(%s)</span>' ),
+            ));
+        }
 
         // update permacarrinhos
         flush_rewrite_rules();

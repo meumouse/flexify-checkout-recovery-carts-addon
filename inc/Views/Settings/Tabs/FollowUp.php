@@ -1,11 +1,13 @@
 <?php
 
+use MeuMouse\Flexify_Checkout\Recovery_Carts\Admin\Admin;
 use MeuMouse\Flexify_Checkout\Recovery_Carts\Admin\Components as Admin_Components;
 
 /**
  * Tab file for follow up on settings page
  * 
  * @since 1.0.0
+ * @version 1.1.0
  * @package MeuMouse.com
  */
 
@@ -50,7 +52,7 @@ defined('ABSPATH') || exit; ?>
                     </div>
 
                     <div class="mb-5">
-                        <?php echo Admin_Components::render_coupon_form( 'follow_up_events' ); ?>
+                        <?php echo Admin_Components::render_coupon_form( 'new_follow_up_event' ); ?>
                     </div>
 
                     <div class="mb-5">

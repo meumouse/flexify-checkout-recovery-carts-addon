@@ -17,7 +17,7 @@ if ( ! class_exists('WP_List_Table') ) {
  * Carts table class
  * 
  * @since 1.0.0
- * @version 1.0.1
+ * @version 1.1.0
  * @package MeuMouse.com
  */
 class Carts_Table extends WP_List_Table {
@@ -36,6 +36,89 @@ class Carts_Table extends WP_List_Table {
         ));
     }
 
+    
+    /**
+     * Display the admin page content
+     * 
+     * @since 1.1.0
+     * @return void
+     */
+    public function display_page() {
+        echo '<div class="wrap"><h1 class="wp-heading-inline">' . __( 'Gerenciar carrinhos', 'fc-recovery-carts' ) . '</h1>';
+       
+        echo '<form method="post">';
+            echo '<input type="hidden" name="page" value="' . esc_attr( $_REQUEST['page'] ?? '' ) . '" />';
+            echo '<input type="hidden" name="post_status" value="' . esc_attr( $_REQUEST['post_status'] ?? '' ) . '" />';
+
+            $this->search_box( __( 'Buscar carrinhos', 'fc-recovery-carts' ), 'fcrc_cart_search' );
+            $this->display();
+        echo '</form></div>';
+    }
+
+
+    /**
+     * Display navigation tabs for filtering carts by status
+     * 
+     * @since 1.1.0
+     * @return void
+     */
+    public function display_navigation_tabs() {
+        global $wpdb;
+
+        $statuses = array(
+            'all' => __( 'Todos', 'fc-recovery-carts' ),
+            'shopping' => __( 'Comprando', 'fc-recovery-carts' ),
+            'abandoned' => __( 'Abandonado', 'fc-recovery-carts' ),
+            'order_abandoned' => __( 'Pedido Abandonado', 'fc-recovery-carts' ),
+            'recovered' => __( 'Recuperado', 'fc-recovery-carts' ),
+            'lead' => __( 'Lead', 'fc-recovery-carts' ),
+            'lost' => __( 'Perdido', 'fc-recovery-carts' ),
+        );
+
+        $current_status = isset( $_GET['post_status'] ) ? sanitize_text_field( $_GET['post_status'] ) : 'all';
+
+        // count the number of carts for each status
+        $counts = array();
+
+        foreach ( $statuses as $status => $label ) {
+            if ( $status === 'all' ) {
+                $counts[$status] = $wpdb->get_var("SELECT COUNT(*) FROM {$wpdb->posts} WHERE post_type = 'fc-recovery-carts'");
+            } else {
+                $counts[$status] = $wpdb->get_var( $wpdb->prepare(
+                    "SELECT COUNT(*) FROM {$wpdb->posts} WHERE post_type = 'fc-recovery-carts' AND post_status = %s",
+                    $status
+                ));
+            }
+        }
+
+        echo '<ul class="subsubsub">';
+
+        $links = array();
+
+        foreach ( $statuses as $status => $label ) {
+            $url = add_query_arg( 'post_status', $status, admin_url('admin.php?page=fc-recovery-carts') );
+            $class = ( $status === $current_status ) ? 'current' : '';
+    
+            $links[] = sprintf( '<li><a href="%s" class="%s">%s <span class="count">(%d)</span></a></li>', esc_url( $url ), esc_attr( $class ), esc_html( $label ), intval( $counts[$status] ?? 0 ) );
+        }
+
+        echo implode(' | ', $links);
+        echo '</ul>';
+    }
+
+
+    /**
+     * Render the navigation tabs and the table
+     * 
+     * @since 1.1.0
+     * @return void
+     */
+    public function display() {
+        $this->display_navigation_tabs();
+
+        parent::display();
+    }
+
 
     /**
      * Define table columns
@@ -51,7 +134,7 @@ class Carts_Table extends WP_List_Table {
             'location'    => __('Localização', 'fc-recovery-carts'),
             'products'    => __('Produtos', 'fc-recovery-carts'),
             'total'       => __('Valor do carrinho', 'fc-recovery-carts'),
-            'abandoned'   => __('Data de abandono', 'fc-recovery-carts'),
+            'abandoned'   => __('Data do evento', 'fc-recovery-carts'),
             'status'      => __('Status', 'fc-recovery-carts'),
         );
 
@@ -87,17 +170,30 @@ class Carts_Table extends WP_List_Table {
      * Render the contact column
      * 
      * @since 1.0.0
+     * @version 1.1.0
      * @param object $item | Cart data
      * @return void
      */
     public function column_contact( $item ) {
-        $contact_name = get_post_meta( $item->ID, '_fcrc_full_name', true ) ?? Admin::get_setting('fallback_first_name');
+        $contact_name = get_post_meta( $item->ID, '_fcrc_full_name', true ) ?? esc_html__( 'Visitante', 'fc-recovery-carts' );
         $phone = get_post_meta( $item->ID, '_fcrc_cart_phone', true ) ?? '';
         $email = get_post_meta( $item->ID, '_fcrc_cart_email', true ) ?? '';
         $user_id = get_post_meta( $item->ID, '_fcrc_user_id', true ) ?? '';
 
+        if ( get_post_meta( $item->ID, '_fcrc_full_name', true ) === ' ' ) {
+            $contact_name = esc_html__( 'Visitante', 'fc-recovery-carts' );
+        }
+
+        if (  $contact_name ) {
+            echo esc_html( $contact_name );
+        }
+
+        if ( $phone ) {
+            echo '<br>'. esc_html( $phone );
+        }
+
         if ( $email ) {
-            echo esc_html( $contact_name ) . '<br>'. esc_html( $phone ) . '<br><a href="mailto:' . esc_attr( $email ) . '">' . esc_html( $email ) . '</a>';
+            echo '<br><a href="mailto:' . esc_attr( $email ) . '">' . esc_html( $email ) . '</a>';
         }
 
         // if has a user associated, display the link to the profile
@@ -113,7 +209,7 @@ class Carts_Table extends WP_List_Table {
      * Render the location column from user meta data
      *
      * @since 1.0.0
-     * @version 1.0.1
+     * @version 1.1.0
      * @param object $item | Cart data
      * @return string
      */
@@ -124,7 +220,7 @@ class Carts_Table extends WP_List_Table {
         $country = get_post_meta( $item->ID, '_fcrc_location_country_code', true );
         $ip = get_post_meta( $item->ID, '_fcrc_location_ip', true );
     
-        // Se os dados de localização não existirem no post_meta, tenta buscar no perfil do usuário
+        // if location data is empty, try to get the data from the user profile
         if ( empty( $city ) || empty( $state ) || empty( $country ) ) {
             $user_id = get_post_meta( $item->ID, '_fcrc_user_id', true );
     
@@ -138,13 +234,22 @@ class Carts_Table extends WP_List_Table {
     
         // formatt the location only if there are data available
         if ( ! empty( $city ) || ! empty( $state ) || ! empty( $country ) ) {
-            $formatted_location = sprintf(
-                '%s - %s (%s) - %s',
-                esc_html( $city ?: 'N/A' ),
-                esc_html( $state ?: 'N/A' ),
-                esc_html( $zipcode ?: 'N/A' ),
-                esc_html( $country ?: 'N/A' )
-            );
+            if ( ! empty( $zipcode ) ) {
+                $formatted_location = sprintf(
+                    '%s - %s (%s) - %s',
+                    esc_html( $city ?: 'N/A' ),
+                    esc_html( $state ?: 'N/A' ),
+                    esc_html__( $zipcode ?: 'N/A' ),
+                    esc_html( $country ?: 'N/A' )
+                );
+            } else {
+                $formatted_location = sprintf(
+                    '%s - %s - %s',
+                    esc_html( $city ?: 'N/A' ),
+                    esc_html( $state ?: 'N/A' ),
+                    esc_html( $country ?: 'N/A' )
+                );
+            }
     
             // add the IP if available
             if ( ! empty( $ip ) ) {
@@ -170,7 +275,7 @@ class Carts_Table extends WP_List_Table {
         $cart_items = is_array( $cart_items ) ? $cart_items : array();
 
         if ( empty( $cart_items ) ) {
-            return __('Nenhum produto', 'fc-recovery-carts');
+            return esc_html__('Nenhum produto', 'fc-recovery-carts');
         }
 
         $output = '<div class="fcrc-cart-products">';
@@ -224,7 +329,7 @@ class Carts_Table extends WP_List_Table {
      * Render the abandoned date column
      * 
      * @since 1.0.0
-     * @version 1.0.1
+     * @version 1.1.0
      * @param object $item | Cart data
      * @return string
      */
@@ -240,10 +345,14 @@ class Carts_Table extends WP_List_Table {
         if ( isset( $purchased ) && $purchased ) {
             if ( isset( $order_date ) && isset( $order_id ) ) {
                 $order_edit_link = get_edit_post_link( $order_id );
-                $order_text = sprintf( __( '%s - #%s', 'fc-recovery-carts' ), esc_html( date( __( 'd/m/Y H:i', 'fc-recovery-carts' ), strtotime( $order_date ) ) ), esc_html( $order_id ) );
+    
+                // convert the date to the WordPress timezone
+                $formatted_date = wp_date( get_option('date_format') . ' - ' . get_option('time_format'), strtotime( $order_date ) );
+    
+                $order_text = sprintf( __( 'Pedido #%s', 'fc-recovery-carts' ), esc_html( $order_id ) );
     
                 if ( $order_edit_link ) {
-                    return sprintf( '<a href="%s">%s</a>', esc_url( $order_edit_link ), $order_text );
+                    return sprintf( '<div><a href="%s">%s</a><p>%s</p></div>', esc_url( $order_edit_link ), $order_text, esc_html( $formatted_date ), );
                 }
     
                 return $order_text;
@@ -307,6 +416,7 @@ class Carts_Table extends WP_List_Table {
      * Process bulk actions
      * 
      * @since 1.0.0
+     * @version 1.1.0
      * @return void
      */
     public function process_bulk_action() {
@@ -331,10 +441,10 @@ class Carts_Table extends WP_List_Table {
                         /**
                          * Fire a hook when an order is considered lost manually
                          *
-                         * @since 1.0.0
+                         * @since 1.1.0
                          * @param int $cart_id | The abandoned cart ID
                          */
-                        do_action( 'Flexify_Checkout/Recovery_Carts/Cart_Lost', $cart_id );
+                        do_action( 'Flexify_Checkout/Recovery_Carts/Cart_Lost_Manually', $cart_id );
                     }
 
                     break;
@@ -348,10 +458,10 @@ class Carts_Table extends WP_List_Table {
                         /**
                          * Fire hook when cart is abandoned manually
                          * 
-                         * @since 1.0.0
+                         * @since 1.1.0
                          * @param int $cart_id | Cart ID | Post ID
                          */
-                        do_action( 'Flexify_Checkout/Recovery_Carts/Cart_Abandoned', $cart_id );
+                        do_action( 'Flexify_Checkout/Recovery_Carts/Cart_Abandoned_Manually', $cart_id );
                     }
 
                     break;
@@ -381,30 +491,80 @@ class Carts_Table extends WP_List_Table {
      * Prepare items for display in the table
      * 
      * @since 1.0.0
-     * @version 1.0.1
+     * @version 1.1.0
      * @return void
      */
     public function prepare_items() {
         $this->process_bulk_action();
-    
-        $per_page = 10;
-        $current_page = $this->get_pagenum();
-    
+        $per_page = $per_page = $this->get_items_per_page( 'fc_recovery_carts_per_page', 20 );        ;
+        $current_page  = $this->get_pagenum();
+        $post_status = isset( $_GET['post_status'] ) ? sanitize_key( $_GET['post_status'] ) : 'all';
+
+        // Sets query arguments based on the selected tab
         $args = array(
             'post_type' => 'fc-recovery-carts',
             'posts_per_page' => $per_page,
             'paged' => $current_page,
-            'post_status' => array( 'lead', 'shopping', 'purchased', 'abandoned', 'order_abandoned', 'recovered', 'lost' ),
         );
-    
+
+        // Sets the status of posts based on the selected tab
+        if ( $post_status !== 'all' ) {
+            $args['post_status'] = $post_status;
+        } else {
+            $args['post_status'] = array( 'lead', 'shopping', 'abandoned', 'order_abandoned', 'recovered', 'lost', 'purchased' );
+        }
+
+        // filter posts based on search
+        $search = isset( $_REQUEST['s'] ) ? sanitize_text_field( $_REQUEST['s'] ) : '';
+
+        if ( $search ) {
+            $meta_query = array(
+                'relation' => 'OR',
+                array(
+                    'key' => '_fcrc_full_name',
+                    'value' => $search,
+                    'compare' => 'LIKE',
+                ),
+                array(
+                    'key' => '_fcrc_cart_email',
+                    'value' => $search,
+                    'compare' => 'LIKE',
+                ),
+                array(
+                    'key' => '_fcrc_cart_phone',
+                    'value' => $search,
+                    'compare' => 'LIKE',
+                ),
+                array(
+                    'key' => '_fcrc_cart_items',
+                    'value' => $search,
+                    'compare' => 'LIKE',
+                ),
+            );
+
+            // if is numeric, also search by post ID and order ID
+            if ( is_numeric( $search ) ) {
+                $args['post__in'] = array( intval( $search ) );
+
+                $meta_query[] = array(
+                    'key' => '_fcrc_order_id',
+                    'value' => $search,
+                    'compare' => '=',
+                );
+            }
+
+            $args['meta_query'] = $meta_query;
+        }
+
         $query = new \WP_Query( $args );
+        $total_items = $query->found_posts;
         $this->items = $query->posts;
-        $this->_column_headers = array( $this->get_columns(), array(), array() );
-    
+        $this->_column_headers = array( $this->get_columns(), array(), $this->get_sortable_columns() );
+
         $this->set_pagination_args( array(
-            'total_items' => $query->found_posts,
+            'total_items' => $total_items,
             'per_page' => $per_page,
-            'total_pages' => ceil( $query->found_posts / $per_page ),
+            'total_pages' => ceil( $total_items / $per_page ),
         ));
     }
 }
