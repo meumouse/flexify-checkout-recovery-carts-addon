@@ -93,6 +93,7 @@ class Assets {
      * Enqueue carts table scripts
      * 
      * @since 1.0.0
+     * @version 1.1.0
      * @return void
      */
     public function carts_table_scripts() {
@@ -101,7 +102,6 @@ class Assets {
         if ( Helpers::check_admin_page('fc-recovery-carts') ) {
             // carts table scripts
 			wp_enqueue_style( 'fc-recovery-carts-table-styles', FC_RECOVERY_CARTS_ASSETS . 'admin/css/carts-table'. $min_file .'.css', array(), FC_RECOVERY_CARTS_VERSION );
-			wp_enqueue_script( 'fc-recovery-carts-table-scripts', FC_RECOVERY_CARTS_ASSETS . 'admin/js/carts-table'. $min_file .'.js', array('jquery'), FC_RECOVERY_CARTS_VERSION, true );
         }
     }
 

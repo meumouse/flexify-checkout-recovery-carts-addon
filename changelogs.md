@@ -1,4 +1,4 @@
-Versão 1.1.0 (21/03/2025)
+Versão 1.1.0 (24/03/2025)
 * Correção de bugs
 * Otimizações
 * Recurso adicionado: Intervalo de requisições
