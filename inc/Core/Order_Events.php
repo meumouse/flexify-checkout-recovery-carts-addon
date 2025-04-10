@@ -11,7 +11,7 @@ defined('ABSPATH') || exit;
  * Handles with orders events
  *
  * @since 1.0.0
- * @version 1.1.0
+ * @version 1.2.0
  * @package MeuMouse.com
  */
 class Order_Events {
@@ -20,7 +20,7 @@ class Order_Events {
      * Construct function
      *
      * @since 1.0.0
-     * @version 1.1.0
+     * @version 1.2.0
      * @return void
      */
     public function __construct() {
@@ -35,6 +35,9 @@ class Order_Events {
 
         // Listen for order status changes
         add_action( 'woocommerce_order_status_changed', array( $this, 'mark_cart_as_recovered' ), 10, 3 );
+
+        // listen for order payment complete
+        add_action( 'woocommerce_payment_complete', array( $this, 'maybe_mark_cart_as_recovered' ), 10, 1 );
     }
 
 
@@ -316,5 +319,65 @@ class Order_Events {
         // Save updated items to cart post
         update_post_meta( $cart_id, '_fcrc_cart_items', $cart_items );
         update_post_meta( $cart_id, '_fcrc_cart_total', $cart_total );
+    }
+
+
+    /**
+     * Triggers cart recovery when payment is marked complete
+     *
+     * @since 1.2.0
+     * @param int $order_id | The WooCommerce order ID
+     * @return void
+     */
+    public function maybe_mark_cart_as_recovered( $order_id ) {
+        if ( ! $order_id ) {
+            return;
+        }
+
+        $order = wc_get_order( $order_id );
+
+        if ( ! $order ) {
+            return;
+        }
+
+        $cart_id = get_post_meta( $order_id, '_fcrc_cart_id', true );
+
+        if ( ! $cart_id ) {
+            return;
+        }
+
+        $cart_post = get_post( $cart_id );
+
+        if ( ! $cart_post || $cart_post->post_status === 'recovered' ) {
+            return;
+        }
+
+        // Avoid duplicate recovery
+        $already_recovered = get_post_meta( $cart_id, '_fcrc_cart_recovered', true );
+        
+        if ( $already_recovered ) {
+            return;
+        }
+
+        wp_update_post( array(
+            'ID' => $cart_id,
+            'post_status' => 'recovered',
+        ));
+
+        update_post_meta( $cart_id, '_fcrc_purchased', true );
+        update_post_meta( $cart_id, '_fcrc_cart_recovered', true );
+
+        if ( FC_RECOVERY_CARTS_DEV_MODE ) {
+            error_log( "[woocommerce_payment_complete] Cart ID {$cart_id} linked to Order ID {$order_id} marked as recovered." );
+        }
+
+        /**
+         * Fire a hook when a cart is recovered
+         *
+         * @since 1.2.0
+         * @param int $cart_id | Cart ID
+         * @param int $order_id | Order ID
+         */
+        do_action( 'Flexify_Checkout/Recovery_Carts/Cart_Recovered', $cart_id, $order_id );
     }
 }

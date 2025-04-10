@@ -13,6 +13,7 @@ defined('ABSPATH') || exit;
  * Handler for ajax requests
  * 
  * @since 1.0.0
+ * @version 1.2.0
  * @package MeuMouse.com
  */
 class Ajax {
@@ -21,6 +22,7 @@ class Ajax {
      * Construct function
      *
      * @since 1.0.0
+     * @version 1.2.0
      * @return void
      */
     public function __construct() {
@@ -29,7 +31,6 @@ class Ajax {
             'fcrc_add_new_follow_up' => 'fcrc_add_new_follow_up_callback',
             'fcrc_delete_follow_up' => 'fcrc_delete_follow_up_callback',
             'fcrc_lead_collected' => 'fcrc_lead_collected_callback',
-            'fcrc_cart_ping' => 'fcrc_cart_ping_callback',
             'fcrc_save_checkout_lead' => 'fcrc_save_checkout_lead_callback',
             'fcrc_update_location' => 'fcrc_update_location_callback',
         );
@@ -42,7 +43,6 @@ class Ajax {
         // ajax actions for not logged in users
         $nopriv_ajax_actions = array(
             'fcrc_lead_collected' => 'fcrc_lead_collected_callback',
-            'fcrc_cart_ping' => 'fcrc_cart_ping_callback',
             'fcrc_save_checkout_lead' => 'fcrc_save_checkout_lead_callback',
             'fcrc_update_location' => 'fcrc_update_location_callback',
         );
@@ -338,41 +338,6 @@ class Ajax {
 
             // send response
             wp_send_json( $response );
-        }
-    }
-
-
-    /**
-     * Handles cart activity pings from the frontend
-     *
-     * @since 1.0.0
-     * @version 1.1.0
-     * @return void
-     */
-    public function fcrc_cart_ping_callback() {
-        if ( isset( $_POST['action'] ) && $_POST['action'] === 'fcrc_cart_ping' ) {
-            $cart_id = intval( $_POST['cart_id'] );
-
-            if ( FC_RECOVERY_CARTS_DEV_MODE ) {
-                error_log('Ping received from cart ID: ' . $cart_id . ' current time: ' . time());
-            }
-
-            // check post type and life cycle
-            if ( get_post_type( $cart_id ) !== 'fc-recovery-carts' || Helpers::is_cart_cycle_finished( $cart_id ) ) {
-                Helpers::clear_active_cart();
-
-                return;
-            }
-
-            if ( $cart_id ) {
-                update_post_meta( $cart_id, '_fcrc_cart_last_ping', time() );
-                
-                wp_send_json( array(
-                    'status' => 'success',
-                    'response' => 'pong',
-                    'timestamp' => time(),
-                ));
-            }
         }
     }
 

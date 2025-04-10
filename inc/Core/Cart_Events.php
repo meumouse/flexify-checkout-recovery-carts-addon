@@ -14,7 +14,7 @@ defined('ABSPATH') || exit;
  * Handles cart recovery events, such as tracking and updating cart data
  *
  * @since 1.0.0
- * @version 1.1.2
+ * @version 1.2.0
  * @package MeuMouse.com
  */
 class Cart_Events {
@@ -45,12 +45,12 @@ class Cart_Events {
      *
      * @since 1.0.0
      * @version 1.1.0
-     * @param string  $cart_id          The cart item key
-     * @param integer $product_id       The ID of the product added to the cart
-     * @param integer $request_quantity The quantity of the item added to the cart
-     * @param integer $variation_id     The variation ID (if applicable)
-     * @param array   $variation        The variation data
-     * @param array   $cart_item_data   Additional cart item data
+     * @param string $cart_id | The cart item key
+     * @param integer $product_id | The ID of the product added to the cart
+     * @param integer $request_quantity | The quantity of the item added to the cart
+     * @param integer $variation_id | The variation ID (if applicable)
+     * @param array $variation | The variation data
+     * @param array $cart_item_data | Additional cart item data
      *
      * @return void
      */
@@ -87,7 +87,7 @@ class Cart_Events {
      * Creates a new cart post if none exists
      * 
      * @since 1.1.0
-     * @version 1.1.2
+     * @version 1.2.0
      * @return int $cart_id | The cart ID
      */
     public static function create_cart_post() {
@@ -103,6 +103,41 @@ class Cart_Events {
             }
 
             return;
+        }
+
+        $client_ip = '';
+
+        if ( isset( $_COOKIE['fcrc_location'] ) ) {
+            $location_data = json_decode( stripslashes( $_COOKIE['fcrc_location'] ), true );
+            $client_ip = $location_data['ip'] ?? '';
+        }
+
+        if ( empty( $client_ip ) ) {
+            $client_ip = $_SERVER['REMOTE_ADDR'] ?? '';
+        }
+
+        if ( $client_ip ) {
+            $existing_cart_query = new \WP_Query( array(
+                'post_type' => 'fc-recovery-carts',
+                'post_status' => array( 'lost', 'recovered', 'purchased' ),
+                'meta_query' => array(
+                    array(
+                        'key' => '_fcrc_location_ip',
+                        'value' => $client_ip,
+                        'compare' => '=',
+                    ),
+                ),
+                'posts_per_page' => 1,
+                'fields' => 'ids',
+            ) );
+        
+            if ( $existing_cart_query->have_posts() ) {
+                if ( FC_RECOVERY_CARTS_DEV_MODE ) {
+                    error_log( 'Cart already created from this IP with status lost/recovered/purchased. Skipping cart creation.' );
+                }
+        
+                return;
+            }
         }
 
         if ( is_user_logged_in() ) {

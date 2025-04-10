@@ -26,37 +26,6 @@
 	const Events = {
         
         /**
-		 * Initialize object functions
-		 * 
-		 * @since 1.0.0
-         * @version 1.0.1
-		 */
-		init: function() {
-			this.collectLead();
-
-            // check if collect data from IP is enabled
-            if ( params.collect_data_from_ip === 'yes' ) {
-                this.getUserLocation();
-            }
-
-            // check if current page has product
-            if ( params.is_product ) {
-                this.openModal();
-            }
-
-            // check if international phone input is enabled
-            if ( params.enable_international_phone === 'yes' && params.is_product ) {
-                this.internationalPhone();
-            }
-
-            if ( ! window.fcrcPingStarted ) {
-			    this.startPingTracking();
-
-                window.fcrcPingStarted = true;
-            }
-		},
-
-        /**
 		 * Keep button width and height state
 		 * 
 		 * @since 1.0.0
@@ -281,62 +250,6 @@
         },
 
         /**
-         * Sends a ping to keep the cart session active
-         * 
-         * @since 1.0.0
-         */
-        sendPing: function() {
-            let cart_id = Events.getCookie('fcrc_cart_id');
-
-            if ( ! cart_id ) {
-                return;
-            }
-
-            // send request
-            $.ajax({
-                url: params.ajax_url,
-                type: 'POST',
-                data: {
-                    action: 'fcrc_cart_ping',
-                    cart_id: cart_id,
-                    ping: true,
-                },
-                success: function(response) {
-                    if (params.dev_mode) {
-                        console.log("Ping sent:", response);
-                    }
-                },
-                error: function() {
-                    console.log("Error sending cart ping.");
-                }
-            });
-        },
-
-        /**
-         * Starts ping tracking to detect abandonment
-         *
-         * @since 1.0.0
-         * @version 1.1.0
-         */
-        startPingTracking: function() {
-            let cart_id = Events.getCookie('fcrc_cart_id');
-
-            if ( ! cart_id ) {
-                return;
-            }
-
-            // Send an initial ping immediately if page is visible
-            if ( document.visibilityState === 'visible' ) {
-                Events.sendPing();
-            }
-
-            var interval = params.get_heartbeat_interval * 1000;
-
-            // Send a ping every 30 seconds
-            setInterval(Events.sendPing, interval);
-        },
-
-        /**
          * Get user location via IP and send data to backend
          * 
          * @since 1.0.1
@@ -408,6 +321,31 @@
                 }
             });
         },
+
+        /**
+		 * Initialize object functions
+		 * 
+		 * @since 1.0.0
+         * @version 1.2.0
+		 */
+		init: function() {
+			this.collectLead();
+
+            // check if collect data from IP is enabled
+            if ( params.collect_data_from_ip === 'yes' ) {
+                this.getUserLocation();
+            }
+
+            // check if current page has product
+            if ( params.is_product ) {
+                this.openModal();
+            }
+
+            // check if international phone input is enabled
+            if ( params.enable_international_phone === 'yes' && params.is_product ) {
+                this.internationalPhone();
+            }
+		},
     }
 
     // Initialize the Settings object on ready event
