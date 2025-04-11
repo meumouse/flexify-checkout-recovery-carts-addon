@@ -1,3 +1,10 @@
+Versão 1.2.0 (10/04/2025)
+* Correção de bugs
+* Otimizações
+* Recurso removido: Intervalo de requisições
+* Recurso adicionado: Exclusão de carrinhos aninomos após 1 hora
+* Recurso adicionado: Exclusão de cupons expirados
+
 Versão 1.1.2 (24/03/2025)
 * Correção de bugs
     Criação do carrinho apenas se usuário tem produtos no carrinho

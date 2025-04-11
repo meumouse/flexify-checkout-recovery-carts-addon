@@ -266,6 +266,7 @@
 		 * Add new follow up item
 		 * 
 		 * @since 1.0.0
+		 * @version 1.2.0
 		 */
 		addNewFollowUp: function() {
 			var container = $('#fcrc_add_new_follow_up_container');
@@ -284,6 +285,19 @@
 				let follow_up_delay_time = $('#fcrc_add_new_follow_up_delay_time');
 				let follow_up_delay_type = $('#fcrc_add_new_follow_up_delay_type');
 				let whatsapp_channel = $('#fcrc_add_new_follow_up_channels_whatsapp');
+				var set_coupon = {
+					enabled: container.find('.enable-send-coupon').prop('checked') ? 'yes' : 'no',
+					generate_coupon: container.find('.enable-generate-coupon').prop('checked') ? 'yes' : 'no',
+					coupon_prefix: container.find('.get-coupon-prefix').val() || '',
+					coupon_code: container.find('.get-coupon-code').val() || '',
+					discount_type: container.find('.get-coupon-type').val() || '',
+					discount_value: container.find('.get-coupon-value').val() || '',
+					allow_free_shipping: container.find('.get-coupon-allow-free-shipping').prop('checked') ? 'yes' : 'no',
+					expiration_time: container.find('.get-coupon-expire-time').val() || '',
+					expiration_time_unit: container.find('.get-coupon-expire-time-type').val() || '',
+					limit_usages: container.find('.get-coupon-limit-usage').val() || '',
+					limit_usages_per_user: container.find('.get-coupon-limit-usage-per-user').val() || '',
+				};
 
 				// send request
 				$.ajax({
@@ -291,25 +305,13 @@
 					type: 'POST',
 					data: {
 						action: 'fcrc_add_new_follow_up',
-						title: follow_up_title.val(),
-						message: follow_up_message.val(),
-						delay_time: follow_up_delay_time.val(),
-						delay_type: follow_up_delay_type.val(),
+						title: follow_up_title.val() || '',
+						message: follow_up_message.val() || '',
+						delay_time: follow_up_delay_time.val() || '',
+						delay_type: follow_up_delay_type.val() || '',
 						whatsapp: whatsapp_channel.prop('checked') ? 'yes' : 'no',
 						email: '',
-						coupon: {
-							enabled: container.find('.enable-send-coupon').prop('checked') ? 'yes' : 'no',
-							generate_coupon: container.find('.enable-generate-coupon').prop('checked') ? 'yes' : 'no',
-							coupon_prefix: container.find('.get-coupon-prefix').val(),
-							coupon_code: container.find('.get-coupon-code').val(),
-							discount_type: container.find('.get-coupon-type').val(),
-							discount_value: container.find('.get-coupon-value').val(),
-							allow_free_shipping: container.find('.get-coupon-allow-free-shipping').prop('checked') ? 'yes' : 'no',
-							expiration_time: container.find('.get-coupon-expire-time').val(),
-							expiration_time_unit: container.find('.get-coupon-expire-time-type"').val(),
-							limit_usages: container.find('.get-coupon-limit-usage').val(),
-							limit_usages_per_user: container.find('.get-coupon-limit-usage-per-user').val(),
-						},
+						coupon: JSON.stringify( set_coupon ),
 					},
 					beforeSend: function() {
 						btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm"></span>');

@@ -9,7 +9,7 @@ defined('ABSPATH') || exit;
  * Admin actions class
  * 
  * @since 1.0.0
- * @version 1.1.0
+ * @version 1.2.0
  * @package MeuMouse.com
  */
 class Admin {
@@ -182,7 +182,7 @@ class Admin {
      * Set default options
      * 
      * @since 1.0.0
-     * @version 1.1.0
+     * @version 1.2.0
      * @return array
      */
     public static function set_default_options() {
@@ -349,7 +349,6 @@ class Admin {
                     'limit_usages_per_user' => 1,
                 ),
             ),
-            'fcrc_heartbeat_interval' => 30,
         ));
     }
 
@@ -359,18 +358,28 @@ class Admin {
      * or adds new items with default value to the option
      * 
      * @since 1.0.0
+     * @version 1.2.0
      * @return void
      */
     public function update_default_options() {
-        $get_options = self::set_default_options();
-        $default_options = get_option('flexify_checkout_recovery_carts_settings', array());
+        $default_options = self::set_default_options();
+        $get_options = get_option('flexify_checkout_recovery_carts_settings', array());
 
-        if ( empty( $default_options ) ) {
-            update_option( 'flexify_checkout_recovery_carts_settings', $get_options );
+        // if empty settings
+        if ( empty( $get_options ) ) {
+            update_option( 'flexify_checkout_recovery_carts_settings', $default_options );
         } else {
-            $merged_options = array_replace_recursive( $get_options, $default_options );
+            // iterate for each plugin settings
+            foreach ( $get_options as $option => $value ) {
+                // iterate for each default settings
+                foreach ( $default_options as $index => $option_value ) {
+                    if ( ! isset( $get_options[$index] ) ) {
+                        $get_options[$index] = $option_value;
+                    }
+                }
+            }
 
-            update_option( 'flexify_checkout_recovery_carts_settings', $merged_options );
+            update_option( 'flexify_checkout_recovery_carts_settings', $get_options );
         }
     }
 
