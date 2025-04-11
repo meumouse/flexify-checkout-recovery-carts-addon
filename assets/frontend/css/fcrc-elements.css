@@ -100,7 +100,6 @@
     .fcrc-popup-content:not(.popup-fullscreen) {
         width: 800px;
         height: fit-content;
-        max-height: 85dvh;
     }
 }
 
@@ -408,7 +407,7 @@ a.fcrc-btn-primary, a.fcrc-btn-primary:hover, a.fcrc-btn-primary:focus {
 }
 
 .fcrc-international-phone-selector .iti__flag {
-    background-image: url("https://raw.githubusercontent.com/jackocnr/intl-tel-input/refs/heads/master/build/img/flags%402x.webp");
+    background-image: url("https://raw.githubusercontent.com/meumouse/flexify-checkout-recovery-carts-addon/refs/heads/main/dist/images/flags%402x.webp");
     background-size: cover;
     height: 24px !important;
     width: 32px;

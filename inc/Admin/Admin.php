@@ -182,7 +182,7 @@ class Admin {
      * Set default options
      * 
      * @since 1.0.0
-     * @version 1.1.0
+     * @version 1.2.0
      * @return array
      */
     public static function set_default_options() {
@@ -349,7 +349,6 @@ class Admin {
                     'limit_usages_per_user' => 1,
                 ),
             ),
-            'fcrc_heartbeat_interval' => 30,
         ));
     }
 

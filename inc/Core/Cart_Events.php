@@ -200,7 +200,6 @@ class Cart_Events {
                 '_fcrc_cart_items' => $cart_items,
                 '_fcrc_cart_total' => $cart_total,
                 '_fcrc_cart_updated_time' => time(),
-                '_fcrc_cart_last_ping' => time(),
                 '_fcrc_abandoned_time' => '',
                 '_fcrc_first_name' => $first_name,
                 '_fcrc_last_name' => $last_name,
@@ -405,10 +404,6 @@ class Cart_Events {
         update_post_meta( $cart_id, '_fcrc_cart_items', $cart_items );
         update_post_meta( $cart_id, '_fcrc_cart_total', $cart_total );
         update_post_meta( $cart_id, '_fcrc_cart_updated_time', time() );
-        
-        if ( ! is_admin() ) {
-            update_post_meta( $cart_id, '_fcrc_cart_last_ping', time() );
-        }
     }
 
 

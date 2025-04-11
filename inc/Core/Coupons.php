@@ -9,6 +9,7 @@ defined('ABSPATH') || exit;
  * Handler with WooCommerce coupons
  * 
  * @since 1.0.0
+ * @version 1.2.0
  * @package MeuMouse.com
  */
 class Coupons {
@@ -90,7 +91,7 @@ class Coupons {
     
         // Schedule an event to update expiration to the previous day
         if ( ! empty( $coupon_data['expiration_time'] ) ) {
-            wp_schedule_single_event( $expiry_timestamp, 'fcrc_update_coupon_expiration', array( $coupon->get_id() ) );
+            wp_schedule_single_event( $expiry_timestamp, 'fcrc_delete_coupon_on_expiration', array( $coupon->get_id() ) );
         }
 
         if (  FC_RECOVERY_CARTS_DEV_MODE ) {
@@ -108,26 +109,32 @@ class Coupons {
     
 
     /**
-     * Update the coupon expiration date to the previous day after expiration
+     * Delete coupon post on expiration
      *
      * @since 1.0.0
+     * @version 1.2.0
      * @param int $coupon_id | The WooCommerce coupon ID
      * @return void
      */
-    public static function update_coupon_expiration( $coupon_id ) {
+    public static function delete_coupon_on_expiration( $coupon_id ) {
         if ( ! $coupon_id ) {
             return;
         }
     
-        $coupon = new \WC_Coupon( $coupon_id );
+        $coupon_post = get_post( $coupon_id );
     
-        // Set expiration to the previous day
-        $new_expiry_date = strtotime('yesterday');
-        $coupon->set_date_expires( $new_expiry_date );
-        $coupon->save();
+        if ( ! $coupon_post || $coupon_post->post_type !== 'shop_coupon' ) {
+            if ( FC_RECOVERY_CARTS_DEV_MODE ) {
+                error_log( "Coupon {$coupon_id} not found or is not a valid shop_coupon." );
+            }
+            return;
+        }
     
-        if (  FC_RECOVERY_CARTS_DEV_MODE ) {
-            error_log( "Coupon {$coupon_id} expiration updated to previous day" );
+        // Delete the coupon post
+        wp_delete_post( $coupon_id, true );
+    
+        if ( FC_RECOVERY_CARTS_DEV_MODE ) {
+            error_log( "Coupon {$coupon_id} deleted after expiration." );
         }
     }
 }

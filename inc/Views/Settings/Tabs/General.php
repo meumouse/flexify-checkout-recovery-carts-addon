@@ -157,16 +157,6 @@ defined('ABSPATH') || exit; ?>
 
             <tr>
                 <th>
-                    <?php esc_html_e( 'Intervalo de requisições', 'fc-recovery-carts' ); ?>
-                    <span class="fc-recovery-carts-description"><?php esc_html_e( 'Define de quantos em quantos segundos o sistema verifica se o usuário ainda está ativo no site, através da comunicação entre o navegador e o servidor.', 'fc-recovery-carts' ); ?></span>
-                </th>
-                <td>
-                    <input type="number" id="fcrc_heartbeat_interval" class="form-control" name="fcrc_heartbeat_interval" min="15" value="<?php echo esc_attr( Admin::get_setting('fcrc_heartbeat_interval') ); ?>" />
-                </td>
-            </tr>
-
-            <tr>
-                <th>
                     <?php esc_html_e( 'Configurar tempo de atraso para formas de pagamentos', 'fc-recovery-carts' ); ?>
                     <span class="fc-recovery-carts-description"><?php esc_html_e( 'Permite definir o tempo para que um pedido seja considerado abandonado de acordo com a forma de pagamento.', 'fc-recovery-carts' ); ?></span>
                 </th>
