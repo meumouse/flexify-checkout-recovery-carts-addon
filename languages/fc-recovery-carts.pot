@@ -3,7 +3,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Flexify Checkout - Recuperação de carrinhos abandonados\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-03-24 19:17+0000\n"
+"POT-Creation-Date: 2025-04-11 01:12+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: \n"
@@ -51,7 +51,7 @@ msgstr ""
 msgid "Abandonado"
 msgstr ""
 
-#: inc/Admin/Admin.php:442
+#: inc/Admin/Admin.php:451
 msgctxt "add new on admin bar"
 msgid "Carrinho"
 msgstr ""
@@ -60,7 +60,7 @@ msgstr ""
 msgid "Adicionar"
 msgstr ""
 
-#: inc/Admin/Admin.php:444
+#: inc/Admin/Admin.php:453
 msgid "Adicionar novo carrinho"
 msgstr ""
 
@@ -72,7 +72,7 @@ msgstr ""
 msgid "Adicionar novo follow up"
 msgstr ""
 
-#: inc/Admin/Admin.php:441
+#: inc/Admin/Admin.php:450
 msgctxt "admin menu"
 msgid "Carrinhos"
 msgstr ""
@@ -153,7 +153,7 @@ msgstr ""
 msgid "Carrinho"
 msgstr ""
 
-#: inc/Admin/Admin.php:443
+#: inc/Admin/Admin.php:452
 msgctxt "carrinho"
 msgid "Adicionar novo"
 msgstr ""
@@ -162,7 +162,7 @@ msgstr ""
 msgid "Carrinho ainda ativo"
 msgstr ""
 
-#: inc/Admin/Admin.php:450
+#: inc/Admin/Admin.php:459
 msgid "Carrinho pai:"
 msgstr ""
 
@@ -199,7 +199,7 @@ msgstr ""
 msgid "Configurar modal de coleta de leads"
 msgstr ""
 
-#: inc/Views/Settings/Tabs/General.php:170
+#: inc/Views/Settings/Tabs/General.php:160
 msgid "Configurar tempo de atraso para formas de pagamentos"
 msgstr ""
 
@@ -238,7 +238,7 @@ msgstr ""
 msgid "da Silva"
 msgstr ""
 
-#: inc/Core/Coupons.php:27
+#: inc/Core/Coupons.php:28
 msgid "Dados insuficientes para criar o cupom."
 msgstr ""
 
@@ -246,13 +246,7 @@ msgstr ""
 msgid "Data do evento"
 msgstr ""
 
-#: inc/Views/Settings/Tabs/General.php:161
-msgid ""
-"Define de quantos em quantos segundos o sistema verifica se o usuário ainda "
-"está ativo no site, através da comunicação entre o navegador e o servidor."
-msgstr ""
-
-#: inc/Admin/Admin.php:457
+#: inc/Admin/Admin.php:466
 msgid "Descrição."
 msgstr ""
 
@@ -278,7 +272,7 @@ msgstr ""
 msgid "Editar"
 msgstr ""
 
-#: inc/Admin/Admin.php:446
+#: inc/Admin/Admin.php:455
 msgid "Editar carrinho"
 msgstr ""
 
@@ -356,10 +350,6 @@ msgstr ""
 
 #: inc/Admin/Components.php:40
 msgid "Integrações"
-msgstr ""
-
-#: inc/Views/Settings/Tabs/General.php:160
-msgid "Intervalo de requisições"
 msgstr ""
 
 #: inc/Admin/Admin.php:111
@@ -444,11 +434,11 @@ msgstr ""
 msgid "N/A"
 msgstr ""
 
-#: inc/Admin/Admin.php:452
+#: inc/Admin/Admin.php:461
 msgid "Nenhum carrinho encontrado na lixeira."
 msgstr ""
 
-#: inc/Admin/Admin.php:451
+#: inc/Admin/Admin.php:460
 msgid "Nenhum carrinho encontrado."
 msgstr ""
 
@@ -477,11 +467,11 @@ msgid ""
 "Notifique seus usuários e clientes com e-mails personalizados da sua marca."
 msgstr ""
 
-#: inc/Admin/Admin.php:445
+#: inc/Admin/Admin.php:454
 msgid "Novo carrinho"
 msgstr ""
 
-#: inc/Core/Cart_Events.php:129
+#: inc/Core/Cart_Events.php:198
 #, php-format
 msgid "Novo carrinho - %s"
 msgstr ""
@@ -504,7 +494,7 @@ msgstr ""
 msgid "Não informado"
 msgstr ""
 
-#: inc/Core/Coupons.php:48
+#: inc/Core/Coupons.php:49
 msgid "O cupom já existe."
 msgstr ""
 
@@ -561,7 +551,7 @@ msgid ""
 "cadência de follow up seja iniciada."
 msgstr ""
 
-#: inc/Views/Settings/Tabs/General.php:171
+#: inc/Views/Settings/Tabs/General.php:161
 msgid ""
 "Permite definir o tempo para que um pedido seja considerado abandonado de "
 "acordo com a forma de pagamento."
@@ -575,16 +565,16 @@ msgstr ""
 msgid "Pesquisar"
 msgstr ""
 
-#: inc/Admin/Admin.php:449
+#: inc/Admin/Admin.php:458
 msgid "Pesquisar carrinhos"
 msgstr ""
 
-#: inc/Admin/Admin.php:439
+#: inc/Admin/Admin.php:448
 msgctxt "post type general name"
 msgid "Carrinhos"
 msgstr ""
 
-#: inc/Admin/Admin.php:440
+#: inc/Admin/Admin.php:449
 msgctxt "post type singular name"
 msgid "Carrinho"
 msgstr ""
@@ -722,7 +712,7 @@ msgstr ""
 
 #. parent page slug
 #. page title
-#: inc/Admin/Admin.php:68 inc/Admin/Admin.php:69 inc/Admin/Admin.php:448
+#: inc/Admin/Admin.php:68 inc/Admin/Admin.php:69 inc/Admin/Admin.php:457
 msgid "Todos os carrinhos"
 msgstr ""
 
@@ -782,7 +772,7 @@ msgstr ""
 msgid "Variáveis de texto:"
 msgstr ""
 
-#: inc/Admin/Admin.php:447
+#: inc/Admin/Admin.php:456
 msgid "Ver carrinho"
 msgstr ""
 

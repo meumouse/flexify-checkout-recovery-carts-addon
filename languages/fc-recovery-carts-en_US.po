@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: Flexify Checkout - Recuperação de carrinhos abandonados\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2025-03-06 19:32+0000\n"
-"PO-Revision-Date: 2025-03-24 19:18+0000\n"
+"PO-Revision-Date: 2025-04-11 01:13+0000\n"
 "Last-Translator: \n"
 "Language-Team: English (United States)\n"
 "Language: en_US\n"
@@ -15,9 +15,6 @@ msgstr ""
 "X-Loco-Version: 2.7.1; wp-6.7.2\n"
 "X-Domain: fc-recovery-carts"
 
-Here is the translated file with the English (en-US) translations:
-
-```po
 #: inc/Core/Carts_Table.php:287
 #, php-format
 msgid "%s - Qtd: %d"
@@ -44,8 +41,8 @@ msgid ""
 "<strong>Flexify Checkout - Recuperação de Carrinhos</strong> requer PHP 7.4 "
 "ou superior. Atualize seu ambiente de hospedagem."
 msgstr ""
-"<strong>Flexify Checkout - Cart Recovery</strong> requires PHP 7.4 or higher. "
-"Please update your hosting environment."
+"<strong>Flexify Checkout - Cart Recovery</strong> requires PHP 7.4 or higher."
+" Please update your hosting environment."
 
 #: inc/Core/Updater.php:253
 msgid ""
@@ -59,7 +56,7 @@ msgstr ""
 msgid "Abandonado"
 msgstr "Abandoned"
 
-#: inc/Admin/Admin.php:442
+#: inc/Admin/Admin.php:451
 msgctxt "add new on admin bar"
 msgid "Carrinho"
 msgstr "Cart"
@@ -68,7 +65,7 @@ msgstr "Cart"
 msgid "Adicionar"
 msgstr "Add"
 
-#: inc/Admin/Admin.php:444
+#: inc/Admin/Admin.php:453
 msgid "Adicionar novo carrinho"
 msgstr "Add new cart"
 
@@ -80,7 +77,7 @@ msgstr "Add new event"
 msgid "Adicionar novo follow up"
 msgstr "Add new follow up"
 
-#: inc/Admin/Admin.php:441
+#: inc/Admin/Admin.php:450
 msgctxt "admin menu"
 msgid "Carrinhos"
 msgstr "Carts"
@@ -124,7 +121,8 @@ msgstr "Enable this option to collect user location via their IP."
 msgid ""
 "Ative essa opção para exibir o modal de coleta de leads apenas para usuários "
 "logados."
-msgstr "Enable this option to show the lead capture modal only for logged-in users."
+msgstr ""
+"Enable this option to show the lead capture modal only for logged-in users."
 
 #: inc/Views/Settings/Tabs/General.php:22 inc/Views/Settings/Tabs/Styles.php:21
 msgid ""
@@ -139,8 +137,8 @@ msgid ""
 "Ative essa opção para exibir o seletor de lista de países dentro do modal de "
 "coleta de leads (Recomendado)."
 msgstr ""
-"Enable this option to show the country list selector in the lead capture modal "
-"(Recommended)."
+"Enable this option to show the country list selector in the lead capture "
+"modal (Recommended)."
 
 #: inc/Core/Assets.php:78
 msgid "Atividades"
@@ -166,7 +164,7 @@ msgstr "Notification channel: *"
 msgid "Carrinho"
 msgstr "Cart"
 
-#: inc/Admin/Admin.php:443
+#: inc/Admin/Admin.php:452
 msgctxt "carrinho"
 msgid "Adicionar novo"
 msgstr "Add new"
@@ -175,7 +173,7 @@ msgstr "Add new"
 msgid "Carrinho ainda ativo"
 msgstr "Cart still active"
 
-#: inc/Admin/Admin.php:450
+#: inc/Admin/Admin.php:459
 msgid "Carrinho pai:"
 msgstr "Parent cart:"
 
@@ -212,7 +210,7 @@ msgstr "Configure"
 msgid "Configurar modal de coleta de leads"
 msgstr "Configure lead capture modal"
 
-#: inc/Views/Settings/Tabs/General.php:170
+#: inc/Views/Settings/Tabs/General.php:160
 msgid "Configurar tempo de atraso para formas de pagamentos"
 msgstr "Configure delay time for payment methods"
 
@@ -251,7 +249,7 @@ msgstr "Coupon code"
 msgid "da Silva"
 msgstr "Smith"
 
-#: inc/Core/Coupons.php:27
+#: inc/Core/Coupons.php:28
 msgid "Dados insuficientes para criar o cupom."
 msgstr "Insufficient data to create coupon."
 
@@ -259,15 +257,7 @@ msgstr "Insufficient data to create coupon."
 msgid "Data do evento"
 msgstr "Event date"
 
-#: inc/Views/Settings/Tabs/General.php:161
-msgid ""
-"Define de quantos em quantos segundos o sistema verifica se o usuário ainda "
-"está ativo no site, através da comunicação entre o navegador e o servidor."
-msgstr ""
-"Defines how often (in seconds) the system checks if the user is still active "
-"on the site through browser-server communication."
-
-#: inc/Admin/Admin.php:457
+#: inc/Admin/Admin.php:466
 msgid "Descrição."
 msgstr "Description."
 
@@ -293,7 +283,7 @@ msgstr "Email"
 msgid "Editar"
 msgstr "Edit"
 
-#: inc/Admin/Admin.php:446
+#: inc/Admin/Admin.php:455
 msgid "Editar carrinho"
 msgstr "Edit cart"
 
@@ -308,7 +298,8 @@ msgstr "Coming soon..."
 #: inc/Views/Settings/Tabs/Integrations.php:59
 msgid ""
 "Este plugin precisa estar instalado e ativo para ativar esta integração."
-msgstr "This plugin needs to be installed and active to enable this integration."
+msgstr ""
+"This plugin needs to be installed and active to enable this integration."
 
 #: inc/Admin/Components.php:46
 msgid "Estilos"
@@ -374,10 +365,6 @@ msgstr "ID"
 #: inc/Admin/Components.php:40
 msgid "Integrações"
 msgstr "Integrations"
-
-#: inc/Views/Settings/Tabs/General.php:160
-msgid "Intervalo de requisições"
-msgstr "Request interval"
 
 #: inc/Admin/Admin.php:111
 msgid "Itens por página"
@@ -461,11 +448,11 @@ msgstr "Show modal only for logged-in users"
 msgid "N/A"
 msgstr "N/A"
 
-#: inc/Admin/Admin.php:452
+#: inc/Admin/Admin.php:461
 msgid "Nenhum carrinho encontrado na lixeira."
 msgstr "No carts found in trash."
 
-#: inc/Admin/Admin.php:451
+#: inc/Admin/Admin.php:460
 msgid "Nenhum carrinho encontrado."
 msgstr "No carts found."
 
@@ -494,11 +481,11 @@ msgid ""
 "Notifique seus usuários e clientes com e-mails personalizados da sua marca."
 msgstr "Notify your users and customers with branded custom emails."
 
-#: inc/Admin/Admin.php:445
+#: inc/Admin/Admin.php:454
 msgid "Novo carrinho"
 msgstr "New cart"
 
-#: inc/Core/Cart_Events.php:129
+#: inc/Core/Cart_Events.php:198
 #, php-format
 msgid "Novo carrinho - %s"
 msgstr "New cart - %s"
@@ -516,14 +503,14 @@ msgid ""
 "Não foi possível verificar atualizações para o plugin <strong>Flexify "
 "Checkout - Recuperação de carrinhos abandonados.</strong>"
 msgstr ""
-"Could not check for updates for the <strong>Flexify Checkout - Abandoned Cart "
-"Recovery</strong> plugin."
+"Could not check for updates for the <strong>Flexify Checkout - Abandoned "
+"Cart Recovery</strong> plugin."
 
 #: inc/Core/Carts_Table.php:262 inc/Core/Carts_Table.php:317
 msgid "Não informado"
 msgstr "Not provided"
 
-#: inc/Core/Coupons.php:48
+#: inc/Core/Coupons.php:49
 msgid "O cupom já existe."
 msgstr "The coupon already exists."
 
@@ -584,7 +571,7 @@ msgstr ""
 "Allows setting the time for a cart to be considered abandoned and the follow "
 "up sequence to begin."
 
-#: inc/Views/Settings/Tabs/General.php:171
+#: inc/Views/Settings/Tabs/General.php:161
 msgid ""
 "Permite definir o tempo para que um pedido seja considerado abandonado de "
 "acordo com a forma de pagamento."
@@ -600,16 +587,16 @@ msgstr "Allow free shipping:"
 msgid "Pesquisar"
 msgstr "Search"
 
-#: inc/Admin/Admin.php:449
+#: inc/Admin/Admin.php:458
 msgid "Pesquisar carrinhos"
 msgstr "Search carts"
 
-#: inc/Admin/Admin.php:439
+#: inc/Admin/Admin.php:448
 msgctxt "post type general name"
 msgid "Carrinhos"
 msgstr "Carts"
 
-#: inc/Admin/Admin.php:440
+#: inc/Admin/Admin.php:449
 msgctxt "post type singular name"
 msgid "Carrinho"
 msgstr "Cart"
@@ -647,16 +634,16 @@ msgid ""
 "Recupere carrinhos e pedidos abandonados com follow up cadenciado. Plugin "
 "adicional do Flexify Checkout para WooCommerce."
 msgstr ""
-"Recover abandoned carts and orders with sequenced follow up. Additional plugin "
-"for Flexify Checkout for WooCommerce."
+"Recover abandoned carts and orders with sequenced follow up. Additional "
+"plugin for Flexify Checkout for WooCommerce."
 
 #: inc/Views/Settings.php:14 inc/Views/Settings_Info.php:12
 msgid ""
 "Recupere carrinhos e pedidos abandonados com follow up cadenciado. Se "
 "precisar de ajuda para configurar, acesse nossa"
 msgstr ""
-"Recover abandoned carts and orders with sequenced follow up. If you need help "
-"configuring, visit our"
+"Recover abandoned carts and orders with sequenced follow up. If you need "
+"help configuring, visit our"
 
 #: inc/Views/Settings/Tabs/Styles.php:29
 msgid "Redefinir para cor padrão"
@@ -752,7 +739,7 @@ msgstr "All"
 
 #. parent page slug
 #. page title
-#: inc/Admin/Admin.php:68 inc/Admin/Admin.php:69 inc/Admin/Admin.php:448
+#: inc/Admin/Admin.php:68 inc/Admin/Admin.php:69 inc/Admin/Admin.php:457
 msgid "Todos os carrinhos"
 msgstr "All carts"
 
@@ -818,7 +805,7 @@ msgstr "Fixed amount"
 msgid "Variáveis de texto:"
 msgstr "Text variables:"
 
-#: inc/Admin/Admin.php:447
+#: inc/Admin/Admin.php:456
 msgid "Ver carrinho"
 msgstr "View cart"
 
