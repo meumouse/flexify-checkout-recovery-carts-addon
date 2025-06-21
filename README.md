@@ -2,6 +2,8 @@
 
 Recupere carrinhos e pedidos abandonados com follow up cadenciado. Plugin adicional do Flexify Checkout para WooCommerce.
 
+---
+
 ### Instalação:
 
 #### Instalação via painel de administração:
@@ -26,7 +28,12 @@ Você pode instalar um plugin WordPress de duas maneiras: via o painel de admini
 * Localize o plugin que você acabou de instalar e clique em “Ativar”.
 * Após seguir essas etapas, o plugin deve estar instalado e funcionando corretamente em seu site WordPress.
 
+---
+
 ### Registro de alterações (Changelogs):
+
+Versão 1.3.0 (23/06/2025)
+* Correção de bugs
 
 Versão 1.2.0 (10/04/2025)
 * Correção de bugs

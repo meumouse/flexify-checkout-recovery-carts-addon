@@ -11,7 +11,7 @@ defined('ABSPATH') || exit;
  * Helpers class
  * 
  * @since 1.0.0
- * @version 1.1.2
+ * @version 1.3.0
  * @package MeuMouse.com
  */
 class Helpers {
@@ -81,6 +81,7 @@ class Helpers {
      * Converts abandonment time into seconds
      *
      * @since 1.0.0
+     * @version 1.3.0
      * @return int Time in seconds
      */
     public static function get_abandonment_time_seconds() {
@@ -89,11 +90,11 @@ class Helpers {
 
         switch ( $time_unit ) {
             case 'minutes':
-                return $time_limit * 60;
+                return (int) $time_limit * 60;
             case 'hours':
-                return $time_limit * 3600;
+                return (int) $time_limit * 3600;
             case 'days':
-                return $time_limit * 86400;
+                return (int) $time_limit * 86400;
             default:
                 return 1800; // Default: 30 minutes
         }
@@ -104,6 +105,7 @@ class Helpers {
      * Converts time to seconds based on unit
      *
      * @since 1.0.0
+     * @version 1.3.0
      * @param int $time | The time value
      * @param string $unit | The unit of time (minutes, hours, days)
      * @return int Time in seconds
@@ -111,11 +113,11 @@ class Helpers {
     public static function convert_to_seconds( $time, $unit ) {
         switch ( $unit ) {
             case 'minutes':
-                return $time * 60;
+                return (int) $time * 60;
             case 'hours':
-                return $time * 3600;
+                return (int) $time * 3600;
             case 'days':
-                return $time * 86400;
+                return (int) $time * 86400;
             default:
                 return 0; // Default: 0 seconds
         }
