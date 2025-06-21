@@ -1,5 +1,7 @@
 <?php
 
+namespace MeuMouse\Flexify_Checkout\Recovery_Carts\Views;
+
 use MeuMouse\Flexify_Checkout\Recovery_Carts\Admin\Components as Admin_Components;
 
 // Exit if accessed directly.
