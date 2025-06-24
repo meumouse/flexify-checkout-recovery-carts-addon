@@ -54,7 +54,7 @@ class Admin {
             esc_html__( 'Carrinhos abandonados', 'fc-recovery-carts' ), // menu label
             'manage_options', // capatibilities
             'fc-recovery-carts', // slug
-            array( $this, 'carts_table_page' ), // callback
+            array( $this, 'analytics_page' ), // callback
             'data:image/svg+xml;base64,' . base64_encode('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 848.15 848.15"><defs><style>.cls-1{fill:#fff;}</style></defs><path class="cls-1" d="M514,116.38c-234.22,0-424.08,189.87-424.08,424.07S279.74,964.53,514,964.53,938,774.67,938,540.45,748.17,116.38,514,116.38Zm171.38,426.1c-141.76.37-257.11,117.69-257.4,259.45H339.72c0-191.79,153.83-347.42,345.62-347.42Zm0-176.64c-141.76.19-266.84,69.9-346,176.13V410.6C431,328.12,551.92,277.5,685.34,277.5Z" transform="translate(-89.88 -116.38)"/></svg>'),
             5, // menu priority
         );
@@ -72,7 +72,7 @@ class Admin {
                 array( $this, 'analytics_page' ) // callback
             );
 
-            // Main page as first submenu item with a different name
+            // all carts list page
             add_submenu_page(
                 'fc-recovery-carts', // parent page slug
                 esc_html__( 'Todos os carrinhos', 'fc-recovery-carts' ), // page title

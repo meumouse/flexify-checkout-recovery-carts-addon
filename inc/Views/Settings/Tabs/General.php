@@ -124,6 +124,83 @@ defined('ABSPATH') || exit; ?>
                 </th>
                 <td>
                     <input type="checkbox" id="enable_get_location_from_ip" class="toggle-switch" name="toggle_switchs[enable_get_location_from_ip]" value="yes" <?php checked( Admin::get_switch('enable_get_location_from_ip') === 'yes' ); ?> />
+
+                    <button id="ip_api_settings_trigger" class="btn btn-outline-primary ms-3"><?php esc_html_e( 'Configurar API', 'fc-recovery-carts' ) ?></button>
+
+                    <div id="ip_api_settings_container" class="fcrc-popup-container">
+                        <div class="fcrc-popup-content popup-lg">
+                            <div class="fcrc-popup-header">
+                                <h5 class="fcrc-popup-title"><?php esc_html_e( 'Configurar API de coleta de IP', 'fc-recovery-carts' ); ?></h5>
+                                <button id="ip_api_settings_close" class="btn-close fs-5" aria-label="<?php esc_attr_e( 'Fechar', 'fc-recovery-carts' ); ?>"></button>
+                            </div>
+
+                            <div class="fcrc-popup-body">
+                                <table class="popup-table">
+                                    <tbody>
+                                        <tr>
+                                            <th class="w-50">
+                                                <?php esc_html_e( 'Endereço da API', 'fc-recovery-carts' ); ?>
+                                                <span class="fc-recovery-carts-description"><?php esc_html_e( 'Informe o endereço da API à serem feitas as requisições, podendo ser utilizado a variável {ip_address} para referenciar o IP do usuário.', 'fc-recovery-carts' ); ?></span>
+                                            </th>
+                                            <td class="w-50">
+                                                <input type="text" id="ip_api_url" class="form-control" name="ip_api_settings[ip_api_url]" value="<?php echo Admin::get_setting('ip_api_settings')['ip_api_url'] ?>" />
+                                            </td>
+                                        </tr>
+
+                                        <tr>
+                                            <th class="w-50">
+                                                <?php esc_html_e( 'Mapeamento do código do país', 'fc-recovery-carts' ); ?>
+                                                <span class="fc-recovery-carts-description"><?php esc_html_e( 'Informe o retorno de código de país da API em formato de objeto JSON. Por exemplo: body.countryCode', 'fc-recovery-carts' ); ?></span>
+                                            </th>
+                                            <td class="w-50">
+                                                <input type="text" id="country_code_map" class="form-control" name="ip_api_settings[country_code_map]" value="<?php echo Admin::get_setting('ip_api_settings')['country_code_map'] ?>" />
+                                            </td>
+                                        </tr>
+
+                                        <tr>
+                                            <th class="w-50">
+                                                <?php esc_html_e( 'Mapeamento de nome de país', 'fc-recovery-carts' ); ?>
+                                                <span class="fc-recovery-carts-description"><?php esc_html_e( 'Informe o retorno de nome de país da API em formato de objeto JSON. Por exemplo: body.country', 'fc-recovery-carts' ); ?></span>
+                                            </th>
+                                            <td class="w-50">
+                                                <input type="text" id="country_name_map" class="form-control" name="ip_api_settings[country_name_map]" value="<?php echo Admin::get_setting('ip_api_settings')['country_name_map'] ?>" />
+                                            </td>
+                                        </tr>
+
+                                        <tr>
+                                            <th class="w-50">
+                                                <?php esc_html_e( 'Mapeamento de nome de estado/região', 'fc-recovery-carts' ); ?>
+                                                <span class="fc-recovery-carts-description"><?php esc_html_e( 'Informe o retorno de nome de estado ou região da API em formato de objeto JSON. Por exemplo: body.regionName', 'fc-recovery-carts' ); ?></span>
+                                            </th>
+                                            <td class="w-50">
+                                                <input type="text" id="state_name_map" class="form-control" name="ip_api_settings[state_name_map]" value="<?php echo Admin::get_setting('ip_api_settings')['state_name_map'] ?>" />
+                                            </td>
+                                        </tr>
+
+                                        <tr>
+                                            <th class="w-50">
+                                                <?php esc_html_e( 'Mapeamento de nome de cidade', 'fc-recovery-carts' ); ?>
+                                                <span class="fc-recovery-carts-description"><?php esc_html_e( 'Informe o retorno de nome de cidade da API em formato de objeto JSON. Por exemplo: body.city', 'fc-recovery-carts' ); ?></span>
+                                            </th>
+                                            <td class="w-50">
+                                                <input type="text" id="city_name_map" class="form-control" name="ip_api_settings[city_name_map]" value="<?php echo Admin::get_setting('ip_api_settings')['city_name_map'] ?>" />
+                                            </td>
+                                        </tr>
+
+                                        <tr>
+                                            <th class="w-50">
+                                                <?php esc_html_e( 'Mapeamento de IP do usuário', 'fc-recovery-carts' ); ?>
+                                                <span class="fc-recovery-carts-description"><?php esc_html_e( 'Informe o retorno do IP do usuário da API em formato de objeto JSON. Por exemplo: body.query', 'fc-recovery-carts' ); ?></span>
+                                            </th>
+                                            <td class="w-50">
+                                                <input type="text" id="ip_map" class="form-control" name="ip_api_settings[ip_map]" value="<?php echo Admin::get_setting('ip_api_settings')['ip_map'] ?>" />
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
                 </td>
             </tr>
 

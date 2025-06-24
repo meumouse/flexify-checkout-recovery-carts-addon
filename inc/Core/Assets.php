@@ -110,7 +110,7 @@ class Assets {
      * Register frontend scripts
      * 
      * @since 1.0.0
-     * @version 1.2.0
+     * @version 1.3.0
      * @return void
      */
     public function frontend_scripts() {
@@ -141,7 +141,16 @@ class Assets {
             'enable_international_phone' => Admin::get_switch('enable_international_phone_modal'),
             'is_product' => Helpers::is_product(),
             'abandonment_time_seconds' => Helpers::get_abandonment_time_seconds(),
-            'collect_data_from_ip' => Admin::get_switch('enable_get_location_from_ip'),
+            'ip_settings' => array(
+                'enabled' => Admin::get_switch('enable_get_location_from_ip'),
+                'get_ip' => 'https://api.ipify.org/?format=json',
+                'ip_url' => Admin::get_setting('ip_api_settings')['ip_api_url'],
+                'country_code' => Admin::get_setting('ip_api_settings')['country_code_map'],
+                'country_name' => Admin::get_setting('ip_api_settings')['country_name_map'],
+                'state_name' => Admin::get_setting('ip_api_settings')['state_name_map'],
+                'city_name' => Admin::get_setting('ip_api_settings')['city_name_map'],
+                'ip_returned' => Admin::get_setting('ip_api_settings')['ip_map'],
+            ),
         ));
 
         // add checkout events

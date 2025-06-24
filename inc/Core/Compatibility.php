@@ -34,5 +34,5 @@ class Compatibility {
 				\Automattic\WooCommerce\Utilities\FeaturesUtil::declare_compatibility( 'custom_order_tables', FC_RECOVERY_CARTS_FILE, true );
 			}
 		}
-	 }
+	}
 }

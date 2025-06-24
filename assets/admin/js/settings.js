@@ -7,7 +7,7 @@
 	 * @since 1.0.0
 	 * @return Object
 	 */
-	const params = fcrc_settings_params;
+	const params = fcrc_settings_params || {};
 
 	/**
 	 * Flexify Checkout Recovery Carts settings object variable
@@ -16,24 +16,7 @@
 	 * @package MeuMouse.com
 	 */
 	const Settings = {
-		/**
-		 * Initialize object functions
-		 * 
-		 * @since 1.0.0
-		 */
-		init: function() {
-			this.activateTabs();
-			this.saveOptions();
-			this.addNewFollowUp();
-			this.editFollowUp();
-			this.deleteFollowUp();
-			this.collectLeadSettings();
-			this.selectColor();
-			this.integrationSettings();
-			this.emojiPicker();
-			this.visibilityControllerForCoupons();
-		},
-
+		
 		/**
 		 * Activate tabs and save on Cookies
 		 * 
@@ -659,6 +642,39 @@
 
 				$(this).closest('.add-emoji-picker').val(content); // Update the textarea with the current content
 		  	});
+		},
+
+		/**
+		 * Display IP API settings
+		 * 
+		 * @since 1.3.0
+		 */
+		IpApiSettings: function() {
+			// display trigger modal
+			Settings.visibilityController( '#enable_get_location_from_ip', '#ip_api_settings_trigger' );
+
+			// open settings modal
+			Settings.displayModal( '#ip_api_settings_trigger', '#ip_api_settings_container', '#ip_api_settings_close' );
+		},
+
+		/**
+		 * Initialize object functions
+		 * 
+		 * @since 1.0.0
+		 * @version 1.3.0
+		 */
+		init: function() {
+			this.activateTabs();
+			this.saveOptions();
+			this.addNewFollowUp();
+			this.editFollowUp();
+			this.deleteFollowUp();
+			this.collectLeadSettings();
+			this.selectColor();
+			this.integrationSettings();
+			this.emojiPicker();
+			this.visibilityControllerForCoupons();
+			this.IpApiSettings();
 		},
 	};
 

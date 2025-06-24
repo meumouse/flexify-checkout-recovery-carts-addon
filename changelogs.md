@@ -1,3 +1,8 @@
+Versão 1.3.0 (24/06/2025)
+* Correção de bugs
+* Otimizações
+* Recurso adicionado: Configurar API de coleta de localização através do IP
+
 Versão 1.2.0 (10/04/2025)
 * Correção de bugs
 * Otimizações

@@ -63,11 +63,13 @@ if ( ! class_exists('Flexify_Checkout_Recovery_Carts') ) {
          * @return void
          */
         public function __construct() {
+            // hook before init plugin
             do_action('before_fc_recovery_carts_init');
 
             // initialize the plugin after woocommerce has loaded
             add_action( 'woocommerce_loaded', array( $this, 'init' ), 99 );
 
+            // hook after init plugin
             do_action('fc_recovery_carts_init');
         }
 
@@ -80,15 +82,19 @@ if ( ! class_exists('Flexify_Checkout_Recovery_Carts') ) {
          * @return void
          */
         public function init() {
+            // check PHP version
             if ( version_compare( phpversion(), '7.4', '<' ) ) {
                 add_action( 'admin_notices', array( $this, 'php_version_notice' ) );
                 return;
             }
 
+            // define constants
             $this->setup_constants();
 
-            require_once FC_RECOVERY_CARTS_DIR . 'vendor/autoload.php';
+            // load Composer autoloader
+            require_once( FC_RECOVERY_CARTS_DIR . 'vendor/autoload.php' );
 
+            // instance classes
             new \MeuMouse\Flexify_Checkout\Recovery_Carts\Core\Init;
         }
 

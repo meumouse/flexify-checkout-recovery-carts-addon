@@ -7,7 +7,11 @@
 	 * @since 1.0.0
 	 * @return Object
 	 */
-	const params = fcrc_events_params;
+	const params = fcrc_events_params || {};
+
+    if ( params.dev_mode ) {
+        console.log('[DEBUG] FCRC events params:', params);
+    }
 
     /**
      * Get country data
@@ -80,15 +84,15 @@
          * Collect lead event
          * 
          * @since 1.0.0
-         * @version 1.1.0
+         * @version 1.3.0
          */
         collectLead: function() {
             // send request on click trigger button
             $(document).on('click', '.fcrc-trigger-send-lead', function(e) {
                 e.preventDefault();
 
-                var btn = $(this);
-                var btn_state = Events.keepButtonState(btn);
+                const btn = $(this);
+                const btn_state = Events.keepButtonState(btn);
                 var get_first_name = $('.fcrc-get-first-name').val() || Events.getCookie('fcrc_first_name');
                 var get_last_name = $('.fcrc-get-last-name').val() || Events.getCookie('fcrc_last_name');
                 var get_phone = $('.fcrc-get-phone').val() || Events.getCookie('fcrc_phone');
@@ -184,10 +188,20 @@
         },
 
         /**
+         * Delete cookie by name
+         * 
+         * @since 1.3.0
+         * @param {string} name | Cookie name
+         */
+        deleteCookie: function(name) {
+            document.cookie = name + '=; Max-Age=0; path=/; domain=' + window.location.hostname;
+        },
+
+        /**
          * Initialize international phone input
          * 
          * @since 1.0.0
-         * @version 1.1.2
+         * @version 1.3.0
          */
         internationalPhone: function() {
             const input = document.querySelector('.fcrc-input.fcrc-get-phone');
@@ -206,24 +220,28 @@
                 autoPlaceholder: "aggressive",
                 containerClass: "fcrc-international-phone-selector",
                 initialCountry: "auto",
-                geoIpLookup: function(success, failure) {
-                    const country_code = Events.getCookie('fcrc_phone_country_code');
+                /**
+                 * Get user country code for phone input based on IP location
+                 * 
+                 * @since 1.0.0
+                 * @version 1.3.0
+                 * @param {function} success - Callback function to execute on success with country code
+                 * @param {function} failure - Callback function to execute on failure with fallback country code
+                 */
+                geoIpLookup: async function(success, failure) {
+                    const cached_code = Events.getCookie('fcrc_phone_country_code');
 
-                    if (country_code) {
-                        success(country_code);
+                    if ( cached_code ) {
+                        success(cached_code);
                     } else {
-                        fetch("https://ipapi.co/json")
-                        .then( function(response) { 
-                            return response.json();
-                        })
-                        .then( function(data) {
-                            // set response API in cookies for 7 days
-                            document.cookie = "fcrc_phone_country_code=" + data.country_code + "; max-age=" + (7 * 24 * 60 * 60) + "; path=/";
-                            success(data.country_code);
-                        })
-                        .catch( function() {
-                            failure("br");
-                        });
+                        const location = await Events.getLocationData();
+
+                        if ( location && location.country_code ) {
+                            Events.setCookie('fcrc_phone_country_code', location.country_code, 7);
+                            success(location.country_code);
+                        } else {
+                            failure('br');
+                        }
                     }
                 },
                 i18n: {
@@ -231,62 +249,115 @@
                 },
             });
 
-            /**
-             * Get current country data
-             * 
-             * @since 1.0.0
-             * @returns 
-             */
-            function getCurrentCountry() {
-                const countryData = iti.getSelectedCountryData();
-                
-                return countryData;
+            // Get current country data after initialization
+            setTimeout(() => {
+                country = iti.getSelectedCountryData();
+            }, 500);
+        },
+
+        /**
+         * Get IP address
+         * 
+         * @since 1.3.0
+         * @returns {Promise} | Returns a Promise with the IP address
+         */
+        getIpAddress: function() {
+            const url = params.ip_settings.get_ip;
+
+            return fetch(url, { cache: 'no-store' })
+                .then(response => {
+                    if ( ! response.ok ) {
+                        throw new Error('Network response was not ok');
+                    }
+
+                    return response.json();
+                })
+                .then(data => {
+                    return data.ip;
+                })
+                .catch(error => {
+                    console.error('Failed to fetch IP:', error);
+                    return null;
+                });
+        },
+
+        /**
+         * Get user location data
+         * 
+         * @since 1.3.0
+         * @returns {Promise<object>} | Returns a Promise with the country data
+         */
+        getLocationData: async function() {
+            let location_data = Events.getCookie('fcrc_location');
+
+            if ( params.dev_mode ) {
+                console.log('Country data cached:', location_data);
             }
 
-            // wait for the initialization to ensure the country is loaded correctly
-            setTimeout(() => {
-                country = getCurrentCountry();
-            }, 500);
+            // Check if cached data exists and is valid
+            if ( location_data ) {
+                try {
+                    location_data = JSON.parse(location_data);
+
+                    const is_invalid = ! location_data.ip || location_data.ip === 'undefined' || location_data.ip === 'null';
+
+                    if ( ! is_invalid ) {
+                        location_data.cache = true;
+
+                        return location_data;
+                    } else {
+                        Events.deleteCookie('fcrc_location');
+                        console.log('Invalid location cookie detected and removed.');
+                    }
+                } catch (e) {
+                    Events.deleteCookie('fcrc_location');
+                    console.log('Corrupted location cookie detected and removed.');
+                }
+            }
+
+            // If no valid cache, fetch new data
+            try {
+                const get_ip = await Events.getIpAddress();
+                const ip_data = params.ip_settings;
+                const ip_api_url = ip_data.ip_url.replace('{ip_address}', get_ip) + '?_=' + new Date().getTime();
+
+                const response = await fetch(ip_api_url, { cache: 'no-store' });
+                const data = await response.json();
+
+                const country_data = {
+                    country_code: data[ip_data.country_code] || '',
+                    country_name: data[ip_data.country_name] || '',
+                    region: data[ip_data.state_name] || '',
+                    city: data[ip_data.city_name] || '',
+                    ip: data[ip_data.ip_returned] || '',
+                };
+
+                if ( params.dev_mode ) {
+                    console.log('Country data:', country_data);
+                }
+
+                Events.setCookie('fcrc_location', JSON.stringify(country_data), 7);
+
+                return country_data;
+
+            } catch (error) {
+                console.error("Error fetching location:", error);
+                return null;
+            }
         },
 
         /**
          * Get user location via IP and send data to backend
          * 
          * @since 1.0.1
-         * @version 1.1.0
+         * @version 1.3.0
          */
-        getUserLocation: function() {
-            var location_data = Events.getCookie('fcrc_location');
+        getUserLocation: async function() {
+            const location = await Events.getLocationData();
 
-            if ( location_data ) {
-                location_data = JSON.parse(location_data);
-                location_data.cache = true;
-
-                Events.sendLocationData(location_data);
-
-                return;
+            if ( location ) {
+                Events.sendLocationData(location);
             }
-
-            fetch('https://ipapi.co/json')
-            .then(response => response.json())
-            .then(data => {
-                country = {
-                    country_code: data.country_code,
-                    country_name: data.country_name,
-                    region: data.region, // state
-                    city: data.city, // city
-                    ip: data.ip,
-                };
-
-                // Save location data in cookie for 7 days
-                Events.setCookie('fcrc_location', JSON.stringify(country), 7);
-
-                // Send the data via AJAX
-                Events.sendLocationData(country);
-            })
-            .catch(error => {
-                console.error("Error fetching location:", error);
-            });
         },
 
         /**
@@ -326,13 +397,13 @@
 		 * Initialize object functions
 		 * 
 		 * @since 1.0.0
-         * @version 1.2.0
+         * @version 1.3.0
 		 */
 		init: function() {
 			this.collectLead();
 
             // check if collect data from IP is enabled
-            if ( params.collect_data_from_ip === 'yes' ) {
+            if ( params.ip_settings.enabled === 'yes' ) {
                 this.getUserLocation();
             }
 

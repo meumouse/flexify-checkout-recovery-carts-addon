@@ -184,6 +184,14 @@ class Default_Options {
                     'limit_usages_per_user' => 1,
                 ),
             ),
+            'ip_api_settings' => array(
+                'ip_api_url' => 'https://free.freeipapi.com/api/json/{ip_address}',
+                'country_code_map' => 'countryCode',
+                'country_name_map' => 'countryName',
+                'state_name_map' => 'regionName',
+                'city_name_map' => 'cityName',
+                'ip_map' => 'ipAddress',
+            ),
         ));
     }
 }

@@ -3,6 +3,7 @@
 namespace MeuMouse\Flexify_Checkout\Recovery_Carts\Core;
 
 use MeuMouse\Flexify_Checkout\Recovery_Carts\Admin\Admin;
+use MeuMouse\Flexify_Checkout\Recovery_Carts\Admin\Default_Options;
 use MeuMouse\Flexify_Checkout\Recovery_Carts\Admin\Components as Admin_Components;
 use MeuMouse\Flexify_Checkout\Recovery_Carts\Core\Helpers;
 
@@ -13,7 +14,7 @@ defined('ABSPATH') || exit;
  * Handler for ajax requests
  * 
  * @since 1.0.0
- * @version 1.2.0
+ * @version 1.3.0
  * @package MeuMouse.com
  */
 class Ajax {
@@ -58,6 +59,7 @@ class Ajax {
      * Save options in AJAX
      * 
      * @since 1.0.0
+     * @version 1.3.0
      * @return void
      */
     public function admin_save_options_callback() {
@@ -69,7 +71,7 @@ class Ajax {
             $options = get_option( 'flexify_checkout_recovery_carts_settings', array() );
     
             // get default options
-            $default_options = Admin::set_default_options();
+            $default_options = ( new Default_Options() )->set_default_options();
     
             // update toggle switchs
             if ( isset( $default_options['toggle_switchs'] ) ) {

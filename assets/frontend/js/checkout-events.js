@@ -7,7 +7,7 @@
 	 * @since 1.0.0
 	 * @return Object
 	 */
-	const params = fcrc_checkout_params;
+	const params = fcrc_checkout_params || {};
 
 	/**
 	 * Checkout events object variable
@@ -16,17 +16,6 @@
 	 * @package MeuMouse.com
 	 */
 	const Checkout_Events = {
-        
-        /**
-		 * Initialize object functions
-		 * 
-		 * @since 1.0.0
-		 * @version 1.1.0
-		 */
-		init: function() {
-			this.bindEvents();
-			this.fillCheckoutFields();
-		},
         
         /**
          * Set cookie value
@@ -161,6 +150,17 @@
 					console.log('AJAX error:', error);
 				},
 			});
+		},
+
+		/**
+		 * Initialize object functions
+		 * 
+		 * @since 1.0.0
+		 * @version 1.1.0
+		 */
+		init: function() {
+			this.bindEvents();
+			this.fillCheckoutFields();
 		},
     }
 
