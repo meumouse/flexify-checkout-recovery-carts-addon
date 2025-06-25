@@ -15,6 +15,14 @@ defined('ABSPATH') || exit;
 class Init {
 
     /**
+     * Get plugin basename
+     * 
+     * @since 1.3.0
+     * @return string
+     */
+    public $basename = FC_RECOVERY_CARTS_BASENAME;
+
+    /**
      * Construct function
      * 
      * @since 1.0.0
@@ -34,10 +42,10 @@ class Init {
         }
 
         // load text domain
-        load_plugin_textdomain( 'fc-recovery-carts', false, dirname( FC_RECOVERY_CARTS_BASENAME ) . '/languages/' );
+        load_plugin_textdomain( 'fc-recovery-carts', false, dirname( $this->basename ) . '/languages/' );
 
         // add link to plugin settings
-        add_filter( 'plugin_action_links_' . FC_RECOVERY_CARTS_BASENAME, array( $this, 'add_action_plugin_links' ), 10, 4 );
+        add_filter( 'plugin_action_links_' . $this->basename, array( $this, 'add_action_plugin_links' ), 10, 4 );
         
         // add helper links
         add_filter( 'plugin_row_meta', array( $this, 'add_row_meta_links' ), 10, 4 );
@@ -91,7 +99,7 @@ class Init {
      * @return array
      */
     public function add_row_meta_links( $plugin_meta, $plugin_file, $plugin_data, $status ) {
-        if ( strpos( $plugin_file, FC_RECOVERY_CARTS_BASENAME ) !== false ) {
+        if ( strpos( $plugin_file, $this->basename ) !== false ) {
             $new_links = array(
                 'docs' => '<a href="'. esc_attr( FC_RECOVERY_CARTS_DOCS_URL ) .'" target="_blank">'. esc_html__( 'Documentação', 'fc-recovery-carts' ) .'</a>',
             );

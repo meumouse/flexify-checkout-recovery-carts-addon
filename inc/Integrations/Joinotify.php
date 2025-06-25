@@ -125,7 +125,7 @@ class Joinotify extends Integrations_Base {
             $sender = Admin::get_setting('joinotify_sender_phone');
             $receiver = function_exists('joinotify_prepare_receiver') ? joinotify_prepare_receiver( $lead_data['phone'] ) : $lead_data['phone'];
 
-            if ( FC_RECOVERY_CARTS_DEV_MODE ) {
+            if ( FC_RECOVERY_CARTS_DEBUG_MODE ) {
                 error_log( 'Sending coupon message for cart: ' . $cart_id );
                 error_log( 'Message: ' . print_r( $message, true ) );
                 error_log( 'Sender: ' . $sender );

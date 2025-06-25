@@ -14,10 +14,18 @@ defined('ABSPATH') || exit;
  * Handle Cron jobs
  * 
  * @since 1.0.0
- * @version 1.2.0
+ * @version 1.3.0
  * @package MeuMouse.com
  */
 class Recovery_Handler {
+
+    /**
+     * Get debug mode
+     * 
+     * @since 1.3.0
+     * @return bool
+     */
+    public $debug_mode = FC_RECOVERY_CARTS_DEBUG_MODE;
    
     /**
      * Construct function
@@ -113,7 +121,7 @@ class Recovery_Handler {
                         'post_status' => 'abandoned',
                     ) );
 
-                    if ( FC_RECOVERY_CARTS_DEV_MODE ) {
+                    if ( $this->debug_mode ) {
                         error_log( 'Abandoned cart: ' . $cart_id . ' | Last ping: ' . $last_ping );
                     }
 
@@ -247,7 +255,7 @@ class Recovery_Handler {
                 'post_status' => 'lost',
             ));
 
-            if ( FC_RECOVERY_CARTS_DEV_MODE ) {
+            if ( $this->debug_mode ) {
                 error_log( 'Cart marked as lost: ' . $cart_id );
             }
 
@@ -299,7 +307,7 @@ class Recovery_Handler {
                     if ( isset( $event['args']['cart_id'] ) && intval( $event['args']['cart_id'] ) === intval( $cart_id ) ) {
                         wp_unschedule_event( $timestamp, 'fcrc_send_follow_up_message', $event['args'] );
     
-                        if ( FC_RECOVERY_CARTS_DEV_MODE ) {
+                        if ( $this->debug_mode ) {
                             error_log( "Removed fcrc_send_follow_up_message event for cart_id {$cart_id}" );
                         }
                     }
@@ -311,7 +319,7 @@ class Recovery_Handler {
                     if ( isset( $event['args']['cart_id'] ) && intval( $event['args']['cart_id'] ) === intval( $cart_id ) ) {
                         wp_unschedule_event( $timestamp, 'check_final_cart_status', $event['args'] );
     
-                        if ( FC_RECOVERY_CARTS_DEV_MODE ) {
+                        if ( $this->debug_mode ) {
                             error_log( "Removed check_final_cart_status event for cart_id {$cart_id}" );
                         }
                     }
@@ -365,7 +373,7 @@ class Recovery_Handler {
         // cancel scheduled events
         self::cancel_follow_up_events( $cart_id );
     
-        if ( FC_RECOVERY_CARTS_DEV_MODE ) {
+        if ( $this->debug_mode ) {
             error_log( 'Cart resumed: ' . $cart_id );
         }
 
@@ -452,7 +460,7 @@ class Recovery_Handler {
             foreach ( $query->posts as $post_id ) {
                 wp_delete_post( $post_id, true );
 
-                if ( defined('FC_RECOVERY_CARTS_DEV_MODE') && FC_RECOVERY_CARTS_DEV_MODE ) {
+                if ( defined('$this->debug_mode') && $this->debug_mode ) {
                     error_log( '[FCRC] Cart deleted for missing contact: ' . $post_id );
                 }
 

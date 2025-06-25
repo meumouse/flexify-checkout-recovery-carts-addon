@@ -41,7 +41,7 @@ class Updater {
      * @return void
      */
     public function __construct() {
-        if ( defined('FC_RECOVERY_CARTS_DEV_MODE') && FC_RECOVERY_CARTS_DEV_MODE === true ) {
+        if ( defined('FC_RECOVERY_CARTS_DEBUG_MODE') && FC_RECOVERY_CARTS_DEBUG_MODE === true ) {
             add_filter( 'https_ssl_verify', '__return_false' );
             add_filter( 'https_local_ssl_verify', '__return_false' );
             add_filter( 'http_request_host_is_external', '__return_true' );

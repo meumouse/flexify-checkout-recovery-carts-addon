@@ -226,7 +226,7 @@ class Order_Events {
         update_post_meta( $cart_id, '_fcrc_order_date_created', $order->get_date_created() );
         update_post_meta( $order_id, '_fcrc_cart_id', $cart_id );
 
-        if ( FC_RECOVERY_CARTS_DEV_MODE ) {
+        if ( FC_RECOVERY_CARTS_DEBUG_MODE ) {
             error_log( "Cart ID {$cart_id} updated with billing & location info for order {$order_id}" );
         }
 
@@ -270,7 +270,7 @@ class Order_Events {
 
         update_post_meta( $cart_id, '_fcrc_purchased', true );
 
-        if ( FC_RECOVERY_CARTS_DEV_MODE ) {
+        if ( FC_RECOVERY_CARTS_DEBUG_MODE ) {
             error_log( "Cart ID {$cart_id} linked to Order ID {$order_id} marked as recovered." );
         }
 
@@ -367,7 +367,7 @@ class Order_Events {
         update_post_meta( $cart_id, '_fcrc_purchased', true );
         update_post_meta( $cart_id, '_fcrc_cart_recovered', true );
 
-        if ( FC_RECOVERY_CARTS_DEV_MODE ) {
+        if ( FC_RECOVERY_CARTS_DEBUG_MODE ) {
             error_log( "[woocommerce_payment_complete] Cart ID {$cart_id} linked to Order ID {$order_id} marked as recovered." );
         }
 

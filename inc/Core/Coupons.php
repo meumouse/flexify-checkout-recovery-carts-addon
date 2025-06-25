@@ -94,7 +94,7 @@ class Coupons {
             wp_schedule_single_event( $expiry_timestamp, 'fcrc_delete_coupon_on_expiration', array( $coupon->get_id() ) );
         }
 
-        if (  FC_RECOVERY_CARTS_DEV_MODE ) {
+        if (  FC_RECOVERY_CARTS_DEBUG_MODE ) {
             error_log( 'Coupon ID: ' . $coupon->get_id() );
             error_log( 'Coupon generated: ' . $coupon_code );
             error_log( 'Coupon expiration date: ' . $expiry_timestamp );
@@ -124,7 +124,7 @@ class Coupons {
         $coupon_post = get_post( $coupon_id );
     
         if ( ! $coupon_post || $coupon_post->post_type !== 'shop_coupon' ) {
-            if ( FC_RECOVERY_CARTS_DEV_MODE ) {
+            if ( FC_RECOVERY_CARTS_DEBUG_MODE ) {
                 error_log( "Coupon {$coupon_id} not found or is not a valid shop_coupon." );
             }
             return;
@@ -133,7 +133,7 @@ class Coupons {
         // Delete the coupon post
         wp_delete_post( $coupon_id, true );
     
-        if ( FC_RECOVERY_CARTS_DEV_MODE ) {
+        if ( FC_RECOVERY_CARTS_DEBUG_MODE ) {
             error_log( "Coupon {$coupon_id} deleted after expiration." );
         }
     }

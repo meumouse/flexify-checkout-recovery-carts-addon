@@ -15,6 +15,14 @@ defined('ABSPATH') || exit;
  * @package MeuMouse.com
  */
 class Helpers {
+
+    /**
+     * Get debug mode
+     * 
+     * @since 1.3.0
+     * @return bool
+     */
+    public $debug_mode = FC_RECOVERY_CARTS_DEBUG_MODE;
    
     /**
      * Check admin page from partial URL
@@ -168,7 +176,7 @@ class Helpers {
         $cart_id = intval( $_GET['recovery_cart'] );
 
         if ( ! $cart_id || get_post_type( $cart_id ) !== 'fc-recovery-carts' ) {
-            if ( FC_RECOVERY_CARTS_DEV_MODE ) {
+            if ( $this->debug_mode ) {
                 error_log( "Error: Cart ID {$cart_id} invalid or not found." );
             }
 
@@ -179,7 +187,7 @@ class Helpers {
         $cart_items = get_post_meta( $cart_id, '_fcrc_cart_items', true );
 
         if ( empty( $cart_items ) || ! is_array( $cart_items ) ) {
-            if ( FC_RECOVERY_CARTS_DEV_MODE ) {
+            if ( $this->debug_mode ) {
                 error_log( "Error: Any product found for the cart: {$cart_id}." );
             }
             
@@ -201,7 +209,7 @@ class Helpers {
         WC()->session->set( 'fcrc_cart_id', $cart_id );
         setcookie( 'fcrc_cart_id', $cart_id, time() + ( 7 * 24 * 60 * 60 ), COOKIEPATH, COOKIE_DOMAIN );
 
-        if ( FC_RECOVERY_CARTS_DEV_MODE ) {
+        if ( $this->debug_mode ) {
             error_log( "Cart {$cart_id} restored and redirecting to checkout." );
         }
 
@@ -232,7 +240,7 @@ class Helpers {
             setcookie( 'fcrc_cart_id', '', time() - 3600, COOKIEPATH, COOKIE_DOMAIN );
         }
 
-        if ( FC_RECOVERY_CARTS_DEV_MODE ) {
+        if ( $this->debug_mode ) {
             error_log( 'Cart ID removed from session and cookies.' );
         }
     }
@@ -274,7 +282,7 @@ class Helpers {
             $cart_id = $_COOKIE['fcrc_cart_id'] ?? null;
         }
 
-        if ( FC_RECOVERY_CARTS_DEV_MODE ) {
+        if ( $this->debug_mode ) {
             error_log( 'Current cart ID: ' . $cart_id );
         }
 
@@ -325,31 +333,5 @@ class Helpers {
             }
         }
         return $array;
-    }
-
-
-    /**
-     * Deep replace values with form data and fallback to defaults if missing
-     *
-     * @since 1.3.0
-     * @param array $defaults
-     * @param array $form_data
-     * @return array
-     */
-    public static function deep_replace_with_defaults( $defaults, $form_data ) {
-        $result = array();
-
-        foreach ( $defaults as $key => $default_value ) {
-            if ( is_array( $default_value ) ) {
-                $form_sub_data = isset( $form_data[ $key ] ) && is_array( $form_data[ $key ] ) ? $form_data[ $key ] : array();
-                $result[ $key ] = self::deep_replace_with_defaults( $default_value, $form_sub_data );
-            } else {
-                $result[ $key ] = isset( $form_data[ $key ] )
-                    ? sanitize_text_field( $form_data[ $key ] )
-                    : $default_value;
-            }
-        }
-
-        return $result;
     }
 }
