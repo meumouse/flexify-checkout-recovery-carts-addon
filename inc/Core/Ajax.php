@@ -66,20 +66,13 @@ class Ajax {
         if ( isset( $_POST['action'] ) && $_POST['action'] === 'fc_recovery_carts_save_options' ) {
             // convert form data for associative array
             parse_str( $_POST['form_data'], $form_data );
-    
+
             // get current options 
             $options = get_option( 'flexify_checkout_recovery_carts_settings', array() );
     
             // get default options
             $default_options = ( new Default_Options() )->set_default_options();
-    
-            // update toggle switchs
-            if ( isset( $default_options['toggle_switchs'] ) ) {
-                foreach ( array_keys( $default_options['toggle_switchs'] ) as $switch ) {
-                    $options['toggle_switchs'][$switch] = isset( $form_data['toggle_switchs'][$switch] ) ? 'yes' : 'no';
-                }
-            }
-    
+
             // update all fields except arrays like toggle_switchs and follow_up_events
             foreach ( $default_options as $key => $value ) {
                 if ( ! is_array( $value ) && isset( $form_data[$key] ) ) {
@@ -87,30 +80,38 @@ class Ajax {
                 }
             }
     
-            // update dynamic arrays (including follow_up_events and others)
-            foreach ( $default_options as $key => $default_value ) {
-                if ( is_array( $default_value ) && isset( $form_data[$key] ) ) {
-                    $options[$key] = array_replace_recursive( $options[$key] ?? array(), $form_data[$key] );
+            // update dynamic arrays
+            foreach ( $default_options as $key => $value ) {
+                if ( is_array( $value ) && isset( $form_data[ $key ] ) ) {
+                    $options[ $key ] = Helpers::recursive_merge( $value, Helpers::sanitize_array( $form_data[ $key ] ) );
                 }
             }
-    
+        
             $saved_options = update_option( 'flexify_checkout_recovery_carts_settings', $options );
     
+            // check if saved options
             if ( $saved_options ) {
                 $response = array(
                     'status' => 'success',
                     'toast_header_title' => esc_html__( 'Salvo com sucesso', 'fc-recovery-carts' ),
                     'toast_body_title' => esc_html__( 'As configurações foram atualizadas!', 'fc-recovery-carts' ),
                 );
-    
-                if ( FC_RECOVERY_CARTS_DEBUG_MODE ) {
-                    $response['debug'] = array(
-                        'options' => $options,
-                    );
-                }
-    
-                wp_send_json( $response );
+            } else {
+                $response = array(
+                    'status' => 'error',
+                    'toast_header_title' => esc_html__( 'Ops! Ocorreu um erro.', 'fc-recovery-carts' ),
+                    'toast_body_title' => esc_html__( 'Não foi possível salvar as configurações.', 'fc-recovery-carts' ),
+                );
             }
+
+            if ( FC_RECOVERY_CARTS_DEBUG_MODE ) {
+                $response['debug'] = array(
+                    'options' => $options,
+                    'update_options' => $saved_options,
+                );
+            }
+
+            wp_send_json( $response );
         }
     }
 

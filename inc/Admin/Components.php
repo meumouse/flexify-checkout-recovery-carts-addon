@@ -55,6 +55,7 @@ class Components {
      * Render follow up list settings
      * 
      * @since 1.0.0
+     * @version 1.3.0
      * @return string
      */
     public static function follow_up_list() {
@@ -129,6 +130,8 @@ class Components {
                                 <button class="btn btn-icon btn-outline-danger delete-follow-up-item ms-3" data-follow-up-item="<?php esc_attr_e( $key ) ?>">
                                     <svg class="icon icon-danger" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M15 2H9c-1.103 0-2 .897-2 2v2H3v2h2v12c0 1.103.897 2 2 2h10c1.103 0 2-.897 2-2V8h2V6h-4V4c0-1.103-.897-2-2-2zM9 4h6v2H9V4zm8 16H7V8h10v12z"></path></svg>
                                 </button>
+
+                                <input type="checkbox" class="toggle-switch ms-3" name="follow_up_events[<?php esc_attr_e( $key ) ?>][enabled]" value="yes" <?php checked( $follow_up['enabled'] === 'yes' ); ?> />
                             </div>
                         </div>
                     </li>

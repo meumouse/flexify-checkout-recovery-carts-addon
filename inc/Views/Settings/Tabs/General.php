@@ -7,6 +7,7 @@ use MeuMouse\Flexify_Checkout\Recovery_Carts\Admin\Components as Admin_Component
  * Template file for general settings
  * 
  * @since 1.0.0
+ * @version 1.3.0
  * @package MeuMouse.com
  */
 

@@ -136,7 +136,7 @@ class Recovery_Handler {
      * Schedules follow-up messages based on admin settings
      *
      * @since 1.0.0
-     * @version 1.1.0
+     * @version 1.3.0
      * @param int $cart_id The abandoned cart ID
      * @return void
      */
@@ -150,6 +150,10 @@ class Recovery_Handler {
         $max_delay = 0;
     
         foreach ( $follow_up_events as $event_key => $event_data ) {
+            if ( ! isset( $event_data['enabled'] ) || $event_data['enabled'] !== 'yes' ) {
+                continue;
+            }
+
             $delay = Helpers::convert_to_seconds( $event_data['delay_time'], $event_data['delay_type'] );
     
             if ( $delay ) {

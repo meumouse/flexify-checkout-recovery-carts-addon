@@ -2,6 +2,8 @@
 
 namespace MeuMouse\Flexify_Checkout\Recovery_Carts\Admin;
 
+use MeuMouse\Flexify_Checkout\Recovery_Carts\Core\Helpers;
+
 // Exit if accessed directly.
 defined('ABSPATH') || exit;
 
@@ -209,24 +211,11 @@ class Admin {
      */
     public function update_default_options() {
         $default_options = ( new Default_Options() )->set_default_options();
-        $get_options = get_option('flexify_checkout_recovery_carts_settings', array());
+        $get_options = get_option( 'flexify_checkout_recovery_carts_settings', array() );
 
-        // if empty settings
-        if ( empty( $get_options ) ) {
-            update_option( 'flexify_checkout_recovery_carts_settings', $default_options );
-        } else {
-            // iterate for each plugin settings
-            foreach ( $get_options as $option => $value ) {
-                // iterate for each default settings
-                foreach ( $default_options as $index => $option_value ) {
-                    if ( ! isset( $get_options[$index] ) ) {
-                        $get_options[$index] = $option_value;
-                    }
-                }
-            }
+        $merged_options = Helpers::recursive_merge( $default_options, $get_options );
 
-            update_option( 'flexify_checkout_recovery_carts_settings', $get_options );
-        }
+        update_option( 'flexify_checkout_recovery_carts_settings', $merged_options );
     }
 
 

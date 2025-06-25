@@ -280,4 +280,76 @@ class Helpers {
 
         return $cart_id;
     }
+
+
+    /**
+     * Recursively merge two arrays, adding missing keys from defaults
+     *
+     * @since 1.3.0
+     * @param array $defaults | The default values
+     * @param array $current | The current values
+     * @return array
+     */
+    public static function recursive_merge( $defaults, $current ) {
+        foreach ( $defaults as $key => $value ) {
+            if ( is_array( $value ) ) {
+                if ( isset( $current[ $key ] ) && is_array( $current[ $key ] ) ) {
+                    $current[ $key ] = self::recursive_merge( $value, $current[ $key ] );
+                } else {
+                    $current[ $key ] = $value;
+                }
+            } else {
+                if ( ! isset( $current[ $key ] ) ) {
+                    $current[ $key ] = $value;
+                }
+            }
+        }
+
+        return $current;
+    }
+
+
+    /**
+     * Recursively sanitize array values
+     *
+     * @since 1.3.0
+     * @param array $array | The array to sanitize
+     * @return array
+     */
+    public static function sanitize_array( $array ) {
+        foreach ( $array as $key => $value ) {
+            if ( is_array( $value ) ) {
+                $array[ $key ] = self::sanitize_array( $value );
+            } else {
+                $array[ $key ] = sanitize_text_field( $value );
+            }
+        }
+        return $array;
+    }
+
+
+    /**
+     * Deep replace values with form data and fallback to defaults if missing
+     *
+     * @since 1.3.0
+     * @param array $defaults
+     * @param array $form_data
+     * @return array
+     */
+    public static function deep_replace_with_defaults( $defaults, $form_data ) {
+        $result = array();
+
+        foreach ( $defaults as $key => $default_value ) {
+            if ( is_array( $default_value ) ) {
+                $form_sub_data = isset( $form_data[ $key ] ) && is_array( $form_data[ $key ] ) ? $form_data[ $key ] : array();
+                $result[ $key ] = self::deep_replace_with_defaults( $default_value, $form_sub_data );
+            } else {
+                $result[ $key ] = isset( $form_data[ $key ] )
+                    ? sanitize_text_field( $form_data[ $key ] )
+                    : $default_value;
+            }
+        }
+
+        return $result;
+    }
 }

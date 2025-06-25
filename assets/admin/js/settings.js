@@ -199,6 +199,9 @@
 				let btn = $(this);
 				let btn_state = Settings.keepButtonState(btn);
 
+				// force send unchecked checkboxes
+				Settings.forceUncheckedCheckboxes();
+
 				// send request
 				$.ajax({
 					url: params.ajax_url,
@@ -220,6 +223,8 @@
 								original_values = settings_form.serialize();
 
 								Settings.displayToast('success', response.toast_header_title, response.toast_body_title);
+							} else {
+								Settings.displayToast('error', response.toast_header_title, response.toast_body_title);
 							}
 						} catch (error) {
 							console.log(error);
@@ -243,7 +248,35 @@
 				}
 			});
 		},
+		
+		/**
+		 * Force all unchecked checkboxes to be sent as "no"
+		 *
+		 * @since 1.3.0
+		 */
+		forceUncheckedCheckboxes: function() {
+			$('input[type="checkbox"]').each( function() {
+				const checkbox = $(this);
+				const name = checkbox.attr('name');
 
+				// if the checkbox is unchecked, insert a hidden input with the same name
+				if ( ! checkbox.is(':checked') ) {
+					const hiddenInput = $('<input>')
+						.attr({
+							type: 'hidden',
+							name: name,
+							value: 'no'
+						}).addClass('fcrc-hidden-checkbox');
+
+					// remove all previous before reinsert
+					checkbox.siblings('.fcrc-hidden-checkbox').remove();
+					checkbox.after(hiddenInput);
+				} else {
+					// remove if checkbox is checked
+					checkbox.siblings('.fcrc-hidden-checkbox').remove();
+				}
+			});
+		},
 
 		/**
 		 * Add new follow up item

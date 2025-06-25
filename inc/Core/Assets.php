@@ -11,7 +11,7 @@ defined('ABSPATH') || exit;
  * Enqueue assets class
  * 
  * @since 1.0.0
- * @version 1.2.0
+ * @version 1.3.0
  * @package MeuMouse.com
  */
 class Assets {
