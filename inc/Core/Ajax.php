@@ -42,7 +42,7 @@ class Ajax {
             'fcrc_lead_collected' => 'fcrc_lead_collected_callback',
             'fcrc_save_checkout_lead' => 'fcrc_save_checkout_lead_callback',
             'fcrc_update_location' => 'fcrc_update_location_callback',
-            'fc_recovery_carts_get_analytics_data' => 'get_analytics_data_callback',
+            'fcrc_get_analytics_data' => 'get_analytics_data_callback',
         );
 
         // loop for each ajax action

@@ -130,7 +130,15 @@ class Assets {
 				'ajax_url' => admin_url('admin-ajax.php'),
 				'i18n' => array(
 					'toast_aria_label' => esc_html__( 'Fechar', 'fc-recovery-carts' ),
+                    'total_recovered' => __( 'Valor recuperado', 'fc-recovery-carts' ),
 				),
+                'currency' => array(
+                    'symbol' => html_entity_decode( get_woocommerce_currency_symbol() ),
+                    'position' => get_option('woocommerce_currency_pos'), // 'left', 'right', 'left_space', 'right_space'
+                    'decimal_separator' => wc_get_price_decimal_separator(),
+                    'thousand_separator' => wc_get_price_thousand_separator(),
+                    'decimals' => wc_get_price_decimals(),
+                ),
 			));
         }
     }

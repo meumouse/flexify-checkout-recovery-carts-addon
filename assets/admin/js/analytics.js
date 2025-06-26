@@ -9,14 +9,6 @@
 	 */
 	const params = fcrc_analytics_params || {};
 
-    /**
-     * Get period filter
-     * 
-     * @since 1.3.0
-     * @return string
-     */
-    var period;
-
 	/**
 	 * Checkout events object variable
 	 * 
@@ -24,63 +16,8 @@
 	 * @package MeuMouse.com
 	 */
 	var Analytics = {
-        
-        /**
-         * Set cookie value
-         * 
-         * @since 1.3.0
-         * @param {string} name | Cookie name
-         * @param {string} value | Cookie value
-         * @param {int} days | Expiration time in days
-         * @return void
-         */
-        setCookie: function(name, value, days) {
-            let expires = "";
-
-            if (days) {
-                let date = new Date();
-
-                date.setTime( date.getTime() + ( days * 24 * 60 * 60 * 1000 ) );
-                expires = "; expires=" + date.toUTCString();
-            }
-
-            document.cookie = name + "=" + encodeURIComponent(value) + expires + "; path=/";
-        },
 
         /**
-         * Get cookie value by name
-         * 
-         * @since 1.3.0
-         * @param {string} name | Cookie name
-         * @returns Cookie value
-         */
-        getCookie: function(name) {
-            let matches = document.cookie.match(new RegExp(
-                "(?:^|; )" + name.replace(/([\.\$?*|{}\(\)\[\]\/+^])/g, '\\$1') + "=([^;]*)"
-            ));
-
-            return matches ? decodeURIComponent(matches[1]) : undefined;
-        },
-
-        /**
-		 * Get URL parameter by name
-		 * 
-		 * @since 1.3.0
-		 * @param {string} name | Parameter name
-		 * @returns Parameter value
-		 */
-		getParamByName: function(name) {
-			let url = window.location.href;
-			name = name.replace(/[\[\]]/g, "\\{text}");
-			let regex = new RegExp("[?&]" + name + "(=([^&#]*)|&|#|$)"), results = regex.exec(url);
-
-			if (!results) return null;
-			if (!results[2]) return '';
-			
-			return decodeURIComponent( results[2].replace(/\+/g, " ") );
-		},
-
-		/**
 		 * Add query params on URL
 		 * 
 		 * @since 1.3.0
@@ -97,6 +34,24 @@
 
 			// update URL without reload page
 			window.history.pushState( {}, '', url );
+		},
+    
+        /**
+		 * Get URL parameter by name
+		 * 
+		 * @since 1.3.0
+		 * @param {string} name | Parameter name
+		 * @returns Parameter value
+		 */
+		getParamByName: function(name) {
+			let url = window.location.href;
+			name = name.replace(/[\[\]]/g, "\\{text}");
+			let regex = new RegExp("[?&]" + name + "(=([^&#]*)|&|#|$)"), results = regex.exec(url);
+
+			if (!results) return null;
+			if (!results[2]) return '';
+			
+			return decodeURIComponent( results[2].replace(/\+/g, " ") );
 		},
 
         /**
@@ -145,67 +100,71 @@
                 type: 'POST',
                 dataType: 'json',
                 data: {
-                    action: 'fc_recovery_carts_get_analytics_data',
+                    action: 'fcrc_get_analytics_data',
                     period: days,
                 },
-                success: function (response) {
+                success: function(response) {
                     if (response.success) {
                         $('.fcrc-analytics-widget').removeClass('placeholder-content');
                         $('.fcrc-analytics-container-item.get-total-recovered').html(response.data.total_recovered_widget);
 
                         // render chart for total recovered
-                        Analytics.renderChart(
+                        Analytics.recoveredTotalChart(
                             response.data.recovered_chart.labels,
                             response.data.recovered_chart.series
                         );
                     }
                 },
-                error: function () {
+                error: function() {
                     console.error('Erro ao carregar dados de análise');
                 },
             });
         },
 
         /**
-         * Render charts
+         * Render recovered total chart
          * 
          * @since 1.3.0
          * @param {array} labels | Chart labels
          * @param {array} seriesData | Chart series data
          * @return void
          */
-        renderChart: function( labels, seriesData ) {
+        recoveredTotalChart: function( labels, seriesData ) {
             const options = {
                 chart: {
                     type: 'line',
                     height: 320,
-                    toolbar: { show: false }
+                    toolbar: {
+                        show: false
+                    },
                 },
                 stroke: {
                     curve: 'smooth',
                     width: 3
                 },
                 series: [{
-                    name: 'Valor recuperado (R$)',
-                    data: seriesData
+                    name: params.i18n.total_recovered,
+                    data: seriesData,
                 }],
                 xaxis: {
                     categories: labels,
                     labels: {
-                        style: { fontSize: '13px' }
-                    }
+                        style: {
+                            fontSize: '13px'
+                        },
+                    },
                 },
                 yaxis: {
                     labels: {
-                        formatter: function (val) {
-                            return 'R$ ' + val.toFixed(2).replace('.', ',');
+                        formatter: function(val) {
+                            return Analytics.formatCurrency(val);
                         }
                     }
                 },
                 tooltip: {
                     y: {
-                        formatter: function (val) {
-                            return 'R$ ' + val.toFixed(2).replace('.', ',');
+                        formatter: function(val) {
+                            return Analytics.formatCurrency(val);
                         }
                     }
                 }
@@ -223,6 +182,44 @@
          */
         bindEvents: function() {
             
+        },
+
+        /**
+         * Format currency value according to WooCommerce settings
+         * 
+         * @since 1.3.0
+         * @param {number} value | Value to format
+         * @returns {string}
+         */
+        formatCurrency: function(value) {
+            const currency = params.currency || {};
+            const symbol = currency.symbol || 'R$';
+            const position = currency.position || 'left';
+            const decimal = currency.decimal_separator || ',';
+            const thousand = currency.thousand_separator || '.';
+            const decimals = typeof currency.decimals === 'undefined' ? 2 : currency.decimals;
+
+            let val = parseFloat(value).toFixed(decimals).toString();
+
+            // Separate integer and decimal parts
+            let parts = val.split('.');
+            let integer = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, thousand);
+            let decimal_part = parts[1] ? decimal + parts[1] : '';
+
+            let formatted = integer + decimal_part;
+
+            switch ( position ) {
+                case 'left':
+                    return symbol + formatted;
+                case 'right':
+                    return formatted + symbol;
+                case 'left_space':
+                    return symbol + ' ' + formatted;
+                case 'right_space':
+                    return formatted + ' ' + symbol;
+                default:
+                    return symbol + formatted;
+            }
         },
 
 		/**

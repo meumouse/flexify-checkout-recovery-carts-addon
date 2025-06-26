@@ -330,8 +330,8 @@ class Components {
 
         <div class="fcrc-analytics-widget total-recovered-widget">
             <div class="fcrc-analytics-widget-header">
-                <span class="widget-title"><?php printf( __( 'Total recuperado %s', 'fc-recovery-carts' ), wc_price( $total ) ); ?></span>
-                <span class="widget-description"><?php printf( __( 'Dados relacionados aos últimos %d dias', 'fc-recovery-carts' ), $period ); ?></span>
+                <span class="fcrc-widget-title"><?php printf( __( 'Total recuperado %s', 'fc-recovery-carts' ), wc_price( $total ) ); ?></span>
+                <span class="fcrc-widget-description"><?php printf( __( 'Dados relacionados aos últimos %d dias', 'fc-recovery-carts' ), $period ); ?></span>
             </div>
 
             <div class="fcrc-analytics-widget-body">
