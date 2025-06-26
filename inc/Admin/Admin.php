@@ -63,7 +63,8 @@ class Admin {
 
         add_action( "load-{$fc_recovery_carts_hook}", array( $this, 'load_screen_options' ) );
 
-        if ( self::is_pro() ) {
+        // check if Flexify Checkout Pro is active
+        if ( Helpers::is_pro() ) {
             // Main page as first submenu item with a different name
             add_submenu_page(
                 'fc-recovery-carts', // parent page slug
@@ -82,6 +83,16 @@ class Admin {
                 'manage_options', // user capabilities
                 'fc-recovery-carts-list', // page slug
                 array( $this, 'carts_table_page' ) // callback
+            );
+
+            // all carts list page
+            add_submenu_page(
+                'fc-recovery-carts', // parent page slug
+                esc_html__( 'Fila de processamentos', 'fc-recovery-carts' ), // page title
+                esc_html__( 'Fila de processamentos', 'fc-recovery-carts' ), // submenu title
+                'manage_options', // user capabilities
+                'fc-recovery-carts-queue', // page slug
+                array( $this, 'queue_table_page' ) // callback
             );
 
             // settings page
@@ -139,6 +150,17 @@ class Admin {
      */
     public function analytics_page() {
         include FC_RECOVERY_CARTS_INC . 'Views/Analytics.php';
+    }
+
+
+    /**
+     * Render queue table page
+     * 
+     * @since 1.3.0
+     * @return void
+     */
+    public function queue_table_page() {
+        include FC_RECOVERY_CARTS_INC . 'Views/Queue.php';
     }
 
 
@@ -330,22 +352,5 @@ class Admin {
 
         // update permacarrinhos
         flush_rewrite_rules();
-    }
-
-
-    /**
-     * Check if plugin Flexify Checkout is Pro
-     * 
-     * @since 1.0.0
-     * @return bool
-     */
-    public static function is_pro() {
-        $get_status = get_option( 'flexify_checkout_license_status', 'invalid' );
-
-        if ( $get_status === 'valid' ) {
-            return true;
-        }
-
-        return false;
     }
 }

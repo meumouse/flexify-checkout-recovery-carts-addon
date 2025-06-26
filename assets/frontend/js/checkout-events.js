@@ -15,7 +15,7 @@
 	 * @since 1.0.0
 	 * @package MeuMouse.com
 	 */
-	const Checkout_Events = {
+	var Checkout_Events = {
         
         /**
          * Set cookie value
@@ -164,7 +164,7 @@
 		},
     }
 
-    // Initialize the Settings object on ready event
+    // Initialize the object on ready event
 	jQuery(document).ready( function($) {
 		Checkout_Events.init();
 	});

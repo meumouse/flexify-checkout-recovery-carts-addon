@@ -50,6 +50,9 @@ class Init {
         // add helper links
         add_filter( 'plugin_row_meta', array( $this, 'add_row_meta_links' ), 10, 4 );
 
+        // include plugin functions
+        include_once( FC_RECOVERY_CARTS_INC . 'Core/Functions.php' );
+
         // instance classes
         self::instance_classes();
     }

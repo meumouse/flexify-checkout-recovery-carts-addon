@@ -39,7 +39,7 @@ class Recovery_Handler {
         add_action( 'init', array( $this, 'check_abandoned_carts' ) );
 
         // start recovery carts
-        add_action( 'Flexify_Checkout/Recovery_Carts/Cart_Abandoned', array( $this, 'recovery_carts' ), 10, 1 );
+        add_action( 'Flexify_Checkout/Recovery_Carts/Cart_Abandoned', array( $this, 'init_follow_up_events' ), 10, 1 );
 
         // Hook into WordPress to check for cart recovery link on page load
         add_action( 'template_redirect', array( '\MeuMouse\Flexify_Checkout\Recovery_Carts\Core\Helpers', 'maybe_restore_cart' ) );
@@ -119,7 +119,7 @@ class Recovery_Handler {
                     wp_update_post( array(
                         'ID' => $cart_id,
                         'post_status' => 'abandoned',
-                    ) );
+                    ));
 
                     if ( $this->debug_mode ) {
                         error_log( 'Abandoned cart: ' . $cart_id . ' | Last ping: ' . $last_ping );
@@ -145,23 +145,35 @@ class Recovery_Handler {
      *
      * @since 1.0.0
      * @version 1.3.0
-     * @param int $cart_id The abandoned cart ID
+     * @param int $cart_id | The abandoned cart ID
      * @return void
      */
-    public function recovery_carts( $cart_id ) {
+    public function init_follow_up_events( $cart_id ) {
         $follow_up_events = Admin::get_setting('follow_up_events');
     
+        // check if has follow up events
         if ( ! $follow_up_events || ! is_array( $follow_up_events ) ) {
+            return;
+        }
+
+        $user_phone = get_post_meta( $cart_id, '_fcrc_cart_phone', true );
+        $user_email = get_post_meta( $cart_id, '_fcrc_cart_email', true );
+
+        // check if cart is from a guest
+        if ( empty( $user_phone ) || empty( $user_email ) ) {
             return;
         }
     
         $max_delay = 0;
     
+        // iterate for each follow up event
         foreach ( $follow_up_events as $event_key => $event_data ) {
+            // check if follow up event is enabled
             if ( ! isset( $event_data['enabled'] ) || $event_data['enabled'] !== 'yes' ) {
                 continue;
             }
 
+            // get delay time for event
             $delay = Helpers::convert_to_seconds( $event_data['delay_time'], $event_data['delay_type'] );
     
             if ( $delay ) {

@@ -334,4 +334,22 @@ class Helpers {
         }
         return $array;
     }
+
+
+    /**
+     * Check if plugin Flexify Checkout is Pro
+     * 
+     * @since 1.0.0
+     * @version 1.3.0
+     * @return bool
+     */
+    public static function is_pro() {
+        $get_status = get_option( 'flexify_checkout_license_status', 'invalid' );
+
+        if ( $get_status === 'valid' ) {
+            return true;
+        }
+
+        return false;
+    }
 }

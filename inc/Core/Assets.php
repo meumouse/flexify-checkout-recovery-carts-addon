@@ -48,10 +48,7 @@ class Assets {
      */
     public function __construct() {
         // register settings scripts
-        add_action( 'admin_enqueue_scripts', array( $this, 'settings_scripts' ) );
-
-        // register carts table scripts
-        add_action( 'admin_enqueue_scripts', array( $this, 'carts_table_scripts' ) );
+        add_action( 'admin_enqueue_scripts', array( $this, 'admin_scripts' ) );
 
         // register frontend scripts
         add_action( 'wp_enqueue_scripts', array( $this, 'frontend_scripts' ) );
@@ -59,15 +56,17 @@ class Assets {
 
 
     /**
-     * Register settings scripts
+     * Register admin scripts
      * 
      * @since 1.0.0
+     * @version 1.3.0
      * @return void
      */
-    public function settings_scripts() {
+    public function admin_scripts() {
         $min_file = $this->debug_mode ? '' : '.min';
 
-        if ( Helpers::check_admin_page('fc-recovery-carts-settings') ) {
+        // add scripts on all 'fc-recovery-carts' prefix pages, except 'fc-recovery-carts-list'
+        if ( Helpers::check_admin_page('fc-recovery-carts') && ! Helpers::check_admin_page('fc-recovery-carts-list') ) {
             // check if Flexify Dashboard is active for prevent duplicate Bootstrap files
 			if ( ! class_exists('Flexify_Dashboard') ) {
                 wp_enqueue_style( 'bootstrap-grid', $this->assets_url . 'vendor/bootstrap/bootstrap-grid.min.css', array(), '5.3.3' );
@@ -75,8 +74,8 @@ class Assets {
 			}
 
             // EmojioneArea library
-			wp_enqueue_style( 'fcrc-emojionearea-styles', 'https://cdn.rawgit.com/mervick/emojionearea/master/dist/emojionearea.min.css', array(), '3.4.1' );
-            wp_enqueue_script( 'fcrc-emojionearea-scripts', 'https://cdn.rawgit.com/mervick/emojionearea/master/dist/emojionearea.min.js', array('jquery'), '3.4.1' );
+			wp_enqueue_style( 'fcrc-emojionearea-styles', $this->assets_url . 'vendor/emojionearea/emojionearea.min.css', array(), '3.4.1' );
+            wp_enqueue_script( 'fcrc-emojionearea-scripts', $this->assets_url . 'vendor/emojionearea/emojionearea.min.js', array('jquery'), '3.4.1' );
 
             // settings scripts
 			wp_enqueue_style( 'fc-recovery-carts-styles', $this->assets_url . 'admin/css/settings'. $min_file .'.css', array(), $this->version );
@@ -85,7 +84,6 @@ class Assets {
 			// settings params
 			wp_localize_script( 'fc-recovery-carts-scripts', 'fcrc_settings_params', array(
 				'debug_mode' => $this->debug_mode,
-				'dev_mode' => $this->debug_mode,
 				'ajax_url' => admin_url('admin-ajax.php'),
 				'i18n' => array(
 					'toast_aria_label' => esc_html__( 'Fechar', 'fc-recovery-carts' ),
@@ -110,22 +108,30 @@ class Assets {
                 'enable_international_phone' => Admin::get_switch('enable_international_phone_modal'),
 			));
         }
-    }
 
-
-    /**
-     * Enqueue carts table scripts
-     * 
-     * @since 1.0.0
-     * @version 1.1.0
-     * @return void
-     */
-    public function carts_table_scripts() {
-        $min_file = $this->debug_mode ? '' : '.min';
-
-        if ( Helpers::check_admin_page('fc-recovery-carts') ) {
+        // table scripts
+        if ( Helpers::check_admin_page('fc-recovery-carts-list') ) {
             // carts table scripts
 			wp_enqueue_style( 'fc-recovery-carts-table-styles', $this->assets_url . 'admin/css/carts-table'. $min_file .'.css', array(), $this->version );
+        }
+
+        // analytics scripts
+        if ( Helpers::check_admin_page('fc-recovery-carts') ) {
+            // Apexcharts library
+			wp_enqueue_style( 'apexcharts-styles', $this->assets_url . 'vendor/apexcharts/apexcharts.css', array(), '4.3.0' );
+            wp_enqueue_script( 'apexcharts-scripts', $this->assets_url . 'vendor/apexcharts/apexcharts.min.js', array(), '4.3.0' );
+
+            wp_enqueue_style( 'fc-recovery-carts-analytics-styles', $this->assets_url . 'admin/css/analytics'. $min_file .'.css', array(), $this->version );
+			wp_enqueue_script( 'fc-recovery-carts-analytics-scripts', $this->assets_url . 'admin/js/analytics'. $min_file .'.js', array('jquery'), $this->version, true );
+
+            // analytics params
+			wp_localize_script( 'fc-recovery-carts-analytics-scripts', 'fcrc_analytics_params', array(
+				'debug_mode' => $this->debug_mode,
+				'ajax_url' => admin_url('admin-ajax.php'),
+				'i18n' => array(
+					'toast_aria_label' => esc_html__( 'Fechar', 'fc-recovery-carts' ),
+				),
+			));
         }
     }
 
@@ -155,7 +161,6 @@ class Assets {
         // events params
         wp_localize_script( 'fc-recovery-carts-events-script', 'fcrc_events_params', array(
             'debug_mode' => $this->debug_mode,
-            'dev_mode' => $this->debug_mode,
             'ajax_url' => admin_url('admin-ajax.php'),
             'triggers_list' => Admin::get_setting('collect_lead_modal')['triggers_list'],
             'path_to_utils' => $this->assets_url . 'vendor/intl-tel-input/js/utils.js',
@@ -184,7 +189,6 @@ class Assets {
             // checkout events params
             wp_localize_script( 'fc-recovery-carts-events-script', 'fcrc_checkout_params', array(
                 'debug_mode' => $this->debug_mode,
-                'dev_mode' => $this->debug_mode,
                 'ajax_url' => admin_url('admin-ajax.php'),
             ));
         }

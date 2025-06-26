@@ -11,6 +11,7 @@ defined('ABSPATH') || exit;
  * Admin components class
  * 
  * @since 1.0.0
+ * @version 1.3.0
  * @package MeuMouse.com
  */
 class Components {
@@ -311,6 +312,32 @@ class Components {
                 </li>
             <?php endforeach; ?>
         </ul>
+
+        <?php return ob_get_clean();
+    }
+
+
+    /**
+     * Total recovered widget for analytics dashboard
+     * 
+     * @since 1.3.0
+     * @param int $total | Total recovered
+     * @param int $period | Period to calculate the total recovered
+     * @return string
+     */
+    public static function get_total_recovered( $total = 0, $period = 7 ) {
+        ob_start(); ?>
+
+        <div class="fcrc-analytics-widget total-recovered-widget">
+            <div class="fcrc-analytics-widget-header">
+                <span class="widget-title"><?php printf( __( 'Total recuperado %s', 'fc-recovery-carts' ), wc_price( $total ) ); ?></span>
+                <span class="widget-description"><?php printf( __( 'Dados relacionados aos últimos %d dias', 'fc-recovery-carts' ), $period ); ?></span>
+            </div>
+
+            <div class="fcrc-analytics-widget-body">
+                <div id="fcrc-recovered-chart" class="chart-container" style="height: 320px;"></div>
+            </div
+        </div>
 
         <?php return ob_get_clean();
     }

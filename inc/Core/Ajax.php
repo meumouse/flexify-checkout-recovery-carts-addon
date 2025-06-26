@@ -31,7 +31,7 @@ class Ajax {
      * Construct function
      *
      * @since 1.0.0
-     * @version 1.2.0
+     * @version 1.3.0
      * @return void
      */
     public function __construct() {
@@ -42,6 +42,7 @@ class Ajax {
             'fcrc_lead_collected' => 'fcrc_lead_collected_callback',
             'fcrc_save_checkout_lead' => 'fcrc_save_checkout_lead_callback',
             'fcrc_update_location' => 'fcrc_update_location_callback',
+            'fc_recovery_carts_get_analytics_data' => 'get_analytics_data_callback',
         );
 
         // loop for each ajax action
@@ -128,6 +129,7 @@ class Ajax {
      * Add new follow up event in AJAX
      * 
      * @since 1.0.0
+     * @version 1.3.0
      * @return void
      */
     public function fcrc_add_new_follow_up_callback() {
@@ -150,6 +152,7 @@ class Ajax {
 
             // add new follow up event on array
             $settings['follow_up_events'][$event_key] = array(
+                'enabled' => 'yes',
                 'title' => $title,
                 'message' => $message,
                 'delay_time' => $delay_time,
@@ -437,4 +440,49 @@ class Ajax {
     
         wp_send_json_success( array( 'message' => 'Location data updated successfully.' ) );
     }
+
+
+    /**
+     * Get analytics data for analytics dashboard
+     *
+     * @since 1.3.0
+     * @return void
+     */
+    public function get_analytics_data_callback() {
+        if ( ! current_user_can( 'manage_options' ) ) {
+            wp_send_json_error( array( 'message' => 'Unauthorized' ) );
+        }
+
+        // Recebe o período da requisição
+        $period = isset( $_POST['period'] ) ? intval( $_POST['period'] ) : 7;
+        $valid_periods = array( 7, 30, 90 );
+
+        if ( ! in_array( $period, $valid_periods, true ) ) {
+            $period = 7;
+        }
+
+        // query status
+        $statuses = array(
+            'lead', 'shopping', 'abandoned', 'order_abandoned', 'recovered', 'lost', 'purchased'
+        );
+
+        $carts_count = array();
+
+        foreach ( $statuses as $status ) {
+            $carts_count[ $status ] = fcrc_get_carts_count_by_status( $status, $period );
+        }
+
+        $recovered_chart_data = fcrc_get_daily_recovered_totals( $period );
+        $recovered_total = array_sum( $recovered_chart_data['series'] );
+
+        wp_send_json_success( array(
+            'status' => 'success',
+            'period' => $period,
+            'counts' => $carts_count,
+            'recovered_total' => $recovered_total,
+            'recovered_chart' => $recovered_chart_data,
+            'total_recovered_widget' => Admin_Components::get_total_recovered( $recovered_total, $period ),
+        ));
+    }
+
 }

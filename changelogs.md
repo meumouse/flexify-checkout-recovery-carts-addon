@@ -1,7 +1,9 @@
-Versão 1.3.0 (24/06/2025)
+Versão 1.3.0 (26/06/2025)
 * Correção de bugs
 * Otimizações
+    - Não registrar evento Cron se carrinho for de visitante anônimo
 * Recurso adicionado: Configurar API de coleta de localização através do IP
+* Recurso adicionado: Painel de análise de métricas
 
 Versão 1.2.0 (10/04/2025)
 * Correção de bugs

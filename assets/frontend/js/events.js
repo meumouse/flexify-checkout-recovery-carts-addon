@@ -9,7 +9,7 @@
 	 */
 	const params = fcrc_events_params || {};
 
-    if ( params.dev_mode ) {
+    if ( params.debug_mode ) {
         console.log('[DEBUG] FCRC events params:', params);
     }
 
@@ -116,7 +116,7 @@
                         btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm"></span>');
                     },
                     success: function (response) {
-                        if ( params.dev_mode ) {
+                        if ( params.debug_mode ) {
                             console.log(response);
                         }
                         
@@ -207,7 +207,7 @@
             const input = document.querySelector('.fcrc-input.fcrc-get-phone');
 
             if ( ! input ) {
-                if ( params.dev_mode ) {
+                if ( params.debug_mode ) {
                     console.warn('fcrc-get-phone input not found');
                 }
                 
@@ -290,7 +290,7 @@
         getLocationData: async function() {
             let location_data = Events.getCookie('fcrc_location');
 
-            if ( params.dev_mode ) {
+            if ( params.debug_mode ) {
                 console.log('Country data cached:', location_data);
             }
 
@@ -332,7 +332,7 @@
                     ip: data[ip_data.ip_returned] || '',
                 };
 
-                if ( params.dev_mode ) {
+                if ( params.debug_mode ) {
                     console.log('Country data:', country_data);
                 }
 
@@ -383,7 +383,7 @@
                     country_data: JSON.stringify(countryData)
                 },
                 success: function(response) {
-                    if (params.dev_mode) {
+                    if (params.debug_mode) {
                         console.log("Location data sent:", response);
                     }
                 },
