@@ -226,9 +226,39 @@ class Recovery_Handler {
         // get receiver phone number
         $receiver = function_exists('joinotify_prepare_receiver') ? joinotify_prepare_receiver( $phone ) : $phone;
 
-        if ( $event['channels']['whatsapp'] === 'yes' ) {
+        // save notification data
+        $sent_channels = array();
+
+        // send via WhatsApp if enabled
+        if ( isset( $event['channels']['whatsapp'] ) && $event['channels']['whatsapp'] === 'yes' ) {
+            // send message
             self::send_whatsapp_message( $receiver, $message );
+
+            $sent_channels[] = 'whatsapp';
         }
+
+        if ( empty( $sent_channels ) ) {
+            return;
+        }
+
+        // get current history
+        $notifications = get_post_meta( $cart_id, '_fcrc_notifications_sent', true );
+
+        if ( ! is_array( $notifications ) ) {
+            $notifications = array();
+        }
+
+        // add new notification data
+        foreach ( $sent_channels as $channel ) {
+            $notifications[] = array(
+                'event_key' => sanitize_key( $event_key ),
+                'channel' => sanitize_key( $channel ),
+                'sent_at' => current_time('mysql'),
+            );
+        }
+
+        // save notifications
+        update_post_meta( $cart_id, '_fcrc_notifications_sent', $notifications );
     }
 
 
