@@ -33,7 +33,7 @@ defined('ABSPATH') || exit; ?>
             <div class="placeholder-content" style="width: 100%; height: 15rem"></div>
         </div>
 
-        <div class="fcrc-analytics-container-item get-cart-status">
+        <div class="fcrc-analytics-container-item get-cart-status me-0">
             <div class="placeholder-content" style="width: 100%; height: 15rem"></div>
         </div>
 

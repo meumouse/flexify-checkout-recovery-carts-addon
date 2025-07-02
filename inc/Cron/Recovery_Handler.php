@@ -47,7 +47,7 @@ class Recovery_Handler {
         add_action( 'fcrc_send_follow_up_message', array( $this, 'send_follow_up_message_callback' ), 10, 2 );
 
         // Hook to handle the scheduled final cart status check
-        add_action( 'check_final_cart_status', array( $this, 'check_final_cart_status_callback' ), 10, 1 );
+        add_action( 'fcrc_check_final_cart_status', array( $this, 'check_final_cart_status_callback' ), 10, 1 );
 
         // Listen for cart changes for clear cart id reference
         add_action( 'Flexify_Checkout/Recovery_Carts/Cart_Lost', array( '\MeuMouse\Flexify_Checkout\Recovery_Carts\Core\Helpers', 'clear_active_cart' ) );
@@ -194,8 +194,8 @@ class Recovery_Handler {
             $final_check_delay = $max_delay + Helpers::convert_to_seconds( 1, 'hours' );
             $final_check_args = array( 'cart_id' => $cart_id );
     
-            if ( ! wp_next_scheduled( 'check_final_cart_status', $final_check_args ) ) {
-                wp_schedule_single_event( time() + $final_check_delay, 'check_final_cart_status', $final_check_args );
+            if ( ! wp_next_scheduled( 'fcrc_check_final_cart_status', $final_check_args ) ) {
+                wp_schedule_single_event( time() + $final_check_delay, 'fcrc_check_final_cart_status', $final_check_args );
             }
         }
     }
@@ -309,13 +309,13 @@ class Recovery_Handler {
                 }
             }
     
-            if ( isset( $hooks['check_final_cart_status'] ) ) {
-                foreach ( $hooks['check_final_cart_status'] as $key => $event ) {
+            if ( isset( $hooks['fcrc_check_final_cart_status'] ) ) {
+                foreach ( $hooks['fcrc_check_final_cart_status'] as $key => $event ) {
                     if ( isset( $event['args']['cart_id'] ) && intval( $event['args']['cart_id'] ) === intval( $cart_id ) ) {
-                        wp_unschedule_event( $timestamp, 'check_final_cart_status', $event['args'] );
+                        wp_unschedule_event( $timestamp, 'fcrc_check_final_cart_status', $event['args'] );
     
                         if ( $this->debug_mode ) {
-                            error_log( "Removed check_final_cart_status event for cart_id {$cart_id}" );
+                            error_log( "Removed fcrc_check_final_cart_status event for cart_id {$cart_id}" );
                         }
                     }
                 }

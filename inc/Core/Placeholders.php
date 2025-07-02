@@ -69,6 +69,44 @@ class Placeholders {
                     return $event['coupon']['coupon_code'] ?? '';
                 },
             ),
+            '{{ products_list }}' => array(
+                'title' => esc_html__( 'Lista de produtos no carrinho ou pedido, separados por vírgula', 'fc-recovery-carts' ),
+                'callback' => function( $cart_id, $event ) {
+                    // retrieve products list
+                    $items = get_post_meta( $cart_id, '_fcrc_cart_items', true );
+
+                    if ( ! is_array( $items ) ) {
+                        return '';
+                    }
+
+                    // get only names
+                    $names = array_map(
+                        function( $item ) {
+                            return $item['name'] ?? '';
+                        },
+
+                        $items
+                    );
+
+                    // filter empty values and join by comma
+                    $names = array_filter( $names );
+
+                    return implode( ', ', $names );
+                },
+            ),
+            '{{ cart_total }}' => array(
+                'title' => esc_html__( 'Valor total do carrinho', 'fc-recovery-carts' ),
+                'callback' => function( $cart_id, $event ) {
+                    $total = get_post_meta( $cart_id, '_fcrc_cart_total', true );
+
+                    if ( ! $total ) {
+                        return '';
+                    }
+
+                    // format price
+                    return html_entity_decode( wc_price( $total ) );
+                },
+            ),
         ));
     }
 

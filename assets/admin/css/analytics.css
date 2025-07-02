@@ -17,12 +17,24 @@
 }
 
 .fcrc-analytics-container-item {
-    width: 46%;
+    width: 100%;
     background-color: #fff;
     border-radius: 0.375rem;
     padding: 1.5rem;
     margin-right: 1rem;
     margin-bottom: 1rem;
+}
+
+@media screen and (min-width: 1200px) and (max-width: 1399px) {
+    .fcrc-analytics-container-item {
+        width: 43%;
+    }
+}
+
+@media screen and (min-width: 1400px) {
+    .fcrc-analytics-container-item {
+        width: 45%;
+    }
 }
 
 .placeholder-content {
