@@ -2,6 +2,15 @@
 
 namespace MeuMouse\Flexify_Checkout\Recovery_Carts\Views;
 
+use MeuMouse\Flexify_Checkout\Recovery_Carts\Admin\Components;
+
+/**
+ * Analytics dashboard template
+ * 
+ * @since 1.3.0
+ * @package MeuMouse.com
+ */
+
 // Exit if accessed directly.
 defined('ABSPATH') || exit; ?>
 
@@ -12,25 +21,19 @@ defined('ABSPATH') || exit; ?>
 
 <div id="fcrc_analytics_dashboard">
     <div class="period-filter-group mb-4">
-        <a class="period-filter-item" href="#" data-period="7">
-            <span class="period-filter-title"><?php esc_html_e( '7 dias', 'fc-recovery-carts' ) ?></span>
-        </a>
-
-        <a class="period-filter-item" href="#" data-period="30">
-            <span class="period-filter-title"><?php esc_html_e( '30 dias', 'fc-recovery-carts' ) ?></span>
-        </a>
-
-        <a class="period-filter-item" href="#" data-period="90">
-            <span class="period-filter-title"><?php esc_html_e( '90 dias', 'fc-recovery-carts' ) ?></span>
-        </a>
+        <?php foreach ( Components::period_filter() as $days => $label ) : ?>
+            <a class="period-filter-item" href="#" data-period="<?php echo esc_attr( $days ); ?>">
+                <span class="period-filter-title"><?php echo esc_html( $label ); ?></span>
+            </a>
+        <?php endforeach; ?>
     </div>
 
     <div class="fcrc-analytics-container-group">
-        <div class="fcrc-analytics-container-item get-total-recovered w-50 mw-100">
+        <div class="fcrc-analytics-container-item get-total-recovered">
             <div class="placeholder-content" style="width: 100%; height: 15rem"></div>
         </div>
 
-        <div class="fcrc-analytics-container-item">
+        <div class="fcrc-analytics-container-item get-cart-status">
             <div class="placeholder-content" style="width: 100%; height: 15rem"></div>
         </div>
 

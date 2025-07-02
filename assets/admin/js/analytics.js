@@ -113,6 +113,17 @@
                             response.data.recovered_chart.labels,
                             response.data.recovered_chart.series
                         );
+
+                        // cart statuses
+                        $('.fcrc-analytics-container-item.get-cart-status').html(response.data.cart_statuses_widget);
+
+                        // add cart statuses data
+                        $('.fcrc-analytics-container-item.get-cart-status').find('.fcrc-carts-group-item.shopping').children('.fcrc-cart-item-title').html(response.data.counts.shopping);
+                        $('.fcrc-analytics-container-item.get-cart-status').find('.fcrc-carts-group-item.abandoned').children('.fcrc-cart-item-title').html(response.data.counts.abandoned);
+                        $('.fcrc-analytics-container-item.get-cart-status').find('.fcrc-carts-group-item.recovered').children('.fcrc-cart-item-title').html(response.data.counts.recovered);
+                        $('.fcrc-analytics-container-item.get-cart-status').find('.fcrc-carts-group-item.lost').children('.fcrc-cart-item-title').html(response.data.counts.lost);
+                        $('.fcrc-analytics-container-item.get-cart-status').find('.fcrc-carts-group-item.leads').children('.fcrc-cart-item-title').html(response.data.counts.lead);
+                        $('.fcrc-analytics-container-item.get-cart-status').find('.fcrc-carts-group-item.order_abandoned').children('.fcrc-cart-item-title').html(response.data.counts.order_abandoned);
                     }
                 },
                 error: function() {

@@ -453,9 +453,14 @@ class Ajax {
             wp_send_json_error( array( 'message' => 'Unauthorized' ) );
         }
 
-        // Recebe o período da requisição
         $period = isset( $_POST['period'] ) ? intval( $_POST['period'] ) : 7;
-        $valid_periods = array( 7, 30, 90 );
+        $valid_periods = array();
+        $period_filter = Admin_Components::period_filter();
+
+        // set valid periods
+        foreach ( $period_filter as $key => $value ) {
+            $valid_periods[] = $key;
+        }
 
         if ( ! in_array( $period, $valid_periods, true ) ) {
             $period = 7;
@@ -482,6 +487,7 @@ class Ajax {
             'recovered_total' => $recovered_total,
             'recovered_chart' => $recovered_chart_data,
             'total_recovered_widget' => Admin_Components::get_total_recovered( $recovered_total, $period ),
+            'cart_statuses_widget' => Admin_Components::get_cart_status( $period ),
         ));
     }
 

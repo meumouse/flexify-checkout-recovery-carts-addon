@@ -341,4 +341,82 @@ class Components {
 
         <?php return ob_get_clean();
     }
+
+
+    /**
+     * Register period filter for analytics dashboard
+     * 
+     * @since 1.3.0
+     * @return array
+     */
+    public static function period_filter() {
+        /**
+         * Filter to add new period filter
+         * 
+         * @since 1.3.0
+         * @return array
+         */
+        return apply_filters( 'Flexify_Checkout/Recovery_Carts/Analytics/Period_Filter', array(
+            7 => esc_html__( '7 dias', 'fc-recovery-carts' ),
+            15 => esc_html__( '15 dias', 'fc-recovery-carts' ),
+            30 => esc_html__( '30 dias', 'fc-recovery-carts' ),
+            90 => esc_html__( '90 dias', 'fc-recovery-carts' ),
+            365 => esc_html__( '365 dias', 'fc-recovery-carts' ),
+        ));
+    }
+
+
+    /**
+     * Get cart status
+     * 
+     * @since 1.3.0
+     * @param int $period | Period to calculate the total recovered
+     * @return string
+     */
+    public static function get_cart_status( $period = 7 ) {
+        ob_start(); ?>
+
+        <div class="fcrc-analytics-widget cart-status-widget">
+            <div class="fcrc-analytics-widget-header">
+                <span class="fcrc-widget-title"><?php esc_html_e( 'Status de carrinhos e pedidos', 'fc-recovery-carts' ); ?></span>
+                <span class="fcrc-widget-description"><?php printf( __( 'Dados relacionados aos últimos %d dias', 'fc-recovery-carts' ), $period ); ?></span>
+            </div>
+
+            <div class="fcrc-analytics-widget-body">
+                <div class="fcrc-carts-group">
+                    <div class="fcrc-carts-group-item shopping">
+                        <span class="fcrc-cart-item-title">0</span>
+                        <span class="fcrc-cart-item-description"><?php esc_html_e( 'Carrinhos ativos', 'fc-recovery-carts' ); ?></span>
+                    </div>
+
+                    <div class="fcrc-carts-group-item abandoned">
+                        <span class="fcrc-cart-item-title">0</span>
+                        <span class="fcrc-cart-item-description"><?php esc_html_e( 'Carrinhos abandonados', 'fc-recovery-carts' ); ?></span>
+                    </div>
+
+                    <div class="fcrc-carts-group-item recovered">
+                        <span class="fcrc-cart-item-title">0</span>
+                        <span class="fcrc-cart-item-description"><?php esc_html_e( 'Carrinhos recuperados', 'fc-recovery-carts' ); ?></span>
+                    </div>
+
+                    <div class="fcrc-carts-group-item lost">
+                        <span class="fcrc-cart-item-title">0</span>
+                        <span class="fcrc-cart-item-description"><?php esc_html_e( 'Carrinhos perdidos', 'fc-recovery-carts' ); ?></span>
+                    </div>
+
+                    <div class="fcrc-carts-group-item leads">
+                        <span class="fcrc-cart-item-title">0</span>
+                        <span class="fcrc-cart-item-description"><?php esc_html_e( 'Visitantes capturados', 'fc-recovery-carts' ); ?></span>
+                    </div>
+
+                    <div class="fcrc-carts-group-item order_abandoned">
+                        <span class="fcrc-cart-item-title">0</span>
+                        <span class="fcrc-cart-item-description"><?php esc_html_e( 'Pedidos abandonados', 'fc-recovery-carts' ); ?></span>
+                    </div>
+                </div>
+            </div
+        </div>
+
+        <?php return ob_get_clean();
+    }
 }
