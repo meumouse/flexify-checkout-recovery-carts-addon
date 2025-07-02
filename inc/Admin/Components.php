@@ -154,15 +154,20 @@ class Components {
      * @return string
      */
     public static function render_placeholders() {
+        $placeholders = Placeholders::register_placeholders();
+
+        // start buffer
         ob_start(); ?>
 
         <div class="message-placeholders w-fit">
-            <label class="form-label text-left mb-3"><?php esc_html_e( 'Variáveis de texto:', 'fc-recovery-carts' ); ?></label>
+            <label class="form-label text-left mb-3">
+                <?php echo esc_html__( 'Variáveis de texto:', 'fc-recovery-carts' ); ?>
+            </label>
 
-            <?php foreach ( Placeholders::register_placeholders() as $placeholder => $title ) : ?>
+            <?php foreach ( $placeholders as $placeholder => $data ) : ?>
                 <div class="d-flex align-items-center mb-3">
-                    <span class="fs-sm fs-italic me-2"><code><?php esc_html_e( $placeholder ) ?></code></span>
-                    <span class="fs-sm mt-1"><?php esc_html_e( $title ) ?></span>
+                    <span class="fs-sm fs-italic me-2"><code><?php echo esc_html( $placeholder ); ?></code></span>
+                    <span class="fs-sm mt-1"><?php echo esc_html( $data['title'] ); ?></span>
                 </div>
             <?php endforeach; ?>
         </div>
