@@ -2,7 +2,7 @@
 
 namespace MeuMouse\Flexify_Checkout\Recovery_Carts\Admin;
 
-use MeuMouse\Flexify_Checkout\Recovery_Carts\Core\Helpers;
+use MeuMouse\Flexify_Checkout\Recovery_Carts\Core\Placeholders;
 
 // Exit if accessed directly.
 defined('ABSPATH') || exit;
@@ -150,7 +150,8 @@ class Components {
      * Render message placeholders
      * 
      * @since 1.0.0
-     *  @return string
+     * @version 1.3.0
+     * @return string
      */
     public static function render_placeholders() {
         ob_start(); ?>
@@ -158,7 +159,7 @@ class Components {
         <div class="message-placeholders w-fit">
             <label class="form-label text-left mb-3"><?php esc_html_e( 'Variáveis de texto:', 'fc-recovery-carts' ); ?></label>
 
-            <?php foreach ( Helpers::get_message_placeholders() as $placeholder => $title ) : ?>
+            <?php foreach ( Placeholders::register_placeholders() as $placeholder => $title ) : ?>
                 <div class="d-flex align-items-center mb-3">
                     <span class="fs-sm fs-italic me-2"><code><?php esc_html_e( $placeholder ) ?></code></span>
                     <span class="fs-sm mt-1"><?php esc_html_e( $title ) ?></span>

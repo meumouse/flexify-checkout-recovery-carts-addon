@@ -39,22 +39,6 @@ class Helpers {
 
 
     /**
-     * Get message placeholders
-     * 
-     * @since 1.0.0
-     * @return array
-     */
-    public static function get_message_placeholders() {
-        return apply_filters( 'Flexify_Checkout/Recovery_Carts/Message_Placeholders', array(
-            '{{ first_name }}' => esc_html__( 'Primeiro nome', 'fc-recovery-carts' ),
-            '{{ last_name }}' => esc_html__( 'Sobrenome', 'fc-recovery-carts' ),
-            '{{ recovery_link }}' => esc_html__( 'Link de recuperação do carrinho', 'fc-recovery-carts' ),
-            '{{ coupon_code }}' => esc_html__( 'Código do cupom', 'fc-recovery-carts' ),
-        ));
-    }
-
-
-    /**
      * Check if is product
      * 
      * @since 1.0.0

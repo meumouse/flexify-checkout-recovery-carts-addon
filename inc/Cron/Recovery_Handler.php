@@ -4,7 +4,6 @@ namespace MeuMouse\Flexify_Checkout\Recovery_Carts\Cron;
 
 use MeuMouse\Flexify_Checkout\Recovery_Carts\Admin\Admin;
 use MeuMouse\Flexify_Checkout\Recovery_Carts\Core\Helpers;
-use MeuMouse\Flexify_Checkout\Recovery_Carts\Core\Coupons;
 use MeuMouse\Flexify_Checkout\Recovery_Carts\Core\Placeholders;
 
 // Exit if accessed directly.
@@ -206,41 +205,25 @@ class Recovery_Handler {
      * Sends a follow-up message based on the event
      *
      * @since 1.0.0
+     * @version 1.3.0
      * @param int $cart_id | The abandoned cart ID
      * @param string $event_key | The follow-up event key
      */
     public function send_follow_up_message_callback( $cart_id, $event_key ) {
         $settings = Admin::get_setting('follow_up_events');
 
-        if ( ! isset( $settings[$event_key] ) ) {
+        if ( ! isset( $settings[ $event_key ] ) ) {
             return;
         }
 
-        $event = $settings[$event_key];
+        $event = $settings[ $event_key ];
         $cart_data = get_post_meta( $cart_id );
-        $first_name_fallback = Admin::get_setting('fallback_first_name');
-        $first_name = $cart_data['_fcrc_first_name'][0] ?? $first_name_fallback;
-        $last_name = $cart_data['_fcrc_last_name'][0] ?? '';
         $phone = $cart_data['_fcrc_cart_phone'][0] ?? '';
 
-        // get coupon code
-        if ( $event['coupon']['generate_coupon'] === 'yes' ) {
-            Coupons::generate_wc_coupon( $event['coupon'], $cart_id );
-            
-            $coupon_code = get_post_meta( $cart_id, '_fcrc_coupon_code', true );
-        } else {
-            $coupon_code = $event['coupon']['coupon_code'];
-        }
+        // get message with placeholders replaced
+        $message = Placeholders::replace_placeholders( $event['message'], $cart_id, $event );
 
-        $replacement = array(
-            '{{ first_name }}' => $first_name,
-            '{{ last_name }}' => $last_name,
-            '{{ recovery_link }}' => Helpers::generate_recovery_cart_link( $cart_id ),
-            '{{ coupon_code }}' => $coupon_code ?? '',
-        );
-
-        // Replace placeholders in the message
-        $message = Placeholders::replace_placeholders( $event['message'], $replacement );
+        // get receiver phone number
         $receiver = function_exists('joinotify_prepare_receiver') ? joinotify_prepare_receiver( $phone ) : $phone;
 
         if ( $event['channels']['whatsapp'] === 'yes' ) {
