@@ -18,6 +18,7 @@ class Coupons {
      * Generate WooCommerce discount coupon
      *
      * @since 1.0.0
+     * @version 1.3.0
      * @param array $coupon_data | Coupon settings data
      * @param int $cart_id | The recovery cart post ID
      * @return mixed int|WP_Error Coupon ID or error
@@ -26,6 +27,16 @@ class Coupons {
         if ( empty( $coupon_data ) || ! isset( $coupon_data['discount_type'], $coupon_data['discount_value'] ) ) {
             error_log( 'Coupon data is empty or missing required fields.' );
             return new \WP_Error( 'missing_data', __( 'Dados insuficientes para criar o cupom.', 'fc-recovery-carts' ) );
+        }
+
+        $discount_value = floatval( $coupon_data['discount_value'] );
+
+        // Check if discount value is valid
+        if ( $discount_value <= 0 ) {
+            return new \WP_Error(
+                'invalid_discount_value',
+                __( 'O valor do desconto deve ser maior que zero para gerar um cupom.', 'fc-recovery-carts' )
+            );
         }
     
         // Get prefix
