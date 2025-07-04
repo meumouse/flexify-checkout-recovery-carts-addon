@@ -335,7 +335,7 @@ class Recovery_Handler {
         }
     
         // cancel scheduled events
-        Hooks::cancel_follow_up_events( $cart_id );
+        Hooks::cancel_scheduled_cart_process( $cart_id );
     
         if ( $this->debug_mode ) {
             error_log( 'Cart resumed: ' . $cart_id );

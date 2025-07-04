@@ -28,9 +28,9 @@ class Hooks {
         add_action( 'fcrc_delete_coupon_on_expiration', array( 'MeuMouse\Flexify_Checkout\Recovery_Carts\Core\Coupons', 'delete_coupon_on_expiration' ), 10, 1 );
 
         // cancel follow up events
-        add_action( 'Flexify_Checkout/Recovery_Carts/Cart_Lost_Manually', array( __CLASS__, 'cancel_follow_up_events' ), 10, 1 );
-        add_action( 'Flexify_Checkout/Recovery_Carts/Cart_Recovered_Manually', array( __CLASS__, 'cancel_follow_up_events' ), 10, 1 );
-        add_action( 'Flexify_Checkout/Recovery_Carts/Cart_Deleted_Manually', array( __CLASS__, 'cancel_follow_up_events' ), 10, 1 );
+        add_action( 'Flexify_Checkout/Recovery_Carts/Cart_Lost_Manually', array( __CLASS__, 'cancel_scheduled_cart_process' ), 10, 1 );
+        add_action( 'Flexify_Checkout/Recovery_Carts/Cart_Recovered_Manually', array( __CLASS__, 'cancel_scheduled_cart_process' ), 10, 1 );
+        add_action( 'Flexify_Checkout/Recovery_Carts/Cart_Deleted_Manually', array( __CLASS__, 'cancel_scheduled_cart_process' ), 10, 1 );
 
         // delete anonymous carts
         add_action( 'fcrc_delete_old_anonymous_carts', array( $this, 'delete_old_anonymous_carts' ) );
@@ -38,18 +38,21 @@ class Hooks {
         if ( ! wp_next_scheduled('fcrc_delete_old_anonymous_carts') ) {
             wp_schedule_event( time(), 'hourly', 'fcrc_delete_old_anonymous_carts' );
         }
+
+        // set cart abandoned manually
+        add_action( 'Flexify_Checkout/Recovery_Carts/Cart_Abandoned_Manually', array( $this, 'fire_abandoned_cart' ), 10, 1 );
     }
 
 
     /**
-     * Cancels scheduled follow-up events for a given cart ID
+     * Cancels scheduled cart process
      *
      * @since 1.0.0
-     * @version 1.1.0
+     * @version 1.3.0
      * @param int $cart_id | The cart ID
      * @return void
      */
-    public static function cancel_follow_up_events( $cart_id ) {
+    public static function cancel_scheduled_cart_process( $cart_id ) {
         $cron = _get_cron_array(); // Get all scheduled events
     
         if ( empty( $cron ) ) {
@@ -57,8 +60,10 @@ class Hooks {
         }
     
         foreach ( $cron as $timestamp => $hooks ) {
+            // cancel scheduled events for send follow up messages
             if ( isset( $hooks['fcrc_send_follow_up_message'] ) ) {
                 foreach ( $hooks['fcrc_send_follow_up_message'] as $key => $event ) {
+                    // check if the event is scheduled for the given cart ID
                     if ( isset( $event['args']['cart_id'] ) && intval( $event['args']['cart_id'] ) === intval( $cart_id ) ) {
                         wp_unschedule_event( $timestamp, 'fcrc_send_follow_up_message', $event['args'] );
     
@@ -69,8 +74,10 @@ class Hooks {
                 }
             }
     
+            // cancel scheduled events for check final cart status
             if ( isset( $hooks['fcrc_check_final_cart_status'] ) ) {
                 foreach ( $hooks['fcrc_check_final_cart_status'] as $key => $event ) {
+                    // check if the event is scheduled for the given cart ID
                     if ( isset( $event['args']['cart_id'] ) && intval( $event['args']['cart_id'] ) === intval( $cart_id ) ) {
                         wp_unschedule_event( $timestamp, 'fcrc_check_final_cart_status', $event['args'] );
     
@@ -88,6 +95,7 @@ class Hooks {
      * Deletes carts without contact info older than 1 hour
      *
      * @since 1.2.0
+     * @version 1.3.0
      * @return void
      */
     public function delete_old_anonymous_carts() {
@@ -139,5 +147,23 @@ class Hooks {
                 do_action( 'Flexify_Checkout/Recovery_Carts/Cart_Deleted_Manually', $post_id );
             }
         }
+    }
+
+
+    /**
+     * Call main hook for cart abandoned manually
+     * 
+     * @since 1.3.0
+     * @param int $cart_id | The cart ID
+     * @return void
+     */
+    public function fire_abandoned_cart( $cart_id ) {
+        /**
+         * Fire hook when a cart is abandoned
+         *
+         * @since 1.0.0
+         * @param int $cart_id |  The cart ID
+         */
+        do_action( 'Flexify_Checkout/Recovery_Carts/Cart_Abandoned', $cart_id );
     }
 }
