@@ -131,6 +131,7 @@ class Assets {
 				'i18n' => array(
 					'toast_aria_label' => esc_html__( 'Fechar', 'fc-recovery-carts' ),
                     'total_recovered' => __( 'Valor recuperado', 'fc-recovery-carts' ),
+                    'notifications_chart' => __( 'Notificações', 'fc-recovery-carts' ),
 				),
                 'currency' => array(
                     'symbol' => html_entity_decode( get_woocommerce_currency_symbol() ),

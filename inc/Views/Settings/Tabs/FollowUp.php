@@ -52,7 +52,7 @@ defined('ABSPATH') || exit; ?>
                     </div>
 
                     <div class="mb-5">
-                        <?php echo Admin_Components::render_coupon_form( 'new_follow_up_event' ); ?>
+                        <?php echo Admin_Components::render_coupon_form('new_follow_up_event'); ?>
                     </div>
 
                     <div class="mb-5">

@@ -425,4 +425,28 @@ class Components {
 
         <?php return ob_get_clean();
     }
+
+
+    /**
+     * Render carts sent notifications
+     * 
+     * @since 1.3.0
+     * @param int $period | Period to calculate the total recovered
+     * @return string
+     */
+    public static function render_sent_notifications( $period = 7 ) {
+        ob_start(); ?>
+
+        <div class="fcrc-analytics-widget cart-status-widget">
+            <div class="fcrc-analytics-widget-header">
+                <span class="fcrc-widget-title"><?php esc_html_e( 'Notificações enviadas', 'fc-recovery-carts' ); ?></span>
+                <span class="fcrc-widget-description"><?php printf( __( 'Dados relacionados aos últimos %d dias', 'fc-recovery-carts' ), $period ); ?></span>
+            </div>
+
+            <div class="fcrc-analytics-widget-body">
+                <div id="fcrc_sent_notifications_chart" class="chart-container" style="height: 320px;"></div>
+            </div>
+        </div>
+        <?php return ob_get_clean();
+    }
 }

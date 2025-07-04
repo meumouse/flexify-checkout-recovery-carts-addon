@@ -1,7 +1,5 @@
 <?php
 
-namespace MeuMouse\Flexify_Checkout\Recovery_Carts\Core;
-
 // Exit if accessed directly.
 defined('ABSPATH') || exit;
 

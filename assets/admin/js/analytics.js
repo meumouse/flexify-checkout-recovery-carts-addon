@@ -114,20 +114,30 @@
                             response.data.recovered_chart.series
                         );
 
-                        // cart statuses
-                        $('.fcrc-analytics-container-item.get-cart-status').html(response.data.cart_statuses_widget);
+                        const cart_status_widget = $('.fcrc-analytics-container-item.get-cart-status');
+
+                        cart_status_widget.html(response.data.cart_statuses_widget);
 
                         // add cart statuses data
-                        $('.fcrc-analytics-container-item.get-cart-status').find('.fcrc-carts-group-item.shopping').children('.fcrc-cart-item-title').html(response.data.counts.shopping);
-                        $('.fcrc-analytics-container-item.get-cart-status').find('.fcrc-carts-group-item.abandoned').children('.fcrc-cart-item-title').html(response.data.counts.abandoned);
-                        $('.fcrc-analytics-container-item.get-cart-status').find('.fcrc-carts-group-item.recovered').children('.fcrc-cart-item-title').html(response.data.counts.recovered);
-                        $('.fcrc-analytics-container-item.get-cart-status').find('.fcrc-carts-group-item.lost').children('.fcrc-cart-item-title').html(response.data.counts.lost);
-                        $('.fcrc-analytics-container-item.get-cart-status').find('.fcrc-carts-group-item.leads').children('.fcrc-cart-item-title').html(response.data.counts.lead);
-                        $('.fcrc-analytics-container-item.get-cart-status').find('.fcrc-carts-group-item.order_abandoned').children('.fcrc-cart-item-title').html(response.data.counts.order_abandoned);
+                        cart_status_widget.find('.fcrc-carts-group-item.shopping').children('.fcrc-cart-item-title').html(response.data.counts.shopping);
+                        cart_status_widget.find('.fcrc-carts-group-item.abandoned').children('.fcrc-cart-item-title').html(response.data.counts.abandoned);
+                        cart_status_widget.find('.fcrc-carts-group-item.recovered').children('.fcrc-cart-item-title').html(response.data.counts.recovered);
+                        cart_status_widget.find('.fcrc-carts-group-item.lost').children('.fcrc-cart-item-title').html(response.data.counts.lost);
+                        cart_status_widget.find('.fcrc-carts-group-item.leads').children('.fcrc-cart-item-title').html(response.data.counts.lead);
+                        cart_status_widget.find('.fcrc-carts-group-item.order_abandoned').children('.fcrc-cart-item-title').html(response.data.counts.order_abandoned);
+
+                        // render sent notifications widget
+                        $('.fcrc-analytics-container-item.sent-notifications').html(response.data.notifications_chart_widget);
+
+                        // render chart for sent notifications widget
+                        Analytics.sentNotificationsChart(
+                            response.data.notifications_chart.categories,
+                            response.data.notifications_chart.series
+                        );
                     }
                 },
                 error: function() {
-                    console.error('Erro ao carregar dados de análise');
+                    console.error('Error on load analytics data from backend');
                 },
             });
         },
@@ -181,18 +191,53 @@
                 }
             };
 
-            this.chart = new ApexCharts(document.querySelector("#fcrc-recovered-chart"), options);
-            this.chart.render();
+            this.totalChart = new ApexCharts( document.querySelector("#fcrc-recovered-chart"), options );
+            this.totalChart.render();
         },
 
         /**
-         * Listen for events
-         * 
+         * Render sent notifications chart
+         *
          * @since 1.3.0
+         * @param {string[]} labels | Array de datas (YYYY-MM-DD)
+         * @param {Object[]} seriesData | Array de { name: canal, data: [número,...] }
          * @return void
          */
-        bindEvents: function() {
-            
+        sentNotificationsChart: function( labels, seriesData ) {
+            const options = {
+                chart: {
+                    type: 'bar',
+                    height: 320,
+                    toolbar: {
+                        show: false,
+                    },
+                },
+                series: seriesData.map(serie => ({
+                    name: serie.name,
+                    data: serie.data,
+                })),
+                xaxis: {
+                    categories: labels,
+                    labels: {
+                        style: {
+                            fontSize: '13px'
+                        },
+                    },
+                },
+                yaxis: {
+                    title: {
+                        text: params.i18n.notifications_chart,
+                    },
+                },
+                tooltip: {
+                    y: {
+                        formatter: val => String(val),
+                    },
+                },
+            };
+
+            this.sentChart = new ApexCharts( document.querySelector("#fcrc_sent_notifications_chart"), options );
+            this.sentChart.render();
         },
 
         /**
@@ -202,7 +247,7 @@
          * @param {number} value | Value to format
          * @returns {string}
          */
-        formatCurrency: function(value) {
+        formatCurrency: function( value ) {
             const currency = params.currency || {};
             const symbol = currency.symbol || 'R$';
             const position = currency.position || 'left';
@@ -241,7 +286,6 @@
 		 */
 		init: function() {
             this.selectPeriodFilter();
-            this.bindEvents();
 
             let get_period = Analytics.getParamByName('period') || 7;
             this.fetchData(get_period);

@@ -1,6 +1,6 @@
 #fcrc_analytics_dashboard {
     margin-top: 2rem;
-    width: 100%;
+    width: calc(100% - 1rem);
 }
 
 .period-filter-group {
@@ -14,6 +14,7 @@
     display: flex;
     flex-direction: row;
     flex-wrap: wrap;
+    gap: 1.5rem;
 }
 
 .fcrc-analytics-container-item {
@@ -21,19 +22,11 @@
     background-color: #fff;
     border-radius: 0.375rem;
     padding: 1.5rem;
-    margin-right: 1rem;
-    margin-bottom: 1rem;
 }
 
-@media screen and (min-width: 1200px) and (max-width: 1399px) {
+@media screen and (min-width: 1200px) {
     .fcrc-analytics-container-item {
-        width: 43%;
-    }
-}
-
-@media screen and (min-width: 1400px) {
-    .fcrc-analytics-container-item {
-        width: 45%;
+        width: calc(50% - 3.75rem);
     }
 }
 

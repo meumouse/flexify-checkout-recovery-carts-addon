@@ -488,7 +488,8 @@ class Ajax {
             'recovered_chart' => $recovered_chart_data,
             'total_recovered_widget' => Admin_Components::get_total_recovered( $recovered_total, $period ),
             'cart_statuses_widget' => Admin_Components::get_cart_status( $period ),
+            'notifications_chart' => fcrc_get_notifications_chart_data( $period ),
+            'notifications_chart_widget' => Admin_Components::render_sent_notifications( $period ),
         ));
     }
-
 }
