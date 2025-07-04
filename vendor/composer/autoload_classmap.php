@@ -16,6 +16,7 @@ return array(
     'MeuMouse\\Flexify_Checkout\\Recovery_Carts\\Core\\Compatibility' => $baseDir . '/inc/Core/Compatibility.php',
     'MeuMouse\\Flexify_Checkout\\Recovery_Carts\\Core\\Coupons' => $baseDir . '/inc/Core/Coupons.php',
     'MeuMouse\\Flexify_Checkout\\Recovery_Carts\\Core\\Helpers' => $baseDir . '/inc/Core/Helpers.php',
+    'MeuMouse\\Flexify_Checkout\\Recovery_Carts\\Core\\Hooks' => $baseDir . '/inc/Core/Hooks.php',
     'MeuMouse\\Flexify_Checkout\\Recovery_Carts\\Core\\Init' => $baseDir . '/inc/Core/Init.php',
     'MeuMouse\\Flexify_Checkout\\Recovery_Carts\\Core\\Order_Events' => $baseDir . '/inc/Core/Order_Events.php',
     'MeuMouse\\Flexify_Checkout\\Recovery_Carts\\Core\\Placeholders' => $baseDir . '/inc/Core/Placeholders.php',

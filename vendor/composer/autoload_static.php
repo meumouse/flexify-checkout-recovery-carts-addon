@@ -39,6 +39,7 @@ class ComposerStaticInit2d0d8e5718943d4e0f4f7aa59d79d9d9
         'MeuMouse\\Flexify_Checkout\\Recovery_Carts\\Core\\Compatibility' => __DIR__ . '/../..' . '/inc/Core/Compatibility.php',
         'MeuMouse\\Flexify_Checkout\\Recovery_Carts\\Core\\Coupons' => __DIR__ . '/../..' . '/inc/Core/Coupons.php',
         'MeuMouse\\Flexify_Checkout\\Recovery_Carts\\Core\\Helpers' => __DIR__ . '/../..' . '/inc/Core/Helpers.php',
+        'MeuMouse\\Flexify_Checkout\\Recovery_Carts\\Core\\Hooks' => __DIR__ . '/../..' . '/inc/Core/Hooks.php',
         'MeuMouse\\Flexify_Checkout\\Recovery_Carts\\Core\\Init' => __DIR__ . '/../..' . '/inc/Core/Init.php',
         'MeuMouse\\Flexify_Checkout\\Recovery_Carts\\Core\\Order_Events' => __DIR__ . '/../..' . '/inc/Core/Order_Events.php',
         'MeuMouse\\Flexify_Checkout\\Recovery_Carts\\Core\\Placeholders' => __DIR__ . '/../..' . '/inc/Core/Placeholders.php',

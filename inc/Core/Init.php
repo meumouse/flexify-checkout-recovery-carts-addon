@@ -118,7 +118,7 @@ class Init {
      * Instance classes after load Composer
      * 
      * @since 1.0.0
-     * @version 1.0.2
+     * @version 1.3.0
      * @return void
      */
     public static function instance_classes() {
@@ -131,6 +131,7 @@ class Init {
             '\MeuMouse\Flexify_Checkout\Recovery_Carts\Frontend\Styles',
             '\MeuMouse\Flexify_Checkout\Recovery_Carts\Integrations\Joinotify',
             '\MeuMouse\Flexify_Checkout\Recovery_Carts\Core\Cart_Events',
+            '\MeuMouse\Flexify_Checkout\Recovery_Carts\Core\Hooks',
             '\MeuMouse\Flexify_Checkout\Recovery_Carts\Cron\Recovery_Handler',
             '\MeuMouse\Flexify_Checkout\Recovery_Carts\Core\Session_Handler',
             '\MeuMouse\Flexify_Checkout\Recovery_Carts\Core\Order_Events',
