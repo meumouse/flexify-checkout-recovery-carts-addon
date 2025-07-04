@@ -13,7 +13,6 @@ return array(
     'MeuMouse\\Flexify_Checkout\\Recovery_Carts\\Core\\Ajax' => $baseDir . '/inc/Core/Ajax.php',
     'MeuMouse\\Flexify_Checkout\\Recovery_Carts\\Core\\Assets' => $baseDir . '/inc/Core/Assets.php',
     'MeuMouse\\Flexify_Checkout\\Recovery_Carts\\Core\\Cart_Events' => $baseDir . '/inc/Core/Cart_Events.php',
-    'MeuMouse\\Flexify_Checkout\\Recovery_Carts\\Core\\Carts_Table' => $baseDir . '/inc/Core/Carts_Table.php',
     'MeuMouse\\Flexify_Checkout\\Recovery_Carts\\Core\\Compatibility' => $baseDir . '/inc/Core/Compatibility.php',
     'MeuMouse\\Flexify_Checkout\\Recovery_Carts\\Core\\Coupons' => $baseDir . '/inc/Core/Coupons.php',
     'MeuMouse\\Flexify_Checkout\\Recovery_Carts\\Core\\Helpers' => $baseDir . '/inc/Core/Helpers.php',
@@ -27,4 +26,5 @@ return array(
     'MeuMouse\\Flexify_Checkout\\Recovery_Carts\\Frontend\\Styles' => $baseDir . '/inc/Frontend/Styles.php',
     'MeuMouse\\Flexify_Checkout\\Recovery_Carts\\Integrations\\Integrations_Base' => $baseDir . '/inc/Integrations/Integrations_Base.php',
     'MeuMouse\\Flexify_Checkout\\Recovery_Carts\\Integrations\\Joinotify' => $baseDir . '/inc/Integrations/Joinotify.php',
+    'MeuMouse\\Flexify_Checkout\\Recovery_Carts\\Views\\Carts_Table' => $baseDir . '/inc/Views/Carts_Table.php',
 );

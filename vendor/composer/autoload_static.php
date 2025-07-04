@@ -36,7 +36,6 @@ class ComposerStaticInit2d0d8e5718943d4e0f4f7aa59d79d9d9
         'MeuMouse\\Flexify_Checkout\\Recovery_Carts\\Core\\Ajax' => __DIR__ . '/../..' . '/inc/Core/Ajax.php',
         'MeuMouse\\Flexify_Checkout\\Recovery_Carts\\Core\\Assets' => __DIR__ . '/../..' . '/inc/Core/Assets.php',
         'MeuMouse\\Flexify_Checkout\\Recovery_Carts\\Core\\Cart_Events' => __DIR__ . '/../..' . '/inc/Core/Cart_Events.php',
-        'MeuMouse\\Flexify_Checkout\\Recovery_Carts\\Core\\Carts_Table' => __DIR__ . '/../..' . '/inc/Core/Carts_Table.php',
         'MeuMouse\\Flexify_Checkout\\Recovery_Carts\\Core\\Compatibility' => __DIR__ . '/../..' . '/inc/Core/Compatibility.php',
         'MeuMouse\\Flexify_Checkout\\Recovery_Carts\\Core\\Coupons' => __DIR__ . '/../..' . '/inc/Core/Coupons.php',
         'MeuMouse\\Flexify_Checkout\\Recovery_Carts\\Core\\Helpers' => __DIR__ . '/../..' . '/inc/Core/Helpers.php',
@@ -50,6 +49,7 @@ class ComposerStaticInit2d0d8e5718943d4e0f4f7aa59d79d9d9
         'MeuMouse\\Flexify_Checkout\\Recovery_Carts\\Frontend\\Styles' => __DIR__ . '/../..' . '/inc/Frontend/Styles.php',
         'MeuMouse\\Flexify_Checkout\\Recovery_Carts\\Integrations\\Integrations_Base' => __DIR__ . '/../..' . '/inc/Integrations/Integrations_Base.php',
         'MeuMouse\\Flexify_Checkout\\Recovery_Carts\\Integrations\\Joinotify' => __DIR__ . '/../..' . '/inc/Integrations/Joinotify.php',
+        'MeuMouse\\Flexify_Checkout\\Recovery_Carts\\Views\\Carts_Table' => __DIR__ . '/../..' . '/inc/Views/Carts_Table.php',
     );
 
     public static function getInitializer(ClassLoader $loader)

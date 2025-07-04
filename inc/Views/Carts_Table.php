@@ -1,6 +1,6 @@
 <?php
 
-namespace MeuMouse\Flexify_Checkout\Recovery_Carts\Core;
+namespace MeuMouse\Flexify_Checkout\Recovery_Carts\Views;
 
 use MeuMouse\Flexify_Checkout\Recovery_Carts\Admin\Admin;
 
@@ -17,7 +17,7 @@ if ( ! class_exists('WP_List_Table') ) {
  * Carts table class
  * 
  * @since 1.0.0
- * @version 1.1.0
+ * @version 1.3.0
  * @package MeuMouse.com
  */
 class Carts_Table extends WP_List_Table {

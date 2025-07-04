@@ -121,6 +121,7 @@ class Admin {
      * Load screen options for carts table
      * 
      * @since 1.1.0
+     * @version 1.3.0
      * @return void
      */
     public function load_screen_options() {
@@ -138,7 +139,7 @@ class Admin {
 
         add_screen_option( 'per_page', $args );
 
-        new \MeuMouse\Flexify_Checkout\Recovery_Carts\Core\Carts_Table();
+        new \MeuMouse\Flexify_Checkout\Recovery_Carts\Views\Carts_Table();
     }
 
 
@@ -190,14 +191,14 @@ class Admin {
      * Display table with all carts
      * 
      * @since 1.0.0
-     * @version 1.1.0
+     * @version 1.3.0
      * @return void
      */
     public function carts_table_page() {
         global $fc_recovery_carts_table;
 
         if ( empty( $fc_recovery_carts_table ) ) {
-            $fc_recovery_carts_table = new \MeuMouse\Flexify_Checkout\Recovery_Carts\Core\Carts_Table();
+            $fc_recovery_carts_table = new \MeuMouse\Flexify_Checkout\Recovery_Carts\Views\Carts_Table();
         }
 
         $fc_recovery_carts_table->prepare_items();
