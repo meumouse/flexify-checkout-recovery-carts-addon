@@ -25,7 +25,7 @@ class Cart_Events {
      * @since 1.3.0
      * @return bool
      */
-    public $debug_mode = FC_RECOVERY_CARTS_DEBUG_MODE;
+    public static $debug_mode = FC_RECOVERY_CARTS_DEBUG_MODE;
 
     /**
      * Constructor function
@@ -74,7 +74,7 @@ class Cart_Events {
 
         // check if cycle has already finished
         if ( $cart_id && Helpers::is_cart_cycle_finished( $cart_id ) ) {
-            if ( $this->debug_mode ) {
+            if ( self::$debug_mode ) {
                 error_log( 'Cart already finished. Skipping cart update. ID: ' . $cart_id );
             }
 
@@ -106,7 +106,7 @@ class Cart_Events {
         
         // check if cart already exists
         if ( function_exists('WC') && WC()->session instanceof \WC_Session && WC()->session->get('fcrc_active_cart') ) {
-            if ( $this->debug_mode ) {
+            if ( self::$debug_mode ) {
                 error_log('Cart already exists. Skipping cart creation. ' . 'Current cart ID: ' . Helpers::get_current_cart_id() );
             }
 
@@ -140,7 +140,7 @@ class Cart_Events {
             ) );
         
             if ( $existing_cart_query->have_posts() ) {
-                if ( $this->debug_mode ) {
+                if ( self::$debug_mode ) {
                     error_log( 'Cart already created from this IP with status lost/recovered/purchased. Skipping cart creation.' );
                 }
         
@@ -238,7 +238,7 @@ class Cart_Events {
          */
         do_action( 'Flexify_Checkout/Recovery_Carts/New_Cart_Created', $cart_id );
 
-        if ( $this->debug_mode ) {
+        if ( self::$debug_mode ) {
             error_log( "New cart created: " . $cart_id );
         }
 
@@ -278,7 +278,7 @@ class Cart_Events {
         if ( $cart_id && get_post_type( $cart_id ) !== 'fc-recovery-carts' ) {
             Helpers::clear_active_cart();
     
-            if ( $this->debug_mode ) {
+            if ( self::$debug_mode ) {
                 error_log( 'Invalid cart reference found. Session cleared.' );
             }
         }
@@ -287,7 +287,7 @@ class Cart_Events {
         if ( Helpers::is_cart_cycle_finished() ) {
             Helpers::clear_active_cart();
 
-            if ( $this->debug_mode ) {
+            if ( self::$debug_mode ) {
                 error_log( 'Cart completed detected — do not create new cart post.' );
             }
 

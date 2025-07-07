@@ -22,7 +22,7 @@ class Helpers {
      * @since 1.3.0
      * @return bool
      */
-    public $debug_mode = FC_RECOVERY_CARTS_DEBUG_MODE;
+    public static $debug_mode = FC_RECOVERY_CARTS_DEBUG_MODE;
    
     /**
      * Check admin page from partial URL
@@ -160,7 +160,7 @@ class Helpers {
         $cart_id = intval( $_GET['recovery_cart'] );
 
         if ( ! $cart_id || get_post_type( $cart_id ) !== 'fc-recovery-carts' ) {
-            if ( $this->debug_mode ) {
+            if ( self::$debug_mode ) {
                 error_log( "Error: Cart ID {$cart_id} invalid or not found." );
             }
 
@@ -171,7 +171,7 @@ class Helpers {
         $cart_items = get_post_meta( $cart_id, '_fcrc_cart_items', true );
 
         if ( empty( $cart_items ) || ! is_array( $cart_items ) ) {
-            if ( $this->debug_mode ) {
+            if ( self::$debug_mode ) {
                 error_log( "Error: Any product found for the cart: {$cart_id}." );
             }
             
@@ -193,7 +193,7 @@ class Helpers {
         WC()->session->set( 'fcrc_cart_id', $cart_id );
         setcookie( 'fcrc_cart_id', $cart_id, time() + ( 7 * 24 * 60 * 60 ), COOKIEPATH, COOKIE_DOMAIN );
 
-        if ( $this->debug_mode ) {
+        if ( self::$debug_mode ) {
             error_log( "Cart {$cart_id} restored and redirecting to checkout." );
         }
 
@@ -224,7 +224,7 @@ class Helpers {
             setcookie( 'fcrc_cart_id', '', time() - 3600, COOKIEPATH, COOKIE_DOMAIN );
         }
 
-        if ( $this->debug_mode ) {
+        if ( self::$debug_mode ) {
             error_log( 'Cart ID removed from session and cookies.' );
         }
     }
@@ -266,7 +266,7 @@ class Helpers {
             $cart_id = $_COOKIE['fcrc_cart_id'] ?? null;
         }
 
-        if ( $this->debug_mode ) {
+        if ( self::$debug_mode ) {
             error_log( 'Current cart ID: ' . $cart_id );
         }
 

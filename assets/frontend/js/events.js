@@ -111,6 +111,7 @@
                         email: get_email,
                         country_data: JSON.stringify(country),
                         cart_id: get_cart_id,
+                        ip_data: JSON.stringify( Events.getCookie('fcrc_location') ),
                     },
                     beforeSend: function() {
                         btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm"></span>');

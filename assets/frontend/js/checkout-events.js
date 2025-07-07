@@ -104,6 +104,7 @@
 		 * Collect lead data and send via AJAX
 		 * 
 		 * @since 1.0.0
+		 * @version 1.3.0
 		 */
 		collectLeadData: function() {
 			let first_name = $('#billing_first_name').val();
@@ -138,6 +139,7 @@
 					phone: phone,
 					email: email,
 					cart_id: Checkout_Events.getCookie('fcrc_cart_id'),
+					ip_data: JSON.stringify( Events.getCookie('fcrc_location') ),
 				},
 				success: function(response) {
 					if (response.success) {

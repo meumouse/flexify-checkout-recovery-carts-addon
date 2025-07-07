@@ -51,6 +51,7 @@ class ComposerStaticInit2d0d8e5718943d4e0f4f7aa59d79d9d9
         'MeuMouse\\Flexify_Checkout\\Recovery_Carts\\Integrations\\Integrations_Base' => __DIR__ . '/../..' . '/inc/Integrations/Integrations_Base.php',
         'MeuMouse\\Flexify_Checkout\\Recovery_Carts\\Integrations\\Joinotify' => __DIR__ . '/../..' . '/inc/Integrations/Joinotify.php',
         'MeuMouse\\Flexify_Checkout\\Recovery_Carts\\Views\\Carts_Table' => __DIR__ . '/../..' . '/inc/Views/Carts_Table.php',
+        'MeuMouse\\Flexify_Checkout\\Recovery_Carts\\Views\\Queue_Table' => __DIR__ . '/../..' . '/inc/Views/Queue_Table.php',
     );
 
     public static function getInitializer(ClassLoader $loader)

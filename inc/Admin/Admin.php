@@ -38,6 +38,9 @@ class Admin {
 
         // add screen options to carts table
         add_filter( 'set-screen-option', array( $this, 'set_screen_options' ), 10, 3 );
+
+        // register queue cron events post type
+        add_action( 'init', array( $this, 'register_cron_event_cpt' ) );
     }
 
     
@@ -150,7 +153,7 @@ class Admin {
      * @return void
      */
     public function analytics_page() {
-        include FC_RECOVERY_CARTS_INC . 'Views/Analytics.php';
+        include_once( FC_RECOVERY_CARTS_INC . 'Views/Analytics.php' );
     }
 
 
@@ -161,7 +164,14 @@ class Admin {
      * @return void
      */
     public function queue_table_page() {
-        include FC_RECOVERY_CARTS_INC . 'Views/Queue.php';
+        global $fcrc_queue_table;
+
+        if ( empty( $fcrc_queue_table ) ) {
+            $fcrc_queue_table = new \MeuMouse\Flexify_Checkout\Recovery_Carts\Views\Queue_Table();
+        }
+
+        $fcrc_queue_table->prepare_items();
+        $fcrc_queue_table->display_page();
     }
 
 
@@ -172,7 +182,7 @@ class Admin {
      * @return void
      */
     public function render_settings_page() {
-        include FC_RECOVERY_CARTS_INC . 'Views/Settings.php';
+        include_once( FC_RECOVERY_CARTS_INC . 'Views/Settings.php' );
     }
 
 
@@ -183,7 +193,7 @@ class Admin {
      * @return void
      */
     public function render_settings_page_required_license() {
-        include FC_RECOVERY_CARTS_INC . 'Views/Settings_Info.php';
+        include_once( FC_RECOVERY_CARTS_INC . 'Views/Settings_Info.php' );
     }
 
 
@@ -351,7 +361,37 @@ class Admin {
             ));
         }
 
-        // update permacarrinhos
+        // update permalinks
         flush_rewrite_rules();
+    }
+
+
+    /**
+     * Register the Cron Event custom post type
+     *
+     * @since 1.3.0
+     * @return void
+     */
+    public function register_cron_event_cpt() {
+        $labels = array(
+            'name'               => __( 'Cron Events', 'fc-recovery-carts' ),
+            'singular_name'      => __( 'Cron Event', 'fc-recovery-carts' ),
+            'menu_name'          => __( 'Cron Events', 'fc-recovery-carts' ),
+            'name_admin_bar'     => __( 'Cron Event', 'fc-recovery-carts' ),
+        );
+
+        $args = array(
+            'labels'             => $labels,
+            'public'             => false,
+            'show_ui'            => false,
+            'show_in_menu'       => false,
+            'capability_type'    => 'post',
+            'hierarchical'       => false,
+            'supports'           => array( 'title' ),
+            'has_archive'        => false,
+            'show_in_rest'       => false,
+        );
+        
+        register_post_type( 'fcrc-cron-event', $args );
     }
 }

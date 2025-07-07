@@ -121,7 +121,7 @@ class Placeholders {
      * @param array $event | The follow-up event settings (including coupon config)
      * @return string The processed message
      */
-    public static function replace_placeholders( $message, $cart_id, $event ) {
+    public static function replace_placeholders( $message, $cart_id, $event = array() ) {
         $placeholders = self::register_placeholders();
 
         foreach ( $placeholders as $key => $data ) {

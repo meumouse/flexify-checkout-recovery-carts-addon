@@ -252,21 +252,22 @@ class Ajax {
      * Get lead collected
      * 
      * @since 1.0.0
+     * @version 1.3.0
      * @return void
      */
     public function fcrc_lead_collected_callback() {
         if ( isset( $_POST['action'] ) && $_POST['action'] === 'fcrc_lead_collected' ) {
-            // Sanitiza os dados recebidos
             $first_name = isset( $_POST['first_name'] ) ? sanitize_text_field( $_POST['first_name'] ) : '';
             $last_name = isset( $_POST['last_name'] ) ? sanitize_text_field( $_POST['last_name'] ) : '';
             $phone = isset( $_POST['phone'] ) ? sanitize_text_field( $_POST['phone'] ) : '';
             $email = isset( $_POST['email'] ) ? sanitize_email( $_POST['email'] ) : '';
-            $country_ccountry_dataode = isset( $_POST['country_data'] ) ? json_decode( stripslashes( $_POST['country_data'] ), true ) : array();
+            $country_data = isset( $_POST['country_data'] ) ? json_decode( stripslashes( $_POST['country_data'] ), true ) : array();
             $country_code = $country_data['iso2'] ?? '';
             $country_dial_code = $country_data['dialCode'] ?? '';
             $format_phone = $country_dial_code . $phone;
             $international_phone = preg_replace( '/\D/', '', $format_phone );
             $get_cart_id = isset( $_POST['cart_id'] ) ? sanitize_text_field( $_POST['cart_id'] ) : '';
+            $ip_data = isset( $_POST['ip_data'] ) ? json_decode( stripslashes( $_POST['ip_data'] ), true ) : array();
 
             // get full name
             $contact_name = sprintf( '%s %s', $first_name, $last_name );
@@ -276,16 +277,6 @@ class Ajax {
 
             // check if user exists
             $user = get_user_by( 'email', $email );
-
-            if ( $user ) {
-                // add user meta indicating that the lead was collected
-                update_user_meta( $user->ID, '_fcrc_lead_collected', true );
-                update_user_meta( $user->ID, 'billing_first_name', $first_name );
-                update_user_meta( $user->ID, 'billing_last_name', $last_name );
-                update_user_meta( $user->ID, 'billing_email', $email );
-                update_user_meta( $user->ID, 'billing_phone', $phone );
-                update_user_meta( $user->ID, 'billing_country', strtoupper( $country_code ) );
-            }
 
             if ( ! $get_cart_id || empty( $get_cart_id ) ) {
                 // create a new post of type 'fc-recovery-carts'
@@ -318,6 +309,27 @@ class Ajax {
             // storage cart id (post id) in session
             if ( $cart_id ) {
                 WC()->session->set( 'fcrc_cart_id', $cart_id );
+            }
+
+            // get IP address
+            $ip = $ip_data['ip'] ?? '';
+
+            // map user by IP
+            if ( $ip ) {
+                $map = get_option( 'fcrc_ip_user_map', array() );
+
+                $map[ $ip ] = array(
+                    'first_name' => $first_name,
+                    'last_name' => $last_name,
+                    'full_name' => $contact_name,
+                    'phone' => $international_phone,
+                    'email' => $email,
+                    'cart_id' => $cart_id,
+                    'collected_at' => current_time('mysql'),
+                );
+
+                // save user mapped
+                update_option( 'fcrc_ip_user_map', $map );
             }
 
             /**
@@ -360,6 +372,7 @@ class Ajax {
      * Get checkout lead data
      * 
      * @since 1.0.0
+     * @version 1.3.0
      * @return void
      */
     public function fcrc_save_checkout_lead_callback() {
@@ -370,6 +383,7 @@ class Ajax {
             $phone = isset( $_POST['phone'] ) ? sanitize_text_field( $_POST['phone'] ) : '';
             $email = isset( $_POST['email'] ) ? sanitize_email( $_POST['email'] ) : '';
             $full_name = sprintf( '%s %s', $first_name, $last_name );
+            $ip_data = isset( $_POST['ip_data'] ) ? json_decode( stripslashes( $_POST['ip_data'] ), true ) : array();
 
             // check if user exists
             $user = get_user_by( 'email', $email );
@@ -382,6 +396,27 @@ class Ajax {
                 update_post_meta( $cart_id, '_fcrc_cart_phone', $phone );
                 update_post_meta( $cart_id, '_fcrc_cart_email', $email );
                 update_post_meta( $cart_id, '_fcrc_user_id', $user_id );
+
+                // get IP address
+                $ip = $ip_data['ip'] ?? '';
+
+                // map user by IP
+                if ( $ip ) {
+                    $map = get_option( 'fcrc_ip_user_map', array() );
+
+                    $map[ $ip ] = array(
+                        'first_name' => $first_name,
+                        'last_name' => $last_name,
+                        'full_name' => $full_name,
+                        'phone' => $phone,
+                        'email' => $email,
+                        'cart_id' => $cart_id,
+                        'collected_at' => current_time('mysql'),
+                    );
+
+                    // save user mapped
+                    update_option( 'fcrc_ip_user_map', $map );
+                }
 
                 /**
                  * Hook fired on lead collected on checkout

@@ -66,7 +66,7 @@ class Assets {
         $min_file = $this->debug_mode ? '' : '.min';
 
         // add scripts on all 'fc-recovery-carts' prefix pages, except 'fc-recovery-carts-list'
-        if ( Helpers::check_admin_page('fc-recovery-carts') && ! Helpers::check_admin_page('fc-recovery-carts-list') ) {
+        if ( Helpers::check_admin_page('fc-recovery-carts') && ! Helpers::check_admin_page('fc-recovery-carts-list') && ! Helpers::check_admin_page('fc-recovery-carts-queue') ) {
             // check if Flexify Dashboard is active for prevent duplicate Bootstrap files
 			if ( ! class_exists('Flexify_Dashboard') ) {
                 wp_enqueue_style( 'bootstrap-grid', $this->assets_url . 'vendor/bootstrap/bootstrap-grid.min.css', array(), '5.3.3' );
@@ -116,7 +116,7 @@ class Assets {
         }
 
         // analytics scripts
-        if ( Helpers::check_admin_page('fc-recovery-carts') ) {
+        if ( Helpers::check_admin_page('fc-recovery-carts') && ! Helpers::check_admin_page('fc-recovery-carts-list') && ! Helpers::check_admin_page('fc-recovery-carts-queue') ) {
             // Apexcharts library
 			wp_enqueue_style( 'apexcharts-styles', $this->assets_url . 'vendor/apexcharts/apexcharts.css', array(), '4.3.0' );
             wp_enqueue_script( 'apexcharts-scripts', $this->assets_url . 'vendor/apexcharts/apexcharts.min.js', array(), '4.3.0' );

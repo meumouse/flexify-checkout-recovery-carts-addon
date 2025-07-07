@@ -28,4 +28,5 @@ return array(
     'MeuMouse\\Flexify_Checkout\\Recovery_Carts\\Integrations\\Integrations_Base' => $baseDir . '/inc/Integrations/Integrations_Base.php',
     'MeuMouse\\Flexify_Checkout\\Recovery_Carts\\Integrations\\Joinotify' => $baseDir . '/inc/Integrations/Joinotify.php',
     'MeuMouse\\Flexify_Checkout\\Recovery_Carts\\Views\\Carts_Table' => $baseDir . '/inc/Views/Carts_Table.php',
+    'MeuMouse\\Flexify_Checkout\\Recovery_Carts\\Views\\Queue_Table' => $baseDir . '/inc/Views/Queue_Table.php',
 );

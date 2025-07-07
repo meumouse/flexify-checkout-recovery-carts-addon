@@ -16,7 +16,7 @@ defined('ABSPATH') || exit;
  * Joinotify integration class
  * 
  * @since 1.0.0
- * @version 1.1.0
+ * @version 1.3.0
  * @package MeuMouse.com
  */
 class Joinotify extends Integrations_Base {
@@ -88,6 +88,7 @@ class Joinotify extends Integrations_Base {
      * Send coupon message for user
      * 
      * @since 1.0.0
+     * @version 1.3.0
      * @param int $cart_id | Cart ID
      * @param array $lead_data | Lead data
      * @return void
@@ -100,28 +101,10 @@ class Joinotify extends Integrations_Base {
             return;
         }
 
-        $generate_coupon = $modal_data['coupon']['generate_coupon'];
-
-        // get coupon code
-        if ( $generate_coupon === 'yes' ) {
-            Coupons::generate_wc_coupon( $modal_data['coupon'], $cart_id );
-            
-            $coupon_code = get_post_meta( $cart_id, '_fcrc_coupon_code', true );
-        } else {
-            $coupon_code = $modal_data['coupon']['coupon_code'];
-        }
-
         // check if Joinotify is active
         if ( function_exists('joinotify_send_whatsapp_message_text') ) {
-            $replacement = array(
-                '{{ first_name }}' => $lead_data['first_name'] ?? Admin::get_setting('fallback_first_name'),
-                '{{ last_name }}' => $lead_data['last_name'] ?? '',
-                '{{ recovery_link }}' => Helpers::generate_recovery_cart_link( $cart_id ),
-                '{{ coupon_code }}' => $coupon_code,
-            );
-
             // Replace placeholders in the message
-            $message = Placeholders::replace_placeholders( $modal_data['message'], $replacement );
+            $message = Placeholders::replace_placeholders( $modal_data['message'], $cart_id );
             $sender = Admin::get_setting('joinotify_sender_phone');
             $receiver = function_exists('joinotify_prepare_receiver') ? joinotify_prepare_receiver( $lead_data['phone'] ) : $lead_data['phone'];
 
