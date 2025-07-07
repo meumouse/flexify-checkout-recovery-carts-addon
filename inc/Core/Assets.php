@@ -22,7 +22,7 @@ class Assets {
      * @since 1.3.0
      * @return bool
      */
-    public $debug_mode = FC_RECOVERY_CARTS_DEBUG_MODE;
+    public static $debug_mode = FC_RECOVERY_CARTS_DEBUG_MODE;
 
     /**
      * Get assets URL
@@ -63,7 +63,7 @@ class Assets {
      * @return void
      */
     public function admin_scripts() {
-        $min_file = $this->debug_mode ? '' : '.min';
+        $min_file = self::$debug_mode ? '' : '.min';
 
         // add scripts on all 'fc-recovery-carts' prefix pages, except 'fc-recovery-carts-list'
         if ( Helpers::check_admin_page('fc-recovery-carts') && ! Helpers::check_admin_page('fc-recovery-carts-list') && ! Helpers::check_admin_page('fc-recovery-carts-queue') ) {
@@ -83,7 +83,7 @@ class Assets {
 
 			// settings params
 			wp_localize_script( 'fc-recovery-carts-scripts', 'fcrc_settings_params', array(
-				'debug_mode' => $this->debug_mode,
+				'debug_mode' => self::$debug_mode,
 				'ajax_url' => admin_url('admin-ajax.php'),
 				'i18n' => array(
 					'toast_aria_label' => esc_html__( 'Fechar', 'fc-recovery-carts' ),
@@ -126,7 +126,7 @@ class Assets {
 
             // analytics params
 			wp_localize_script( 'fc-recovery-carts-analytics-scripts', 'fcrc_analytics_params', array(
-				'debug_mode' => $this->debug_mode,
+				'debug_mode' => self::$debug_mode,
 				'ajax_url' => admin_url('admin-ajax.php'),
 				'i18n' => array(
 					'toast_aria_label' => esc_html__( 'Fechar', 'fc-recovery-carts' ),
@@ -153,7 +153,7 @@ class Assets {
      * @return void
      */
     public function frontend_scripts() {
-        $min_file = $this->debug_mode ? '' : '.min';
+        $min_file = self::$debug_mode ? '' : '.min';
 
         if ( Helpers::is_product() && ! is_flexify_checkout() ) {
             if ( Admin::get_switch('enable_international_phone_modal') === 'yes' ) {
@@ -169,7 +169,7 @@ class Assets {
 
         // events params
         wp_localize_script( 'fc-recovery-carts-events-script', 'fcrc_events_params', array(
-            'debug_mode' => $this->debug_mode,
+            'debug_mode' => self::$debug_mode,
             'ajax_url' => admin_url('admin-ajax.php'),
             'triggers_list' => Admin::get_setting('collect_lead_modal')['triggers_list'],
             'path_to_utils' => $this->assets_url . 'vendor/intl-tel-input/js/utils.js',
@@ -197,7 +197,7 @@ class Assets {
 
             // checkout events params
             wp_localize_script( 'fc-recovery-carts-events-script', 'fcrc_checkout_params', array(
-                'debug_mode' => $this->debug_mode,
+                'debug_mode' => self::$debug_mode,
                 'ajax_url' => admin_url('admin-ajax.php'),
             ));
         }

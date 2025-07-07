@@ -25,7 +25,7 @@ class Recovery_Handler {
      * @since 1.3.0
      * @return bool
      */
-    public $debug_mode = FC_RECOVERY_CARTS_DEBUG_MODE;
+    public static $debug_mode = FC_RECOVERY_CARTS_DEBUG_MODE;
    
     /**
      * Construct function
@@ -102,7 +102,7 @@ class Recovery_Handler {
                         'post_status' => 'abandoned',
                     ));
 
-                    if ( $this->debug_mode ) {
+                    if ( self::$debug_mode ) {
                         error_log( 'Abandoned cart: ' . $cart_id . ' | Last ping: ' . $last_ping );
                     }
 
@@ -302,7 +302,7 @@ class Recovery_Handler {
                 'post_status' => 'lost',
             ));
 
-            if ( $this->debug_mode ) {
+            if ( self::$debug_mode ) {
                 error_log( 'Cart marked as lost: ' . $cart_id );
             }
 
@@ -381,7 +381,7 @@ class Recovery_Handler {
         // cancel scheduled events
         Hooks::cancel_scheduled_cart_process( $cart_id );
     
-        if ( $this->debug_mode ) {
+        if ( self::$debug_mode ) {
             error_log( 'Cart resumed: ' . $cart_id );
         }
 

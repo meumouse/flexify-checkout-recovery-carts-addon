@@ -73,9 +73,13 @@ function fcrc_get_daily_recovered_totals( $days = 7 ) {
 	$series = array();
 
 	for ( $i = $days - 1; $i >= 0; $i-- ) {
-		$date = gmdate( 'Y-m-d', strtotime( "-$i days" ) );
-		$labels[] = gmdate( 'd/m', strtotime( $date ) );
-		$series[] = $totals_by_date[ $date ] ?? 0;
+		$timestamp = current_time('timestamp') - ( $i * DAY_IN_SECONDS );
+		$key = date( 'Y-m-d', $timestamp );
+		$value = isset( $by_date[ $key ] ) ? floatval( $by_date[ $key ] ) : 0;
+
+		// formatted labels from WordPress
+		$labels[] = date_i18n( get_option( 'date_format' ), $timestamp );
+		$series[] = $value;
 	}
 
 	return array(
@@ -95,7 +99,7 @@ function fcrc_get_daily_recovered_totals( $days = 7 ) {
 function fcrc_get_notifications_chart_data( $days = 7 ) {
 	// calculate initial timestamp and empty array
     $start_ts = current_time('timestamp') - ( $days * DAY_IN_SECONDS );
-    $counts = array(); // ['2025-06-25']['whatsapp'] = 3, etc.
+    $counts = array();
 
 	// get all the carts that have notifications
     $query = new WP_Query( array(
@@ -138,46 +142,63 @@ function fcrc_get_notifications_chart_data( $days = 7 ) {
 
     wp_reset_postdata();
 
-	// ensures that all dates in the period exists, even without notifications
+	// prepare raw keys and formatted labels, ensure empty buckets
+    $raw_days = array();
     $categories = array();
 
     for ( $i = 0; $i < $days; $i++ ) {
-        $d = date( 'Y-m-d', current_time( 'timestamp' ) - ( $i * DAY_IN_SECONDS ) );
-        $categories[] = $d;
+        $ts = current_time('timestamp') - ( $i * DAY_IN_SECONDS );
+        $day_key = date( 'Y-m-d', $ts );
 
-        if ( ! isset( $counts[ $d ] ) ) {
-            $counts[ $d ] = [];
+        // keep raw date for data lookup
+        $raw_days[] = $day_key;
+
+        // formatted label according to WP settings
+        $categories[] = date_i18n( get_option('date_format'), $ts );
+
+        if ( ! isset( $counts[ $day_key ] ) ) {
+            $counts[ $day_key ] = array();
         }
     }
 
     // reverse to chronological order
+    $raw_days = array_reverse( $raw_days );
     $categories = array_reverse( $categories );
 
     // identifies all channels that appear
     $all_channels = array();
 
     foreach ( $counts as $day_data ) {
-        foreach ( array_keys( $day_data ) as $chan ) {
-            $all_channels[ $chan ] = true;
+        foreach ( array_keys( $day_data ) as $channel ) {
+            $all_channels[ $channel ] = true;
         }
     }
 
     $all_channels = array_keys( $all_channels );
 
-	// build serie for each channel
+    // build series for each channel
     $series = array();
 
-    foreach ( $all_channels as $chan ) {
+    foreach ( $all_channels as $channel ) {
         $data = array();
 
-        foreach ( $categories as $day ) {
-            $data[] = $counts[ $day ][ $chan ] ?? 0;
+        foreach ( $raw_days as $day_key ) {
+            $data[] = $counts[ $day_key ][ $channel ] ?? 0;
+        }
+
+        // set chart label
+        if ( $channel === 'whatsapp' ) {
+            $label = esc_html__( 'WhatsApp', 'fc-recovery-carts' );
+        } elseif ( $channel === 'email' ) {
+            $label = esc_html__( 'E-mail', 'fc-recovery-carts' );
+        } else {
+            $label = ucfirst( $channel );
         }
 
         $series[] = array(
-            'name' => $chan,
+            'name' => $label,
             'data' => $data,
-		);
+        );
     }
 
     return array(

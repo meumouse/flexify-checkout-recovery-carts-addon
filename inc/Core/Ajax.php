@@ -25,7 +25,7 @@ class Ajax {
      * @since 1.3.0
      * @return bool
      */
-    public $debug_mode = FC_RECOVERY_CARTS_DEBUG_MODE;
+    public static $debug_mode = FC_RECOVERY_CARTS_DEBUG_MODE;
    
     /**
      * Construct function
@@ -433,7 +433,7 @@ class Ajax {
                     'user_id' => $user_id,
                 ));
 
-                if ( $this->debug_mode ) {
+                if ( self::$debug_mode ) {
                     error_log('New checkout lead collected from cart ID: ' . $cart_id);
                 }
                 
@@ -459,7 +459,7 @@ class Ajax {
         $cart_id = intval( $_POST['cart_id'] );
         $country_data = json_decode( stripslashes( $_POST['country_data'] ), true );
 
-        if ( $this->debug_mode ) {
+        if ( self::$debug_mode ) {
             error_log( 'Location data received: ' . print_r( $country_data, true ) );
         }
     

@@ -14,6 +14,14 @@ defined('ABSPATH') || exit;
 class Hooks {
 
     /**
+     * Get debug mode
+     * 
+     * @since 1.3.0
+     * @return bool
+     */
+    public static $debug_mode = FC_RECOVERY_CARTS_DEBUG_MODE;
+
+    /**
      * Construct function
      * 
      * @since 1.3.0
@@ -67,7 +75,7 @@ class Hooks {
                     if ( isset( $event['args']['cart_id'] ) && intval( $event['args']['cart_id'] ) === intval( $cart_id ) ) {
                         wp_unschedule_event( $timestamp, 'fcrc_send_follow_up_message', $event['args'] );
     
-                        if ( $this->debug_mode ) {
+                        if ( self::$debug_mode ) {
                             error_log( "Removed fcrc_send_follow_up_message event for cart_id {$cart_id}" );
                         }
                     }
@@ -81,7 +89,7 @@ class Hooks {
                     if ( isset( $event['args']['cart_id'] ) && intval( $event['args']['cart_id'] ) === intval( $cart_id ) ) {
                         wp_unschedule_event( $timestamp, 'fcrc_check_final_cart_status', $event['args'] );
     
-                        if ( $this->debug_mode ) {
+                        if ( self::$debug_mode ) {
                             error_log( "Removed fcrc_check_final_cart_status event for cart_id {$cart_id}" );
                         }
                     }
@@ -134,7 +142,7 @@ class Hooks {
             foreach ( $query->posts as $post_id ) {
                 wp_delete_post( $post_id, true );
 
-                if ( defined('$this->debug_mode') && $this->debug_mode ) {
+                if ( self::$debug_mode ) {
                     error_log( '[FCRC] Cart deleted for missing contact: ' . $post_id );
                 }
 
