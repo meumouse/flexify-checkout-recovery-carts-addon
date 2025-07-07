@@ -264,7 +264,7 @@ class Cart_Events {
      * Synchronizes WooCommerce cart data with the recovery cart post
      *
      * @since 1.0.0
-     * @version 1.1.2
+     * @version 1.3.0
      * @param string $cart_id | The cart ID
      * @return void
      */
@@ -308,54 +308,32 @@ class Cart_Events {
             self::create_cart_post();
         }
 
-        if ( is_user_logged_in() ) {
-            $user = wp_get_current_user();
-            $first_name = $user->first_name ?: '';
-            $last_name = $user->last_name ?: '';
-            $email = $user->user_email ?: '';
-            $phone = get_user_meta( $user->ID, 'billing_phone', true ) ?: '';
-        } elseif ( isset( WC()->session ) && WC()->session->get('flexify_checkout_customer_fields') ) {
-            // get customer data from checkout session
-            $customer_fields = WC()->session->get('flexify_checkout_customer_fields');
-            $first_name = $customer_fields['billing_first_name'] ?? '';
-            $last_name = $customer_fields['billing_last_name'] ?? '';
-            $email = $customer_fields['billing_email'] ?? '';
-            $phone = $customer_fields['billing_phone'] ?? '';
-        } else {
-            $first_name = $_COOKIE['fcrc_first_name'] ?? '';
-            $last_name = $_COOKIE['fcrc_last_name'] ?? '';
-            $email = $_COOKIE['fcrc_email'] ?? '';
-            $phone = $_COOKIE['fcrc_phone'] ?? '';
-        }
+        // Fetch contact data from various sources (including IP fallback)
+        $contact = Helpers::get_cart_contact_data();
 
         /**
          * Update contact phone
          * 
          * @since 1.0.1
+         * @version 1.3.0
          * @param string $phone | The phone number
          */
-        $phone = apply_filters( 'Flexify_Checkout/Recovery_Carts/Contact_Phone', $phone );
-        $contact_name = sprintf( '%s %s', $first_name, $last_name );
+        $phone = apply_filters( 'Flexify_Checkout/Recovery_Carts/Contact_Phone', $contact['phone'] ?? '' );
 
-        // update contact data
-        if ( ! empty( $first_name ) ) {
-            update_post_meta( $cart_id, '_fcrc_first_name', $first_name );
-        }
-        
-        if ( ! empty( $last_name ) ) {
-            update_post_meta( $cart_id, '_fcrc_last_name', $last_name );
-        }
-        
-        if ( ! empty( $contact_name ) ) {
-            update_post_meta( $cart_id, '_fcrc_full_name', $contact_name );
-        }
-        
-        if ( ! empty( $phone ) ) {
-            update_post_meta( $cart_id, '_fcrc_cart_phone', $phone );
-        }
+        // Prepare meta values to update
+        $meta = array(
+            '_fcrc_first_name' => $contact['first_name'] ?? '',
+            '_fcrc_last_name' => $contact['last_name']  ?? '',
+            '_fcrc_full_name' => sprintf( '%s %s', $contact['first_name'] ?? '', $contact['last_name'] ?? '' ),
+            '_fcrc_cart_phone' => $phone,
+            '_fcrc_cart_email' => $contact['email'] ?? '',
+        );
 
-        if ( ! empty( $email ) ) {
-            update_post_meta( $cart_id, '_fcrc_cart_email', $email );
+        // Update only non-empty values
+        foreach ( $meta as $key => $value ) {
+            if ( $value !== '' ) {
+                update_post_meta( $cart_id, $key, sanitize_text_field( $value ) );
+            }
         }
 
         // get cached location data

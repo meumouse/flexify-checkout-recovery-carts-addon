@@ -336,4 +336,83 @@ class Helpers {
 
         return false;
     }
+
+    
+    /**
+     * Retrieve the client's IP address (Cookie or REMOTE_ADDR)
+     *
+     * @since 1.3.0
+     * @return string
+     */
+    public static function get_client_ip() {
+        if ( ! empty( $_COOKIE['fcrc_location'] ) ) {
+            $location = json_decode( stripslashes( $_COOKIE['fcrc_location'] ), true );
+
+            if ( ! empty( $location['ip'] ) ) {
+                return $location['ip'];
+            }
+        }
+
+        return $_SERVER['REMOTE_ADDR'] ?? '';
+    }
+
+
+    /**
+     * Retrieve user data previous collected by IP, if exists
+     *
+     * @since 1.3.0
+     * @param string $ip | IP address
+     * @return array User contact data
+     */
+    public static function get_user_data_by_ip( $ip ) {
+        $map = get_option( 'fcrc_ip_user_map', array() );
+
+        return $map[ $ip ] ?? array();
+    }
+
+
+    /**
+     * Get user data from multiple sources
+     *
+     * @since 1.3.0
+     * @return array {first_name, last_name, phone, email}
+     */
+    public static function get_cart_contact_data() {
+        // if user is logged
+        if ( is_user_logged_in() ) {
+            $user = wp_get_current_user();
+
+            return array(
+                'first_name' => $user->first_name,
+                'last_name' => $user->last_name,
+                'email' => $user->user_email,
+                'phone' => get_user_meta( $user->ID, 'billing_phone', true ),
+            );
+        }
+
+        // from flexify checkout session
+        if ( WC()->session && $session = WC()->session->get('flexify_checkout_customer_fields') ) {
+            return array(
+                'first_name' => $session['billing_first_name'] ?? '',
+                'last_name' => $session['billing_last_name'] ?? '',
+                'email' => $session['billing_email'] ?? '',
+                'phone' => $session['billing_phone'] ?? '',
+            );
+        }
+
+        // from cookies
+        $first = $_COOKIE['fcrc_first_name'] ?? '';
+        $last = $_COOKIE['fcrc_last_name'] ?? '';
+        $email = $_COOKIE['fcrc_email'] ?? '';
+        $phone = $_COOKIE['fcrc_phone'] ?? '';
+
+        if ( $first || $last || $email || $phone ) {
+            return compact( 'first', 'last', 'email', 'phone' );
+        }
+
+        // fallback IP
+        $ip = self::get_client_ip();
+
+        return self::get_user_data_by_ip( $ip );
+    }
 }
