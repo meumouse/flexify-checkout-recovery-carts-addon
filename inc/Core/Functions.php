@@ -45,49 +45,53 @@ function fcrc_get_carts_count_by_status( $status, $days = 7 ) {
  * @return array
  */
 function fcrc_get_daily_recovered_totals( $days = 7 ) {
-	global $wpdb;
+    $days = intval( $days );
+    $now_ts  = current_time('timestamp');
+    $start_ts = $now_ts - ( $days * DAY_IN_SECONDS );
+    $start_date = date( 'Y-m-d H:i:s', $start_ts );
 
-	$days = intval( $days );
-	$start_date = gmdate( 'Y-m-d 00:00:00', strtotime( "-$days days" ) );
+    $query = new WP_Query( array(
+        'post_type' => 'fc-recovery-carts',
+        'post_status' => 'recovered',
+        'date_query' => array(
+            array(
+                'after' => $start_date,
+                'inclusive' => true,
+                'column' => 'post_date',
+            ),
+        ),
+        'meta_key' => '_fcrc_cart_total',
+        'posts_per_page' => -1,
+        'fields' => 'ids',
+    ));
 
-	$query = $wpdb->prepare(
-		"SELECT DATE(p.post_date) as date, SUM( CAST( pm.meta_value AS DECIMAL( 10, 2 ) ) ) as total
-		FROM {$wpdb->posts} p
-		INNER JOIN {$wpdb->postmeta} pm ON p.ID = pm.post_id
-		WHERE p.post_type = 'fc-recovery-carts'
-		AND p.post_status = 'recovered'
-		AND p.post_date >= %s
-		AND pm.meta_key = '_fcrc_cart_total'
-		GROUP BY DATE(p.post_date)
-		ORDER BY DATE(p.post_date) ASC",
-		$start_date
-	);
+    $totals = array();
 
-    $totals_by_date = array();
-	$results = $wpdb->get_results( $query );
+    foreach( $query->posts as $post_id ) {
+        $date = date( 'Y-m-d', strtotime( get_post_field( 'post_date', $post_id ) ) );
+        $value = floatval( get_post_meta( $post_id, '_fcrc_cart_total', true ) );
 
-	foreach ( $results as $row ) {
-		$totals_by_date[ $row->date ] = floatval( $row->total );
-	}
+        if ( ! isset( $totals[ $date ] ) ) {
+            $totals[ $date ] = 0;
+        }
 
-    // set with 0 the days that don't have values
-	$labels = array();
-	$series = array();
+        $totals[ $date ] += $value;
+    }
 
-	for ( $i = $days - 1; $i >= 0; $i-- ) {
-		$timestamp = current_time('timestamp') - ( $i * DAY_IN_SECONDS );
-		$key = date( 'Y-m-d', $timestamp );
-		$value = isset( $by_date[ $key ] ) ? floatval( $by_date[ $key ] ) : 0;
+    $labels = array();
+    $series = array();
 
-		// formatted labels from WordPress
-		$labels[] = date_i18n( get_option('date_format'), $timestamp );
-		$series[] = $value;
-	}
+    for ( $i = $days - 1; $i >= 0; $i-- ) {
+        $ts = $now_ts - ( $i * DAY_IN_SECONDS );
+        $key = date( 'Y-m-d', $ts );
+        $labels[] = date_i18n( get_option('date_format'), $ts );
+        $series[] = isset( $totals[ $key ] ) ? $totals[ $key ] : 0;
+    }
 
-	return array(
-		'labels' => $labels,
-		'series' => $series,
-	);
+    return array(
+        'labels' => $labels,
+        'series' => $series,
+    );
 }
 
 
