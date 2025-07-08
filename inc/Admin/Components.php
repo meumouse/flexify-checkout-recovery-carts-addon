@@ -20,6 +20,7 @@ class Components {
      * Register settings tabs through a filter
      *
      * @since 1.0.0
+     * @version 1.3.0
      * @return array
      */
     public static function get_settings_tabs() {
@@ -35,6 +36,12 @@ class Components {
                 'label' => esc_html__('Follow Up', 'fc-recovery-carts'),
                 'icon' => '<svg class="fc-recovery-carts-tab-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M22 7.999a1 1 0 0 0-.516-.874l-9.022-5a1.003 1.003 0 0 0-.968 0l-8.978 4.96a1 1 0 0 0-.003 1.748l9.022 5.04a.995.995 0 0 0 .973.001l8.978-5A1 1 0 0 0 22 7.999zm-9.977 3.855L5.06 7.965l6.917-3.822 6.964 3.859-6.918 3.852z"></path><path d="M20.515 11.126 12 15.856l-8.515-4.73-.971 1.748 9 5a1 1 0 0 0 .971 0l9-5-.97-1.748z"></path><path d="M20.515 15.126 12 19.856l-8.515-4.73-.971 1.748 9 5a1 1 0 0 0 .971 0l9-5-.97-1.748z"></path></svg>',
                 'file' => FC_RECOVERY_CARTS_INC . 'Views/Settings/Tabs/FollowUp.php',
+            ),
+            'payment_methods' => array(
+                'id' => 'payment_methods',
+                'label' => esc_html__('Formas de pagamento', 'fc-recovery-carts'),
+                'icon' => '<svg class="fc-recovery-carts-tab-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path d="M20 4H4c-1.103 0-2 .897-2 2v12c0 1.103.897 2 2 2h16c1.103 0 2-.897 2-2V6c0-1.103-.897-2-2-2zM4 6h16v2H4V6zm0 12v-6h16.001l.001 6H4z"></path><path d="M6 14h6v2H6z"></path></svg>',
+                'file' => FC_RECOVERY_CARTS_INC . 'Views/Settings/Tabs/Payment_Methods.php',
             ),
             'integrations' => array(
                 'id' => 'integrations',
