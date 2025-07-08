@@ -3,6 +3,7 @@
 namespace MeuMouse\Flexify_Checkout\Recovery_Carts\Views;
 
 use MeuMouse\Flexify_Checkout\Recovery_Carts\Admin\Admin;
+use MeuMouse\Flexify_Checkout\Recovery_Carts\Core\Helpers;
 
 use WP_List_Table;
 
@@ -178,25 +179,25 @@ class Carts_Table extends WP_List_Table {
     public function column_notifications( $item ) {
         $notes = get_post_meta( $item->ID, '_fcrc_notifications_sent', true );
 
+        // check if the cart has notifications
         if ( ! is_array( $notes ) || empty( $notes ) ) {
             return '&mdash;';
         }
 
         $output  = '<ul class="fcrc-notifications-list" style="margin:0; padding-left:1em;">';
-
-        foreach ( $notes as $note ) {
-            $event = esc_html( $note['event_key'] );
-            $channel = esc_html( $note['channel'] );
-            $sent_at = date_i18n( 'd/m/Y H:i', strtotime( $note['sent_at'] ) );
-            
-            $output .= sprintf(
-                '<li><strong>%s</strong> via %s — <small>%s</small></li>',
-                $event,
-                $channel,
-                $sent_at
-            );
-        }
-
+            foreach ( $notes as $note ) {
+                $event_title = Admin::get_setting('follow_up_events')[$note['event_key']]['title'];
+                $channel = Helpers::get_formatted_channel_label( $note['channel'] );
+                $formatted_date = sprintf( __( '%s - %s', 'fc-recovery-carts' ), get_option('date_format'), get_option('time_format') );
+                $sent_at = date_i18n( $formatted_date, strtotime( $note['sent_at'] ) );
+                
+                $output .= sprintf(
+                    __( '<li><strong>%s</strong> via %s: <small>%s</small></li>', 'fc-recovery-carts' ),
+                    $event_title,
+                    $channel,
+                    $sent_at
+                );
+            }
         $output .= '</ul>';
 
         return $output;

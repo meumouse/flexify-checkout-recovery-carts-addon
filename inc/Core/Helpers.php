@@ -415,4 +415,22 @@ class Helpers {
 
         return self::get_user_data_by_ip( $ip );
     }
+
+
+    /**
+     * Get formatted channel label
+     * 
+     * @since 1.3.0
+     * @param string $channel | Channel name
+     * @return string
+     */
+    public static function get_formatted_channel_label( $channel ) {
+        if ( $channel === 'whatsapp' ) {
+            return esc_html__( 'WhatsApp', 'fc-recovery-carts' );
+        } elseif ( $channel === 'email' ) {
+            return esc_html__( 'E-mail', 'fc-recovery-carts' );
+        }
+        
+        return ucfirst( $channel );
+    }
 }

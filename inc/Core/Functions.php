@@ -1,5 +1,7 @@
 <?php
 
+use MeuMouse\Flexify_Checkout\Recovery_Carts\Core\Helpers;
+
 // Exit if accessed directly.
 defined('ABSPATH') || exit;
 
@@ -78,7 +80,7 @@ function fcrc_get_daily_recovered_totals( $days = 7 ) {
 		$value = isset( $by_date[ $key ] ) ? floatval( $by_date[ $key ] ) : 0;
 
 		// formatted labels from WordPress
-		$labels[] = date_i18n( get_option( 'date_format' ), $timestamp );
+		$labels[] = date_i18n( get_option('date_format'), $timestamp );
 		$series[] = $value;
 	}
 
@@ -187,13 +189,7 @@ function fcrc_get_notifications_chart_data( $days = 7 ) {
         }
 
         // set chart label
-        if ( $channel === 'whatsapp' ) {
-            $label = esc_html__( 'WhatsApp', 'fc-recovery-carts' );
-        } elseif ( $channel === 'email' ) {
-            $label = esc_html__( 'E-mail', 'fc-recovery-carts' );
-        } else {
-            $label = ucfirst( $channel );
-        }
+        $label = Helpers::get_formatted_channel_label( $channel );
 
         $series[] = array(
             'name' => $label,
