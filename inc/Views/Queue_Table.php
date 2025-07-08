@@ -72,10 +72,11 @@ class Queue_Table extends WP_List_Table {
      */
     public function get_columns() {
         return array(
-            'cb' => '<input type="checkbox" />',
-            'id' => __( 'ID', 'fc-recovery-carts' ),
-            'event_name' => __( 'Evento', 'fc-recovery-carts' ),
-            'scheduled_at' => __( 'Data e horário do evento', 'fc-recovery-carts' ),
+            'cb'            => '<input type="checkbox" />',
+            'id'            => __( 'ID do carrinho', 'fc-recovery-carts' ),
+            'contact'       => __('Contato', 'fc-recovery-carts'),
+            'event_name'    => __( 'Evento', 'fc-recovery-carts' ),
+            'scheduled_at'  => __( 'Data e horário do evento', 'fc-recovery-carts' ),
         );
     }
 
@@ -100,7 +101,81 @@ class Queue_Table extends WP_List_Table {
      * @return string
      */
     public function column_id( $item ) {
-        return sprintf( '#%d', absint( $item->ID ) );
+        return sprintf( '#%d', absint( get_post_meta( $item->ID, '_fcrc_cart_id', true ) ) );
+    }
+
+
+    /**
+     * Render the contact column
+     * 
+     * @since 1.3.0
+     * @param object $item | Cart data
+     * @return void
+     */
+    public function column_contact( $item ) {
+        $cart_id = get_post_meta( $item->ID, '_fcrc_cart_id', true );
+        $contact_name = get_post_meta( $cart_id, '_fcrc_full_name', true );
+        $phone = get_post_meta( $cart_id, '_fcrc_cart_phone', true );
+        $email = get_post_meta( $cart_id, '_fcrc_cart_email', true );
+        $user_id = get_post_meta( $cart_id, '_fcrc_user_id', true );
+
+        // if is empty user id, but has email, try to get and save
+        if ( empty( $user_id ) && $email ) {
+            if ( $user = get_user_by( 'email', $email ) ) {
+                $user_id = $user->ID;
+                update_post_meta( $cart_id, '_fcrc_user_id', $user_id );
+            }
+        }
+
+        // if is empty full name, but has account, fill with first + last name
+        if ( ( empty( $contact_name ) || trim( $contact_name ) === '' ) && $user_id ) {
+            $first = get_user_meta( $user_id, 'first_name', true );
+            $last = get_user_meta( $user_id, 'last_name', true );
+            $full_name = sprintf( '%s %s', $first, $last );
+
+            if ( $full_name ) {
+                $contact_name = $full_name;
+                update_post_meta( $cart_id, '_fcrc_full_name', $full_name );
+            }
+        }
+
+        // set default label
+        if ( empty( $contact_name ) || trim( $contact_name ) === '' ) {
+            $contact_name = esc_html__( 'Visitante', 'fc-recovery-carts' );
+        }
+
+        // if is empty phone but has account, try to get billing_phone or shipping_phone user meta's
+        if ( empty( $phone ) && $user_id ) {
+            $billing_phone = get_user_meta( $user_id, 'billing_phone', true );
+            $shipping_phone = get_user_meta( $user_id, 'shipping_phone', true );
+            $use_phone = $billing_phone ?: $shipping_phone;
+
+            if ( $use_phone ) {
+                $phone = $use_phone;
+                update_post_meta( $cart_id, '_fcrc_cart_phone', $use_phone );
+            }
+        }
+
+        $output = esc_html( $contact_name );
+
+        if ( $phone ) {
+            $output .= '<br>' . esc_html( $phone );
+        }
+
+        if ( $email ) {
+            $output .= '<br><a href="mailto:' . esc_attr( $email ) . '">' . esc_html( $email ) . '</a>';
+        }
+
+        if ( $user_id ) {
+            $profile_link = get_edit_user_link( $user_id );
+            $output .= sprintf(
+                '<br><small><a href="%s" class="button button-small" style="margin-top:1rem;">%s</a></small>',
+                esc_url( $profile_link ),
+                esc_html__( 'Ver usuário', 'fc-recovery-carts' )
+            );
+        }
+
+        return $output;
     }
 
 

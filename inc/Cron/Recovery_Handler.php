@@ -145,8 +145,6 @@ class Recovery_Handler {
             return;
         }
     
-        $max_delay = 0;
-    
         // iterate for each follow up event
         foreach ( $follow_up_events as $event_key => $event_data ) {
             // check if follow up event is enabled
@@ -165,8 +163,9 @@ class Recovery_Handler {
                     'post_title' => 'fcrc_send_follow_up_message',
                     'post_status' => 'publish',
                     'meta_input' => array(
+                        '_fcrc_cart_id' => $cart_id,
                         '_fcrc_cron_event_key' => 'fcrc_send_follow_up_message',
-                        '_fcrc_cron_scheduled_at'  => date_i18n( 'Y-m-d H:i:s', $event_delay ),
+                        '_fcrc_cron_scheduled_at' => date_i18n( 'Y-m-d H:i:s', $event_delay ),
                     ),
                 ));
 
@@ -180,37 +179,6 @@ class Recovery_Handler {
                 if ( ! wp_next_scheduled( 'fcrc_send_follow_up_message', $args ) ) {
                     wp_schedule_single_event( $event_delay, 'fcrc_send_follow_up_message', $args );
                 }
-    
-                if ( $delay > $max_delay ) {
-                    $max_delay = $delay;
-                }
-            }
-        }
-    
-        // final schedule event, also with verification
-        if ( $max_delay > 0 ) {
-            $delay = $max_delay + Helpers::convert_to_seconds( 1, 'hours' );
-            $event_key = 'fcrc_check_final_cart_status';
-            $event_delay = time() + $delay;
-
-            // create queue process post
-            $post_id = wp_insert_post( array(
-                'post_type' => 'fcrc-cron-event',
-                'post_title' => $event_key,
-                'post_status' => 'publish',
-                'meta_input' => array(
-                    '_fcrc_cron_event_key' => $event_key,
-                    '_fcrc_cron_scheduled_at' => date_i18n( 'Y-m-d H:i:s', $event_delay ),
-                ),
-            ));
-
-            $args = array(
-                'cart_id' => $cart_id,
-                'cron_post_id' => $post_id,
-            );
-    
-            if ( ! wp_next_scheduled( $event_key, $args ) ) {
-                wp_schedule_single_event( $event_delay, $event_key, $args );
             }
         }
     }

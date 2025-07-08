@@ -218,7 +218,7 @@ defined('ABSPATH') || exit; ?>
             <tr>
                 <th>
                     <?php esc_html_e( 'Tempo para um carrinho ser considerado abandonado', 'fc-recovery-carts' ); ?>
-                    <span class="fc-recovery-carts-description"><?php esc_html_e( 'Permite definir o tempo para que um carrinho seja considerado abandonado e a cadência de follow up seja iniciada.', 'fc-recovery-carts' ); ?></span>
+                    <span class="fc-recovery-carts-description"><?php esc_html_e( 'Permite definir o tempo para que um carrinho seja considerado abandonado.', 'fc-recovery-carts' ); ?></span>
                 </th>
                 <td>
                     <div class="input-group">

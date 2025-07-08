@@ -439,7 +439,7 @@ class Components {
 
         <div class="fcrc-analytics-widget cart-status-widget">
             <div class="fcrc-analytics-widget-header">
-                <span class="fcrc-widget-title"><?php esc_html_e( 'Notificações enviadas', 'fc-recovery-carts' ); ?></span>
+                <span class="fcrc-widget-title"><?php esc_html_e( 'Notificações de follow up enviadas', 'fc-recovery-carts' ); ?></span>
                 <span class="fcrc-widget-description"><?php printf( __( 'Dados relacionados aos últimos %d dias', 'fc-recovery-carts' ), $period ); ?></span>
             </div>
 

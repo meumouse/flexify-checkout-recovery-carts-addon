@@ -433,4 +433,55 @@ class Helpers {
         
         return ucfirst( $channel );
     }
+
+
+    /**
+     * Cancel all scheduled follow-up events (hook 'fcrc_send_follow_up_message') for a given cart ID
+     *
+     * @since 1.3.0
+     * @param int $cart_id | The recovery cart post ID
+     * @return void
+     */
+    public static function cancel_scheduled_follow_up_events( $cart_id ) {
+        // Query all cron-event posts for this cart and the follow-up hook
+        $events = get_posts( array(
+            'post_type' => 'fcrc-cron-event',
+            'post_status' => 'publish',
+            'meta_query' => array(
+                array(
+                    'key' => '_fcrc_cart_id',
+                    'value' => $cart_id,
+                ),
+                array(
+                    'key' => '_fcrc_cron_event_key',
+                    'value' => 'fcrc_send_follow_up_message',
+                ),
+            ),
+            'posts_per_page' => -1, // get all posts
+        ));
+
+        foreach ( $events as $event ) {
+            // Retrieve the scheduled timestamp from post meta
+            $scheduled_at = get_post_meta( $event->ID, '_fcrc_cron_scheduled_at', true );
+            $timestamp = strtotime( $scheduled_at );
+
+            // Prepare the args array matching the original schedule call
+            $args = array(
+                'cart_id' => $cart_id,
+                'event_key' => get_post_meta( $event->ID, '_fcrc_cron_event_key', true ),
+                'cron_post_id' => $event->ID,
+            );
+
+            // Unschedule the event from WP-Cron
+            wp_unschedule_event( $timestamp, 'fcrc_send_follow_up_message', $args );
+
+            // Delete the cron-event post to clean up
+            wp_delete_post( $event->ID, true );
+
+            // Log the cancellation if debug mode is enabled
+            if ( defined( 'FC_RECOVERY_CARTS_DEBUG_MODE' ) && FC_RECOVERY_CARTS_DEBUG_MODE ) {
+                error_log( sprintf( 'Cancelled follow-up event for cart %d, cron_post_id %d', $cart_id, $event->ID ) );
+            }
+        }
+    }
 }

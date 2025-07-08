@@ -130,15 +130,15 @@ class Carts_Table extends WP_List_Table {
      */
     public function get_columns() {
         $columns = array(
-            'cb'          => '<input type="checkbox" />',
-            'id'          => __('ID', 'fc-recovery-carts'),
-            'notifications' => __( 'Notificações', 'fc-recovery-carts' ),
-            'contact'     => __('Contato', 'fc-recovery-carts'),
-            'location'    => __('Localização', 'fc-recovery-carts'),
-            'products'    => __('Produtos', 'fc-recovery-carts'),
-            'total'       => __('Valor do carrinho', 'fc-recovery-carts'),
-            'abandoned'   => __('Data do evento', 'fc-recovery-carts'),
-            'status'      => __('Status', 'fc-recovery-carts'),
+            'cb'            => '<input type="checkbox" />',
+            'id'            => __('ID', 'fc-recovery-carts'),
+            'notifications' => __( 'Notificações enviadas', 'fc-recovery-carts' ),
+            'contact'       => __('Contato', 'fc-recovery-carts'),
+            'location'      => __('Localização', 'fc-recovery-carts'),
+            'products'      => __('Produtos', 'fc-recovery-carts'),
+            'total'         => __('Valor do carrinho', 'fc-recovery-carts'),
+            'abandoned'     => __('Data do evento', 'fc-recovery-carts'),
+            'status'        => __('Status', 'fc-recovery-carts'),
         );
 
         return $columns;

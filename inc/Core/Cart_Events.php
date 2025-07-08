@@ -95,7 +95,7 @@ class Cart_Events {
      * Creates a new cart post if none exists
      * 
      * @since 1.1.0
-     * @version 1.2.0
+     * @version 1.3.0
      * @return int $cart_id | The cart ID
      */
     public static function create_cart_post() {
@@ -113,62 +113,30 @@ class Cart_Events {
             return;
         }
 
-        $client_ip = '';
+        // Determine client IP (cookie fallback → REMOTE_ADDR)
+        $client_ip = Helpers::get_client_ip();
 
-        if ( isset( $_COOKIE['fcrc_location'] ) ) {
-            $location_data = json_decode( stripslashes( $_COOKIE['fcrc_location'] ), true );
-            $client_ip = $location_data['ip'] ?? '';
-        }
-
-        if ( empty( $client_ip ) ) {
-            $client_ip = $_SERVER['REMOTE_ADDR'] ?? '';
-        }
-
+        // If IP has an existing cart in lost/recovered/purchased state, skip
         if ( $client_ip ) {
-            $existing_cart_query = new \WP_Query( array(
-                'post_type' => 'fc-recovery-carts',
-                'post_status' => array( 'lost', 'recovered', 'purchased' ),
-                'meta_query' => array(
-                    array(
-                        'key' => '_fcrc_location_ip',
-                        'value' => $client_ip,
-                        'compare' => '=',
-                    ),
-                ),
+            $existing = get_posts( array(
+                'post_type'      => 'fc-recovery-carts',
+                'post_status'    => array( 'lead', 'shopping', 'abandoned', 'order_abandoned', ),
+                'meta_key'       => '_fcrc_location_ip',
+                'meta_value'     => $client_ip,
                 'posts_per_page' => 1,
-                'fields' => 'ids',
+                'fields'         => 'ids',
             ) );
-        
-            if ( $existing_cart_query->have_posts() ) {
+
+            if ( ! empty( $existing ) ) {
                 if ( self::$debug_mode ) {
-                    error_log( 'Cart already created from this IP with status lost/recovered/purchased. Skipping cart creation.' );
+                    error_log( 'Active recovery cart exists for IP ' . $client_ip . '. Skipping creation.' );
                 }
-        
-                return;
+
+                return null;
             }
         }
 
-        if ( is_user_logged_in() ) {
-            $user = wp_get_current_user();
-            $first_name = $user->first_name ?: '';
-            $last_name = $user->last_name ?: '';
-            $email = $user->user_email ?: '';
-            $phone = get_user_meta( $user->ID, 'billing_phone', true ) ?: '';
-        } elseif ( isset( WC()->session ) && WC()->session->get('flexify_checkout_customer_fields') ) {
-            // get customer data from checkout session
-            $customer_fields = WC()->session->get('flexify_checkout_customer_fields');
-            $first_name = $customer_fields['billing_first_name'] ?? '';
-            $last_name = $customer_fields['billing_last_name'] ?? '';
-            $email = $customer_fields['billing_email'] ?? '';
-            $phone = $customer_fields['billing_phone'] ?? '';
-        } else {
-            $first_name = $_COOKIE['fcrc_first_name'] ?? '';
-            $last_name = $_COOKIE['fcrc_last_name'] ?? '';
-            $email = $_COOKIE['fcrc_email'] ?? '';
-            $phone = $_COOKIE['fcrc_phone'] ?? '';
-        }
-
-        // Get WooCommerce cart contents
+        // Build cart items array and total
         $cart_items_data = WC()->cart->get_cart();
         $cart_items = array();
         $cart_total = 0;
@@ -197,7 +165,8 @@ class Cart_Events {
         }
 
         // get cached location data
-        $get_location_data = isset( $_COOKIE['fcrc_location'] ) ? json_decode( stripslashes( $_COOKIE['fcrc_location'] ), true ) : null;
+        $location = isset( $_COOKIE['fcrc_location'] ) ? json_decode( stripslashes( $_COOKIE['fcrc_location'] ), true ) : array();
+        $contact = Helpers::get_cart_contact_data();
 
         // Create new cart post
         $cart_id = wp_insert_post( array(
@@ -209,15 +178,15 @@ class Cart_Events {
                 '_fcrc_cart_total' => $cart_total,
                 '_fcrc_cart_updated_time' => time(),
                 '_fcrc_abandoned_time' => '',
-                '_fcrc_first_name' => $first_name,
-                '_fcrc_last_name' => $last_name,
-                '_fcrc_full_name' => sprintf( '%s %s', $first_name, $last_name ),
-                '_fcrc_cart_phone' => $phone,
-                '_fcrc_cart_email' => $email,
-                '_fcrc_location_city' => $get_location_data['city'] ?? '',
-                '_fcrc_location_state' => $get_location_data['region'] ?? '',
-                '_fcrc_location_country_code' => $get_location_data['country_code'] ?? '',
-                '_fcrc_location_ip' => $get_location_data['ip'] ?? '',
+                '_fcrc_first_name' => $contact['first_name'] ?? '',
+                '_fcrc_last_name' => $contact['last_name']  ?? '',
+                '_fcrc_full_name' => sprintf( '%s %s', $contact['first_name'] ?? '', $contact['last_name'] ?? '' ),
+                '_fcrc_cart_phone' => apply_filters( 'Flexify_Checkout/Recovery_Carts/Contact_Phone', $contact['phone'] ?? '' ),
+                '_fcrc_cart_email' => $contact['email']    ?? '',
+                '_fcrc_location_city' => $location['city'] ?? '',
+                '_fcrc_location_state' => $location['region'] ?? '',
+                '_fcrc_location_country_code' => $location['country_code'] ?? '',
+                '_fcrc_location_ip' => $location['ip'] ?? '',
             ),
         ));
 
@@ -304,7 +273,8 @@ class Cart_Events {
         $has_post = get_post( $cart_id );
         $cart_status = get_post_status( $cart_id );
 
-        if ( ! $has_post || in_array( $cart_status, array( 'recovered', 'purchased' ), true ) ) {
+        // if there is no cart post or is status recovered, lost or purchased, then create a new one
+        if ( ! $has_post || in_array( $cart_status, array( 'recovered', 'lost', 'purchased' ), true ) ) {
             self::create_cart_post();
         }
 
@@ -337,25 +307,46 @@ class Cart_Events {
         }
 
         // get cached location data
-        $get_location_data = isset( $_COOKIE['fcrc_location'] ) ? json_decode( stripslashes( $_COOKIE['fcrc_location'] ), true ) : null;
+        $location = isset( $_COOKIE['fcrc_location'] ) ? json_decode( stripslashes( $_COOKIE['fcrc_location'] ), true ) : array();
 
         // has location data
-        if ( ! empty( $get_location_data ) ) {
-            if ( ! empty( $get_location_data['city'] ) ) {
-                update_post_meta( $cart_id, '_fcrc_location_city', $get_location_data['city'] ?? '' );
+        if ( ! empty( $location ) ) {
+            if ( ! empty( $location['city'] ) ) {
+                update_post_meta( $cart_id, '_fcrc_location_city', $location['city'] ?? '' );
             }
 
-            if ( ! empty( $get_location_data['region'] ) ) {
-                update_post_meta( $cart_id, '_fcrc_location_state', $get_location_data['region'] ?? '' );
+            if ( ! empty( $location['region'] ) ) {
+                update_post_meta( $cart_id, '_fcrc_location_state', $location['region'] ?? '' );
             }
 
-            if ( ! empty( $get_location_data['country_code'] ) ) {
-                update_post_meta( $cart_id, '_fcrc_location_country_code', $get_location_data['country_code'] ?? '' );
+            if ( ! empty( $location['country_code'] ) ) {
+                update_post_meta( $cart_id, '_fcrc_location_country_code', $location['country_code'] ?? '' );
             }
 
-            if ( ! empty( $get_location_data['ip'] ) ) {
-                update_post_meta( $cart_id, '_fcrc_location_ip', $get_location_data['ip'] ?? '' );
+            if ( ! empty( $location['ip'] ) ) {
+                update_post_meta( $cart_id, '_fcrc_location_ip', $location['ip'] ?? '' );
             }
+        }
+
+        // get IP address
+        $ip = $location['ip'] ?? '';
+
+        // map user by IP
+        if ( $ip ) {
+            $map = get_option( 'fcrc_ip_user_map', array() );
+
+            $map[ $ip ] = array(
+                'first_name' => $contact['first_name'] ?? '',
+                'last_name' => $contact['last_name']  ?? '',
+                'full_name' => sprintf( '%s %s', $contact['first_name'] ?? '', $contact['last_name'] ?? '' ),
+                'phone' => $phone,
+                'email' => $contact['email'] ?? '',
+                'cart_id' => $cart_id,
+                'collected_at' => current_time('mysql'),
+            );
+
+            // save user mapped
+            update_option( 'fcrc_ip_user_map', $map );
         }
 
         // Get WooCommerce cart contents

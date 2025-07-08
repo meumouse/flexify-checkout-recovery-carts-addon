@@ -265,12 +265,11 @@ class Ajax {
             $country_code = $country_data['iso2'] ?? '';
             $country_dial_code = $country_data['dialCode'] ?? '';
             $format_phone = $country_dial_code . $phone;
-            $international_phone = preg_replace( '/\D/', '', $format_phone );
+            $phone = preg_replace( '/\D/', '', $format_phone );
             $get_cart_id = isset( $_POST['cart_id'] ) ? sanitize_text_field( $_POST['cart_id'] ) : '';
-            $ip_data = isset( $_POST['ip_data'] ) ? json_decode( stripslashes( $_POST['ip_data'] ), true ) : array();
 
             // get full name
-            $contact_name = sprintf( '%s %s', $first_name, $last_name );
+            $full_name = sprintf( '%s %s', $first_name, $last_name );
 
             // get cart total
             $cart_total = WC()->cart ? WC()->cart->get_cart_contents_total() : 0;
@@ -283,13 +282,13 @@ class Ajax {
                 $cart_id = wp_insert_post( array(
                     'post_type' => 'fc-recovery-carts',
                     'post_status' => 'lead',
-                    'post_title' => 'Lead: ' . $contact_name,
+                    'post_title' => 'Lead: ' . $full_name,
                     'post_content' => '',
                     'meta_input' => array(
                         '_fcrc_first_name' => $first_name,
                         '_fcrc_last_name' => $last_name,
-                        '_fcrc_full_name' => $contact_name,
-                        '_fcrc_cart_phone' => $international_phone,
+                        '_fcrc_full_name' => $full_name,
+                        '_fcrc_cart_phone' => $phone,
                         '_fcrc_cart_email' => $email,
                         '_fcrc_cart_total' => $cart_total,
                         '_fcrc_cart_items' => WC()->cart ? WC()->cart->get_cart() : array(),
@@ -301,8 +300,8 @@ class Ajax {
 
                 update_post_meta( $cart_id, '_fcrc_first_name', $first_name );
                 update_post_meta( $cart_id, '_fcrc_last_name', $last_name );
-                update_post_meta( $cart_id, '_fcrc_full_name', $contact_name );
-                update_post_meta( $cart_id, '_fcrc_cart_phone', $international_phone );
+                update_post_meta( $cart_id, '_fcrc_full_name', $full_name );
+                update_post_meta( $cart_id, '_fcrc_cart_phone', $phone );
                 update_post_meta( $cart_id, '_fcrc_cart_email', $email );
             }
 
@@ -311,8 +310,11 @@ class Ajax {
                 WC()->session->set( 'fcrc_cart_id', $cart_id );
             }
 
+            // get cached location data
+            $location = isset( $_COOKIE['fcrc_location'] ) ? json_decode( stripslashes( $_COOKIE['fcrc_location'] ), true ) : array();
+
             // get IP address
-            $ip = $ip_data['ip'] ?? '';
+            $ip = $location['ip'] ?? '';
 
             // map user by IP
             if ( $ip ) {
@@ -321,8 +323,8 @@ class Ajax {
                 $map[ $ip ] = array(
                     'first_name' => $first_name,
                     'last_name' => $last_name,
-                    'full_name' => $contact_name,
-                    'phone' => $international_phone,
+                    'full_name' => $full_name,
+                    'phone' => $phone,
                     'email' => $email,
                     'cart_id' => $cart_id,
                     'collected_at' => current_time('mysql'),
@@ -342,8 +344,8 @@ class Ajax {
             do_action( 'Flexify_Checkout/Recovery_Carts/Lead_Collected', $cart_id, array(
                 'first_name' => $first_name,
                 'last_name' => $last_name,
-                'full_name' => $contact_name,
-                'phone' => $international_phone,
+                'full_name' => $full_name,
+                'phone' => $phone,
                 'email' => $email,
                 'country' => $country_code,
                 'cart_total' => $cart_total,
@@ -383,7 +385,6 @@ class Ajax {
             $phone = isset( $_POST['phone'] ) ? sanitize_text_field( $_POST['phone'] ) : '';
             $email = isset( $_POST['email'] ) ? sanitize_email( $_POST['email'] ) : '';
             $full_name = sprintf( '%s %s', $first_name, $last_name );
-            $ip_data = isset( $_POST['ip_data'] ) ? json_decode( stripslashes( $_POST['ip_data'] ), true ) : array();
 
             // check if user exists
             $user = get_user_by( 'email', $email );
@@ -397,8 +398,11 @@ class Ajax {
                 update_post_meta( $cart_id, '_fcrc_cart_email', $email );
                 update_post_meta( $cart_id, '_fcrc_user_id', $user_id );
 
+                // get cached location data
+                $location = isset( $_COOKIE['fcrc_location'] ) ? json_decode( stripslashes( $_COOKIE['fcrc_location'] ), true ) : array();
+
                 // get IP address
-                $ip = $ip_data['ip'] ?? '';
+                $ip = $location['ip'] ?? '';
 
                 // map user by IP
                 if ( $ip ) {
