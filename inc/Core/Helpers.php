@@ -191,7 +191,7 @@ class Helpers {
 
         // store cart ID in session and cookie
         WC()->session->set( 'fcrc_cart_id', $cart_id );
-        setcookie( 'fcrc_cart_id', $cart_id, current_time('mysql') + ( 7 * 24 * 60 * 60 ), COOKIEPATH, COOKIE_DOMAIN );
+        setcookie( 'fcrc_cart_id', $cart_id, strtotime( current_time('mysql') ) + ( 7 * 24 * 60 * 60 ), COOKIEPATH, COOKIE_DOMAIN );
 
         if ( self::$debug_mode ) {
             error_log( "Cart {$cart_id} restored and redirecting to checkout." );
@@ -221,7 +221,7 @@ class Helpers {
         // Remove from cookie
         if ( isset( $_COOKIE['fcrc_cart_id'] ) ) {
             unset( $_COOKIE['fcrc_cart_id'] );
-            setcookie( 'fcrc_cart_id', '', current_time('mysql') - 3600, COOKIEPATH, COOKIE_DOMAIN );
+            setcookie( 'fcrc_cart_id', '', strtotime( current_time('mysql') ) - 3600, COOKIEPATH, COOKIE_DOMAIN );
         }
 
         if ( self::$debug_mode ) {

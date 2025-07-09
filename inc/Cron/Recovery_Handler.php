@@ -61,7 +61,7 @@ class Recovery_Handler {
      */
     public function check_abandoned_carts() {
         $time_limit_seconds = Helpers::get_abandonment_time_seconds();
-        $current_time = current_time('mysql');
+        $current_time = strtotime( current_time('mysql') );
         $time_threshold = $current_time - ( $time_limit_seconds + 30 ); // add 30 seconds to account for any time differences
 
         $query = new \WP_Query( array(
@@ -157,7 +157,7 @@ class Recovery_Handler {
             $delay = Helpers::convert_to_seconds( $event_data['delay_time'], $event_data['delay_type'] );
     
             if ( $delay ) {
-                $event_delay = current_time('mysql') + $delay;
+                $event_delay = strtotime( current_time('mysql') ); + $delay;
 
                 $post_id = wp_insert_post( array(
                     'post_type' => 'fcrc-cron-event',
@@ -239,7 +239,7 @@ class Recovery_Handler {
             $notifications[] = array(
                 'event_key' => sanitize_key( $event_key ),
                 'channel' => sanitize_key( $channel ),
-                'sent_at' => current_time('mysql'),
+                'sent_at' => strtotime( current_time('mysql') ),
             );
         }
 
@@ -340,7 +340,7 @@ class Recovery_Handler {
         // check if there was recent activity
         $last_ping = (int) get_post_meta( $cart_id, '_fcrc_cart_updated_time', true );
         $time_limit_seconds = Helpers::get_abandonment_time_seconds();
-        $time_threshold = current_time('mysql') - $time_limit_seconds;
+        $time_threshold = strtotime( current_time('mysql') ); - $time_limit_seconds;
     
         // if last ping is before the time threshold, it's considered abandoned
         if ( $last_ping < $time_threshold ) {

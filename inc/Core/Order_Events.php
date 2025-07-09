@@ -75,7 +75,7 @@ class Order_Events {
 
         // Schedule a task to check order payment status after the delay
         if ( ! wp_next_scheduled( 'fcrc_check_final_cart_status', array( $order_id) ) ) {
-            wp_schedule_single_event( current_time('mysql') + $delay_seconds, 'fcrc_check_final_cart_status', array( $order_id ) );
+            wp_schedule_single_event( strtotime( current_time('mysql') ) + $delay_seconds, 'fcrc_check_final_cart_status', array( $order_id ) );
         }
     }
 
@@ -96,7 +96,7 @@ class Order_Events {
         }
 
         // Mark order as abandoned
-        update_post_meta( $cart_id, '_fcrc_abandoned_time', current_time('mysql') );
+        update_post_meta( $cart_id, '_fcrc_abandoned_time', strtotime( current_time('mysql') ) );
 
         // update cart post
         wp_update_post( array(

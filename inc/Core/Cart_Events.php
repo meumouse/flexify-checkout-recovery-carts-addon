@@ -167,13 +167,13 @@ class Cart_Events {
         // get cached location data
         $location = isset( $_COOKIE['fcrc_location'] ) ? json_decode( stripslashes( $_COOKIE['fcrc_location'] ), true ) : array();
         $contact = Helpers::get_cart_contact_data();
-        $current_time = current_time('mysql');
+        $current_time = strtotime( current_time('mysql') );
 
         // Create new cart post
         $cart_id = wp_insert_post( array(
             'post_type' => 'fc-recovery-carts',
             'post_status' => 'shopping',
-            'post_title' => sprintf( __( 'Novo carrinho - %s', 'fc-recovery-carts' ), current_time('mysql') ),
+            'post_title' => sprintf( __( 'Novo carrinho - %s', 'fc-recovery-carts' ), strtotime( current_time('mysql') ) ),
             'meta_input' => array(
                 '_fcrc_cart_items' => $cart_items,
                 '_fcrc_cart_total' => $cart_total,
@@ -331,7 +331,7 @@ class Cart_Events {
 
         // get IP address
         $ip = $location['ip'] ?? '';
-        $current_time = current_time('mysql');
+        $current_time = strtotime( current_time('mysql') );
 
         // map user by IP
         if ( $ip ) {

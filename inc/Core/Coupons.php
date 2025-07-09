@@ -71,7 +71,7 @@ class Coupons {
         $coupon->set_free_shipping( isset( $coupon_data['allow_free_shipping'] ) && $coupon_data['allow_free_shipping'] === 'yes' );
     
         // Determine expiration time
-        $current_time = current_time('mysql');
+        $current_time = strtotime( current_time('mysql') );
         $expiry_seconds = ! empty( $coupon_data['expiration_time'] ) ? Helpers::convert_to_seconds( $coupon_data['expiration_time'], $coupon_data['expiration_time_unit'] ) : 0;
     
         // Adjust expiration logic

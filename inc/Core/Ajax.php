@@ -327,7 +327,7 @@ class Ajax {
                     'phone' => $phone,
                     'email' => $email,
                     'cart_id' => $cart_id,
-                    'collected_at' => current_time('mysql'),
+                    'collected_at' => strtotime( current_time('mysql') ),
                 );
 
                 // save user mapped
@@ -415,7 +415,7 @@ class Ajax {
                         'phone' => $phone,
                         'email' => $email,
                         'cart_id' => $cart_id,
-                        'collected_at' => current_time('mysql'),
+                        'collected_at' => strtotime( current_time('mysql') ),
                     );
 
                     // save user mapped

@@ -69,7 +69,7 @@ class Updater {
 
         // schedule daily updates
         if ( ! wp_next_scheduled('fc_recovery_carts_check_daily_update') ) {
-            wp_schedule_event( current_time('mysql'), 'daily', 'fc_recovery_carts_check_daily_update' );
+            wp_schedule_event( strtotime( current_time('mysql') ), 'daily', 'fc_recovery_carts_check_daily_update' );
         }
 
         // check daily updates
@@ -409,7 +409,7 @@ class Updater {
      */
     public function schedule_auto_update() {
         if ( ! wp_next_scheduled('fc_recovery_carts_auto_update_event') ) {
-            wp_schedule_event( current_time('mysql'), 'daily', 'fc_recovery_carts_auto_update_event' );
+            wp_schedule_event( strtotime( current_time('mysql') ), 'daily', 'fc_recovery_carts_auto_update_event' );
         }
     }
 
