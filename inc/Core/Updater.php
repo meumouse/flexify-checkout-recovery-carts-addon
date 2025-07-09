@@ -17,7 +17,7 @@ defined('ABSPATH') || exit;
  * Class for handling plugin updates
  *
  * @since 1.0.0
- * @version 1.0.2
+ * @version 1.3.0
  * @package MeuMouse.com
  */
 class Updater {
@@ -37,7 +37,7 @@ class Updater {
      * Construct function
      *
      * @since 1.0.0
-     * @version 1.0.2
+     * @version 1.3.0
      * @return void
      */
     public function __construct() {
@@ -69,7 +69,7 @@ class Updater {
 
         // schedule daily updates
         if ( ! wp_next_scheduled('fc_recovery_carts_check_daily_update') ) {
-            wp_schedule_event( time(), 'daily', 'fc_recovery_carts_check_daily_update' );
+            wp_schedule_event( current_time('mysql'), 'daily', 'fc_recovery_carts_check_daily_update' );
         }
 
         // check daily updates
@@ -404,11 +404,12 @@ class Updater {
      * Schedule automatic update event
      *
      * @since 1.0.0
+     * @version 1.3.0
      * @return void
      */
     public function schedule_auto_update() {
         if ( ! wp_next_scheduled('fc_recovery_carts_auto_update_event') ) {
-            wp_schedule_event( time(), 'daily', 'fc_recovery_carts_auto_update_event' );
+            wp_schedule_event( current_time('mysql'), 'daily', 'fc_recovery_carts_auto_update_event' );
         }
     }
 

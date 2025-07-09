@@ -46,6 +46,7 @@ class Order_Events {
      * Schedules an event to check if the order is paid within the configured delay
      *
      * @since 1.0.0
+     * @version 1.3.0
      * @param int $order_id | The order ID
      * @param array $posted_data | The posted data from checkout
      * @param object $order | The WooCommerce order object
@@ -74,7 +75,7 @@ class Order_Events {
 
         // Schedule a task to check order payment status after the delay
         if ( ! wp_next_scheduled( 'fcrc_check_final_cart_status', array( $order_id) ) ) {
-            wp_schedule_single_event( time() + $delay_seconds, 'fcrc_check_final_cart_status', array( $order_id ) );
+            wp_schedule_single_event( current_time('mysql') + $delay_seconds, 'fcrc_check_final_cart_status', array( $order_id ) );
         }
     }
 

@@ -56,12 +56,13 @@ class Recovery_Handler {
      * Checks for abandoned carts by verifying last ping time
      *
      * @since 1.0.0
-     * @version 1.2.0
+     * @version 1.3.0
      * @return void
      */
     public function check_abandoned_carts() {
         $time_limit_seconds = Helpers::get_abandonment_time_seconds();
-        $time_threshold = time() - ( $time_limit_seconds + 30 ); // add 30 seconds to account for any time differences
+        $current_time = current_time('mysql');
+        $time_threshold = $current_time - ( $time_limit_seconds + 30 ); // add 30 seconds to account for any time differences
 
         $query = new \WP_Query( array(
             'post_type' => 'fc-recovery-carts',
@@ -94,7 +95,7 @@ class Recovery_Handler {
                 // Check if cart should be marked as abandoned
                 if ( empty( $last_ping ) || $last_ping < $time_threshold ) {
                     // Update abandoned time
-                    update_post_meta( $cart_id, '_fcrc_abandoned_time', current_time('mysql') );
+                    update_post_meta( $cart_id, '_fcrc_abandoned_time', $current_time );
 
                     // Update status to abandoned
                     wp_update_post( array(
@@ -156,7 +157,7 @@ class Recovery_Handler {
             $delay = Helpers::convert_to_seconds( $event_data['delay_time'], $event_data['delay_type'] );
     
             if ( $delay ) {
-                $event_delay = time() + $delay;
+                $event_delay = current_time('mysql') + $delay;
 
                 $post_id = wp_insert_post( array(
                     'post_type' => 'fcrc-cron-event',
@@ -165,7 +166,7 @@ class Recovery_Handler {
                     'meta_input' => array(
                         '_fcrc_cart_id' => $cart_id,
                         '_fcrc_cron_event_key' => 'fcrc_send_follow_up_message',
-                        '_fcrc_cron_scheduled_at' => date_i18n( 'Y-m-d H:i:s', $event_delay ),
+                        '_fcrc_cron_scheduled_at' => $event_delay,
                     ),
                 ));
 
@@ -339,7 +340,7 @@ class Recovery_Handler {
         // check if there was recent activity
         $last_ping = (int) get_post_meta( $cart_id, '_fcrc_cart_updated_time', true );
         $time_limit_seconds = Helpers::get_abandonment_time_seconds();
-        $time_threshold = time() - $time_limit_seconds;
+        $time_threshold = current_time('mysql') - $time_limit_seconds;
     
         // if last ping is before the time threshold, it's considered abandoned
         if ( $last_ping < $time_threshold ) {

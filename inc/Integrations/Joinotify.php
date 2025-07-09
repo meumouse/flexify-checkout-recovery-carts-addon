@@ -104,7 +104,7 @@ class Joinotify extends Integrations_Base {
         // check if Joinotify is active
         if ( function_exists('joinotify_send_whatsapp_message_text') ) {
             // Replace placeholders in the message
-            $message = Placeholders::replace_placeholders( $modal_data['message'], $cart_id );
+            $message = Placeholders::replace_placeholders( $modal_data['message'], $cart_id, $modal_data );
             $sender = Admin::get_setting('joinotify_sender_phone');
             $receiver = function_exists('joinotify_prepare_receiver') ? joinotify_prepare_receiver( $lead_data['phone'] ) : $lead_data['phone'];
 

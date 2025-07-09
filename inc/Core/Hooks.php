@@ -44,7 +44,7 @@ class Hooks {
         add_action( 'fcrc_delete_old_anonymous_carts', array( $this, 'delete_old_anonymous_carts' ) );
 
         if ( ! wp_next_scheduled('fcrc_delete_old_anonymous_carts') ) {
-            wp_schedule_event( time(), 'hourly', 'fcrc_delete_old_anonymous_carts' );
+            wp_schedule_event( current_time('mysql'), 'hourly', 'fcrc_delete_old_anonymous_carts' );
         }
 
         // set cart abandoned manually
@@ -107,7 +107,7 @@ class Hooks {
      * @return void
      */
     public function delete_old_anonymous_carts() {
-        $one_hour_ago = time() - HOUR_IN_SECONDS;
+        $one_hour_ago = current_time('mysql') - HOUR_IN_SECONDS;
 
         $query = new \WP_Query( array(
             'post_type' => 'fc-recovery-carts',

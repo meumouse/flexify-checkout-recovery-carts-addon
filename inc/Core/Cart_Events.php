@@ -167,6 +167,7 @@ class Cart_Events {
         // get cached location data
         $location = isset( $_COOKIE['fcrc_location'] ) ? json_decode( stripslashes( $_COOKIE['fcrc_location'] ), true ) : array();
         $contact = Helpers::get_cart_contact_data();
+        $current_time = current_time('mysql');
 
         // Create new cart post
         $cart_id = wp_insert_post( array(
@@ -176,7 +177,7 @@ class Cart_Events {
             'meta_input' => array(
                 '_fcrc_cart_items' => $cart_items,
                 '_fcrc_cart_total' => $cart_total,
-                '_fcrc_cart_updated_time' => time(),
+                '_fcrc_cart_updated_time' => $current_time,
                 '_fcrc_abandoned_time' => '',
                 '_fcrc_first_name' => $contact['first_name'] ?? '',
                 '_fcrc_last_name' => $contact['last_name']  ?? '',
@@ -194,7 +195,7 @@ class Cart_Events {
         WC()->session->set( 'fcrc_cart_id', $cart_id );
 
         // Store cart ID in cookie
-        setcookie( 'fcrc_cart_id', $cart_id, time() + ( 7 * 24 * 60 * 60 ), COOKIEPATH, COOKIE_DOMAIN ); // Expires in 7 days
+        setcookie( 'fcrc_cart_id', $cart_id, $current_time + ( 7 * 24 * 60 * 60 ), COOKIEPATH, COOKIE_DOMAIN ); // Expires in 7 days
 
         // set flag for prevent duplicate carts
         WC()->session->set( 'fcrc_active_cart', true );
@@ -330,6 +331,7 @@ class Cart_Events {
 
         // get IP address
         $ip = $location['ip'] ?? '';
+        $current_time = current_time('mysql');
 
         // map user by IP
         if ( $ip ) {
@@ -342,7 +344,7 @@ class Cart_Events {
                 'phone' => $phone,
                 'email' => $contact['email'] ?? '',
                 'cart_id' => $cart_id,
-                'collected_at' => current_time('mysql'),
+                'collected_at' => $current_time,
             );
 
             // save user mapped
@@ -380,7 +382,7 @@ class Cart_Events {
         // Update cart post metadata
         update_post_meta( $cart_id, '_fcrc_cart_items', $cart_items );
         update_post_meta( $cart_id, '_fcrc_cart_total', $cart_total );
-        update_post_meta( $cart_id, '_fcrc_cart_updated_time', time() );
+        update_post_meta( $cart_id, '_fcrc_cart_updated_time', $current_time );
     }
 
 
