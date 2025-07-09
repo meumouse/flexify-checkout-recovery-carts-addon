@@ -73,8 +73,10 @@ class Ajax {
      */
     public function admin_save_options_callback() {
         if ( isset( $_POST['action'] ) && $_POST['action'] === 'fc_recovery_carts_save_options' ) {
+            $raw = wp_unslash( $_POST['form_data'] );
+
             // convert form data for associative array
-            parse_str( $_POST['form_data'], $form_data );
+            parse_str( $raw, $form_data );
 
             // get current options 
             $options = get_option( 'flexify_checkout_recovery_carts_settings', array() );
@@ -85,7 +87,11 @@ class Ajax {
             // update all fields except arrays like toggle_switchs and follow_up_events
             foreach ( $default_options as $key => $value ) {
                 if ( ! is_array( $value ) && isset( $form_data[$key] ) ) {
-                    $options[$key] = sanitize_text_field( $form_data[$key] );
+                    if ( strpos( $key, 'message' ) !== false ) {
+                        $options[ $key ] = sanitize_textarea_field( $form_data[ $key ] );
+                    } else {
+                        $options[ $key ] = sanitize_text_field( $form_data[ $key ] );
+                    }
                 }
             }
     

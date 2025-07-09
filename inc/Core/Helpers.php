@@ -313,7 +313,11 @@ class Helpers {
             if ( is_array( $value ) ) {
                 $array[ $key ] = self::sanitize_array( $value );
             } else {
-                $array[ $key ] = sanitize_text_field( $value );
+                if ( strpos( $key, 'message' ) !== false ) {
+                    $array[ $key ] = sanitize_textarea_field( wp_unslash( $value ) );
+                } else {
+                    $array[ $key ] = sanitize_text_field( wp_unslash( $value ) );
+                }
             }
         }
         return $array;

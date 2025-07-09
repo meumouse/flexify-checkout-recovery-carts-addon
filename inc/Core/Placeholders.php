@@ -95,7 +95,7 @@ class Placeholders {
                 },
             ),
             '{{ cart_total }}' => array(
-                'title' => esc_html__( 'Valor total do carrinho formatado com símbolo de moeda', 'fc-recovery-carts' ),
+                'title' => esc_html__( 'Valor total do carrinho', 'fc-recovery-carts' ),
                 'callback' => function( $cart_id, $event ) {
                     $total = (float) get_post_meta( $cart_id, '_fcrc_cart_total', true );
 
@@ -104,7 +104,7 @@ class Placeholders {
                     }
 
                     // format price
-                    return html_entity_decode( wc_price( $total ) );
+                    return $total;
                 },
             ),
         ));

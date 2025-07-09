@@ -116,7 +116,7 @@ class Assets {
         }
 
         // analytics scripts
-        if ( Helpers::check_admin_page('fc-recovery-carts') && ! Helpers::check_admin_page('fc-recovery-carts-list') && ! Helpers::check_admin_page('fc-recovery-carts-queue') ) {
+        if ( Helpers::check_admin_page('fc-recovery-carts') && ! Helpers::check_admin_page('fc-recovery-carts-list') && ! Helpers::check_admin_page('fc-recovery-carts-queue') && ! Helpers::check_admin_page('fc-recovery-carts-settings') ) {
             // Apexcharts library
 			wp_enqueue_style( 'apexcharts-styles', $this->assets_url . 'vendor/apexcharts/apexcharts.css', array(), '4.3.0' );
             wp_enqueue_script( 'apexcharts-scripts', $this->assets_url . 'vendor/apexcharts/apexcharts.min.js', array(), '4.3.0' );
