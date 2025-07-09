@@ -1,3 +1,13 @@
+Versão 1.3.0 (08/07/2025)
+* Correção de bugs
+* Otimizações
+    - Não registrar evento Cron se carrinho for de visitante anônimo
+    - Preenchimento de dados do lead através do IP
+* Recurso adicionado: Configurar API de coleta de localização através do IP
+* Recurso adicionado: Painel de análise de métricas
+* Recurso adicionado: Variável de texto {{ cart_total }} para recuperar o valor total do carrinho ou pedido vinculado
+* Recurso adicionado: Variável de texto {{ products_list }} para recuperar a lista de produtos do carrinho ou pedido vinculado
+
 Versão 1.2.0 (10/04/2025)
 * Correção de bugs
 * Otimizações

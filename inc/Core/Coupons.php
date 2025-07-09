@@ -9,7 +9,7 @@ defined('ABSPATH') || exit;
  * Handler with WooCommerce coupons
  * 
  * @since 1.0.0
- * @version 1.2.0
+ * @version 1.3.0
  * @package MeuMouse.com
  */
 class Coupons {
@@ -18,6 +18,7 @@ class Coupons {
      * Generate WooCommerce discount coupon
      *
      * @since 1.0.0
+     * @version 1.3.0
      * @param array $coupon_data | Coupon settings data
      * @param int $cart_id | The recovery cart post ID
      * @return mixed int|WP_Error Coupon ID or error
@@ -26,6 +27,16 @@ class Coupons {
         if ( empty( $coupon_data ) || ! isset( $coupon_data['discount_type'], $coupon_data['discount_value'] ) ) {
             error_log( 'Coupon data is empty or missing required fields.' );
             return new \WP_Error( 'missing_data', __( 'Dados insuficientes para criar o cupom.', 'fc-recovery-carts' ) );
+        }
+
+        $discount_value = floatval( $coupon_data['discount_value'] );
+
+        // Check if discount value is valid
+        if ( $discount_value <= 0 ) {
+            return new \WP_Error(
+                'invalid_discount_value',
+                __( 'O valor do desconto deve ser maior que zero para gerar um cupom.', 'fc-recovery-carts' )
+            );
         }
     
         // Get prefix
@@ -60,14 +71,14 @@ class Coupons {
         $coupon->set_free_shipping( isset( $coupon_data['allow_free_shipping'] ) && $coupon_data['allow_free_shipping'] === 'yes' );
     
         // Determine expiration time
-        $time_now = time();
+        $current_time = strtotime( current_time('mysql') );
         $expiry_seconds = ! empty( $coupon_data['expiration_time'] ) ? Helpers::convert_to_seconds( $coupon_data['expiration_time'], $coupon_data['expiration_time_unit'] ) : 0;
     
         // Adjust expiration logic
         if ( $expiry_seconds < DAY_IN_SECONDS ) {
-            $expiry_timestamp = strtotime('tomorrow', $time_now);
+            $expiry_timestamp = strtotime('tomorrow', $current_time);
         } else {
-            $expiry_timestamp = $time_now + $expiry_seconds;
+            $expiry_timestamp = $current_time + $expiry_seconds;
         }
     
         // Set expiration date
@@ -94,7 +105,7 @@ class Coupons {
             wp_schedule_single_event( $expiry_timestamp, 'fcrc_delete_coupon_on_expiration', array( $coupon->get_id() ) );
         }
 
-        if (  FC_RECOVERY_CARTS_DEV_MODE ) {
+        if (  FC_RECOVERY_CARTS_DEBUG_MODE ) {
             error_log( 'Coupon ID: ' . $coupon->get_id() );
             error_log( 'Coupon generated: ' . $coupon_code );
             error_log( 'Coupon expiration date: ' . $expiry_timestamp );
@@ -124,7 +135,7 @@ class Coupons {
         $coupon_post = get_post( $coupon_id );
     
         if ( ! $coupon_post || $coupon_post->post_type !== 'shop_coupon' ) {
-            if ( FC_RECOVERY_CARTS_DEV_MODE ) {
+            if ( FC_RECOVERY_CARTS_DEBUG_MODE ) {
                 error_log( "Coupon {$coupon_id} not found or is not a valid shop_coupon." );
             }
             return;
@@ -133,7 +144,7 @@ class Coupons {
         // Delete the coupon post
         wp_delete_post( $coupon_id, true );
     
-        if ( FC_RECOVERY_CARTS_DEV_MODE ) {
+        if ( FC_RECOVERY_CARTS_DEBUG_MODE ) {
             error_log( "Coupon {$coupon_id} deleted after expiration." );
         }
     }

@@ -11,7 +11,7 @@ defined('ABSPATH') || exit;
  * Extends WooCommerce session handler to detect expired sessions
  *
  * @since 1.0.0
- * @version 1.1.0
+ * @version 1.3.0
  * @package MeuMouse.com
  */
 class Session_Handler extends WC_Session_Handler {
@@ -50,7 +50,7 @@ class Session_Handler extends WC_Session_Handler {
      * Overrides the session cleanup function to detect abandoned carts
      *
      * @since 1.0.0
-     * @version 1.1.0
+     * @version 1.3.0
      * @return void
      */
     public function cleanup_sessions() {
@@ -59,11 +59,12 @@ class Session_Handler extends WC_Session_Handler {
         parent::cleanup_sessions(); // Run the default WooCommerce cleanup
 
         $time_limit_seconds = Helpers::get_abandonment_time_seconds();
+        $current_time = strtotime( current_time('mysql') );
 
         $query = $wpdb->prepare("
             SELECT session_id, session_key
             FROM {$wpdb->prefix}woocommerce_sessions
-            WHERE session_expiry < %d", time() - $time_limit_seconds
+            WHERE session_expiry < %d", $current_time - $time_limit_seconds
         );
 
         $sessions = $wpdb->get_results( $query );
@@ -75,7 +76,7 @@ class Session_Handler extends WC_Session_Handler {
 
                 if ( $cart_id ) {
                     // Mark the cart as abandoned
-                    update_post_meta( $cart_id, '_fcrc_abandoned_time', current_time('mysql') );
+                    update_post_meta( $cart_id, '_fcrc_abandoned_time', $current_time );
 
                     wp_update_post( array(
                         'ID' => $cart_id,

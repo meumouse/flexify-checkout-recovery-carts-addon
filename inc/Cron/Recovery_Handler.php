@@ -4,8 +4,8 @@ namespace MeuMouse\Flexify_Checkout\Recovery_Carts\Cron;
 
 use MeuMouse\Flexify_Checkout\Recovery_Carts\Admin\Admin;
 use MeuMouse\Flexify_Checkout\Recovery_Carts\Core\Helpers;
-use MeuMouse\Flexify_Checkout\Recovery_Carts\Core\Coupons;
 use MeuMouse\Flexify_Checkout\Recovery_Carts\Core\Placeholders;
+use MeuMouse\Flexify_Checkout\Recovery_Carts\Core\Hooks;
 
 // Exit if accessed directly.
 defined('ABSPATH') || exit;
@@ -14,10 +14,18 @@ defined('ABSPATH') || exit;
  * Handle Cron jobs
  * 
  * @since 1.0.0
- * @version 1.2.0
+ * @version 1.3.0
  * @package MeuMouse.com
  */
 class Recovery_Handler {
+
+    /**
+     * Get debug mode
+     * 
+     * @since 1.3.0
+     * @return bool
+     */
+    public static $debug_mode = FC_RECOVERY_CARTS_DEBUG_MODE;
    
     /**
      * Construct function
@@ -31,35 +39,16 @@ class Recovery_Handler {
         add_action( 'init', array( $this, 'check_abandoned_carts' ) );
 
         // start recovery carts
-        add_action( 'Flexify_Checkout/Recovery_Carts/Cart_Abandoned', array( $this, 'recovery_carts' ), 10, 1 );
+        add_action( 'Flexify_Checkout/Recovery_Carts/Cart_Abandoned', array( $this, 'init_follow_up_events' ), 10, 1 );
 
         // Hook into WordPress to check for cart recovery link on page load
         add_action( 'template_redirect', array( '\MeuMouse\Flexify_Checkout\Recovery_Carts\Core\Helpers', 'maybe_restore_cart' ) );
 
         // Hook to handle the scheduled follow-up messages
-        add_action( 'fcrc_send_follow_up_message', array( $this, 'send_follow_up_message_callback' ), 10, 2 );
+        add_action( 'fcrc_send_follow_up_message', array( $this, 'send_follow_up_message_callback' ), 10, 3 );
 
         // Hook to handle the scheduled final cart status check
-        add_action( 'check_final_cart_status', array( $this, 'check_final_cart_status_callback' ), 10, 1 );
-
-        // Listen for cart changes for clear cart id reference
-        add_action( 'Flexify_Checkout/Recovery_Carts/Cart_Lost', array( '\MeuMouse\Flexify_Checkout\Recovery_Carts\Core\Helpers', 'clear_active_cart' ) );
-        add_action( 'Flexify_Checkout/Recovery_Carts/Cart_Recovered', array( '\MeuMouse\Flexify_Checkout\Recovery_Carts\Core\Helpers', 'clear_active_cart' ) );
-        
-        // cancel follow up events
-        add_action( 'Flexify_Checkout/Recovery_Carts/Cart_Lost_Manually', array( $this, 'cancel_follow_up_events' ), 10, 1 );
-        add_action( 'Flexify_Checkout/Recovery_Carts/Cart_Recovered_Manually', array( $this, 'cancel_follow_up_events' ), 10, 1 );
-        add_action( 'Flexify_Checkout/Recovery_Carts/Cart_Deleted_Manually', array( $this, 'cancel_follow_up_events' ), 10, 1 );
-        
-        // delete coupon on expiration
-        add_action( 'fcrc_delete_coupon_on_expiration', array( 'MeuMouse\Flexify_Checkout\Recovery_Carts\Core\Coupons', 'delete_coupon_on_expiration' ), 10, 1 );
-
-        // delete anonymous carts
-        add_action( 'fcrc_delete_old_anonymous_carts', array( $this, 'delete_old_anonymous_carts' ) );
-
-        if ( ! wp_next_scheduled('fcrc_delete_old_anonymous_carts') ) {
-            wp_schedule_event( time(), 'hourly', 'fcrc_delete_old_anonymous_carts' );
-        }
+        add_action( 'fcrc_check_final_cart_status', array( $this, 'check_final_cart_status_callback' ), 10, 2 );
     }
 
 
@@ -67,12 +56,13 @@ class Recovery_Handler {
      * Checks for abandoned carts by verifying last ping time
      *
      * @since 1.0.0
-     * @version 1.2.0
+     * @version 1.3.0
      * @return void
      */
     public function check_abandoned_carts() {
         $time_limit_seconds = Helpers::get_abandonment_time_seconds();
-        $time_threshold = time() - ( $time_limit_seconds + 30 ); // add 30 seconds to account for any time differences
+        $current_time = strtotime( current_time('mysql') );
+        $time_threshold = $current_time - ( $time_limit_seconds + 30 ); // add 30 seconds to account for any time differences
 
         $query = new \WP_Query( array(
             'post_type' => 'fc-recovery-carts',
@@ -105,15 +95,15 @@ class Recovery_Handler {
                 // Check if cart should be marked as abandoned
                 if ( empty( $last_ping ) || $last_ping < $time_threshold ) {
                     // Update abandoned time
-                    update_post_meta( $cart_id, '_fcrc_abandoned_time', current_time('mysql') );
+                    update_post_meta( $cart_id, '_fcrc_abandoned_time', $current_time );
 
                     // Update status to abandoned
                     wp_update_post( array(
                         'ID' => $cart_id,
                         'post_status' => 'abandoned',
-                    ) );
+                    ));
 
-                    if ( FC_RECOVERY_CARTS_DEV_MODE ) {
+                    if ( self::$debug_mode ) {
                         error_log( 'Abandoned cart: ' . $cart_id . ' | Last ping: ' . $last_ping );
                     }
 
@@ -136,43 +126,60 @@ class Recovery_Handler {
      * Schedules follow-up messages based on admin settings
      *
      * @since 1.0.0
-     * @version 1.1.0
-     * @param int $cart_id The abandoned cart ID
+     * @version 1.3.0
+     * @param int $cart_id | The abandoned cart ID
      * @return void
      */
-    public function recovery_carts( $cart_id ) {
+    public function init_follow_up_events( $cart_id ) {
         $follow_up_events = Admin::get_setting('follow_up_events');
     
+        // check if has follow up events
         if ( ! $follow_up_events || ! is_array( $follow_up_events ) ) {
             return;
         }
+
+        $user_phone = get_post_meta( $cart_id, '_fcrc_cart_phone', true );
+        $user_email = get_post_meta( $cart_id, '_fcrc_cart_email', true );
+
+        // check if cart is from a guest
+        if ( empty( $user_phone ) || empty( $user_email ) ) {
+            return;
+        }
     
-        $max_delay = 0;
-    
+        // iterate for each follow up event
         foreach ( $follow_up_events as $event_key => $event_data ) {
+            // check if follow up event is enabled
+            if ( ! isset( $event_data['enabled'] ) || $event_data['enabled'] !== 'yes' ) {
+                continue;
+            }
+
+            // get delay time for event
             $delay = Helpers::convert_to_seconds( $event_data['delay_time'], $event_data['delay_type'] );
     
             if ( $delay ) {
-                $args = array( 'cart_id' => $cart_id, 'event_key' => $event_key );
+                $event_delay = strtotime( current_time('mysql') ); + $delay;
+
+                $post_id = wp_insert_post( array(
+                    'post_type' => 'fcrc-cron-event',
+                    'post_title' => 'fcrc_send_follow_up_message',
+                    'post_status' => 'publish',
+                    'meta_input' => array(
+                        '_fcrc_cart_id' => $cart_id,
+                        '_fcrc_cron_event_key' => 'fcrc_send_follow_up_message',
+                        '_fcrc_cron_scheduled_at' => $event_delay,
+                    ),
+                ));
+
+                $args = array(
+                    'cart_id' => $cart_id,
+                    'event_key' => $event_key,
+                    'cron_post_id' => $post_id,
+                );
     
                 // prevents scheduling the same event if already scheduled
                 if ( ! wp_next_scheduled( 'fcrc_send_follow_up_message', $args ) ) {
-                    wp_schedule_single_event( time() + $delay, 'fcrc_send_follow_up_message', $args );
+                    wp_schedule_single_event( $event_delay, 'fcrc_send_follow_up_message', $args );
                 }
-    
-                if ( $delay > $max_delay ) {
-                    $max_delay = $delay;
-                }
-            }
-        }
-    
-        // final schedule event, also with verification
-        if ( $max_delay > 0 ) {
-            $final_check_delay = $max_delay + Helpers::convert_to_seconds( 1, 'hours' );
-            $final_check_args = array( 'cart_id' => $cart_id );
-    
-            if ( ! wp_next_scheduled( 'check_final_cart_status', $final_check_args ) ) {
-                wp_schedule_single_event( time() + $final_check_delay, 'check_final_cart_status', $final_check_args );
             }
         }
     }
@@ -182,45 +189,65 @@ class Recovery_Handler {
      * Sends a follow-up message based on the event
      *
      * @since 1.0.0
+     * @version 1.3.0
      * @param int $cart_id | The abandoned cart ID
      * @param string $event_key | The follow-up event key
+     * @param int $cron_post_id | The cron post ID
+     * @return void
      */
-    public function send_follow_up_message_callback( $cart_id, $event_key ) {
+    public function send_follow_up_message_callback( $cart_id, $event_key, $cron_post_id ) {
         $settings = Admin::get_setting('follow_up_events');
 
-        if ( ! isset( $settings[$event_key] ) ) {
+        if ( ! isset( $settings[ $event_key ] ) ) {
             return;
         }
 
-        $event = $settings[$event_key];
+        $event = $settings[ $event_key ];
         $cart_data = get_post_meta( $cart_id );
-        $first_name_fallback = Admin::get_setting('fallback_first_name');
-        $first_name = $cart_data['_fcrc_first_name'][0] ?? $first_name_fallback;
-        $last_name = $cart_data['_fcrc_last_name'][0] ?? '';
         $phone = $cart_data['_fcrc_cart_phone'][0] ?? '';
 
-        // get coupon code
-        if ( $event['coupon']['generate_coupon'] === 'yes' ) {
-            Coupons::generate_wc_coupon( $event['coupon'], $cart_id );
-            
-            $coupon_code = get_post_meta( $cart_id, '_fcrc_coupon_code', true );
-        } else {
-            $coupon_code = $event['coupon']['coupon_code'];
-        }
+        // get message with placeholders replaced
+        $message = Placeholders::replace_placeholders( $event['message'], $cart_id, $event );
 
-        $replacement = array(
-            '{{ first_name }}' => $first_name,
-            '{{ last_name }}' => $last_name,
-            '{{ recovery_link }}' => Helpers::generate_recovery_cart_link( $cart_id ),
-            '{{ coupon_code }}' => $coupon_code ?? '',
-        );
-
-        // Replace placeholders in the message
-        $message = Placeholders::replace_placeholders( $event['message'], $replacement );
+        // get receiver phone number
         $receiver = function_exists('joinotify_prepare_receiver') ? joinotify_prepare_receiver( $phone ) : $phone;
 
-        if ( $event['channels']['whatsapp'] === 'yes' ) {
+        // save notification data
+        $sent_channels = array();
+
+        // send via WhatsApp if enabled
+        if ( isset( $event['channels']['whatsapp'] ) && $event['channels']['whatsapp'] === 'yes' ) {
+            // send message
             self::send_whatsapp_message( $receiver, $message );
+
+            $sent_channels[] = 'whatsapp';
+        }
+
+        if ( empty( $sent_channels ) ) {
+            return;
+        }
+
+        // get current history
+        $notifications = get_post_meta( $cart_id, '_fcrc_notifications_sent', true );
+
+        if ( ! is_array( $notifications ) ) {
+            $notifications = array();
+        }
+
+        // add new notification data
+        foreach ( $sent_channels as $channel ) {
+            $notifications[] = array(
+                'event_key' => sanitize_key( $event_key ),
+                'channel' => sanitize_key( $channel ),
+                'sent_at' => strtotime( current_time('mysql') ),
+            );
+        }
+
+        // save notifications
+        update_post_meta( $cart_id, '_fcrc_notifications_sent', $notifications );
+
+        if ( $cron_post_id ) {
+            wp_delete_post( intval( $cron_post_id ), true );
         }
     }
 
@@ -231,9 +258,10 @@ class Recovery_Handler {
      * @since 1.0.0
      * @version 1.1.0
      * @param int $cart_id The abandoned cart ID
+     * @param int $cron_post_id | The cron post ID
      * @return void
      */
-    public function check_final_cart_status_callback( $cart_id ) {
+    public function check_final_cart_status_callback( $cart_id, $cron_post_id  ) {
         $cart_status = get_post_status( $cart_id );
 
         // if still abandoned after 1 hour, mark as "lost"
@@ -243,7 +271,7 @@ class Recovery_Handler {
                 'post_status' => 'lost',
             ));
 
-            if ( FC_RECOVERY_CARTS_DEV_MODE ) {
+            if ( self::$debug_mode ) {
                 error_log( 'Cart marked as lost: ' . $cart_id );
             }
 
@@ -254,6 +282,10 @@ class Recovery_Handler {
              * @param int $cart_id | The abandoned cart ID
              */
             do_action( 'Flexify_Checkout/Recovery_Carts/Cart_Lost', $cart_id );
+        }
+
+        if ( $cron_post_id ) {
+            wp_delete_post( intval( $cron_post_id ), true );
         }
     }
 
@@ -275,53 +307,10 @@ class Recovery_Handler {
 
 
     /**
-     * Cancels scheduled follow-up events for a given cart ID
-     *
-     * @since 1.0.0
-     * @version 1.1.0
-     * @param int $cart_id | The cart ID
-     * @return void
-     */
-    public static function cancel_follow_up_events( $cart_id ) {
-        $cron = _get_cron_array(); // Get all scheduled events
-    
-        if ( empty( $cron ) ) {
-            return;
-        }
-    
-        foreach ( $cron as $timestamp => $hooks ) {
-            if ( isset( $hooks['fcrc_send_follow_up_message'] ) ) {
-                foreach ( $hooks['fcrc_send_follow_up_message'] as $key => $event ) {
-                    if ( isset( $event['args']['cart_id'] ) && intval( $event['args']['cart_id'] ) === intval( $cart_id ) ) {
-                        wp_unschedule_event( $timestamp, 'fcrc_send_follow_up_message', $event['args'] );
-    
-                        if ( FC_RECOVERY_CARTS_DEV_MODE ) {
-                            error_log( "Removed fcrc_send_follow_up_message event for cart_id {$cart_id}" );
-                        }
-                    }
-                }
-            }
-    
-            if ( isset( $hooks['check_final_cart_status'] ) ) {
-                foreach ( $hooks['check_final_cart_status'] as $key => $event ) {
-                    if ( isset( $event['args']['cart_id'] ) && intval( $event['args']['cart_id'] ) === intval( $cart_id ) ) {
-                        wp_unschedule_event( $timestamp, 'check_final_cart_status', $event['args'] );
-    
-                        if ( FC_RECOVERY_CARTS_DEV_MODE ) {
-                            error_log( "Removed check_final_cart_status event for cart_id {$cart_id}" );
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-
-    /**
      * Detect if user is restoring an abandoned cart
      *
      * @since 1.0.0
-     * @version 1.2.0
+     * @version 1.3.0
      * @return void
      */
     public static function detect_cart_recovery() {
@@ -351,7 +340,7 @@ class Recovery_Handler {
         // check if there was recent activity
         $last_ping = (int) get_post_meta( $cart_id, '_fcrc_cart_updated_time', true );
         $time_limit_seconds = Helpers::get_abandonment_time_seconds();
-        $time_threshold = time() - $time_limit_seconds;
+        $time_threshold = strtotime( current_time('mysql') ); - $time_limit_seconds;
     
         // if last ping is before the time threshold, it's considered abandoned
         if ( $last_ping < $time_threshold ) {
@@ -359,9 +348,9 @@ class Recovery_Handler {
         }
     
         // cancel scheduled events
-        self::cancel_follow_up_events( $cart_id );
+        Hooks::cancel_scheduled_cart_process( $cart_id );
     
-        if ( FC_RECOVERY_CARTS_DEV_MODE ) {
+        if ( self::$debug_mode ) {
             error_log( 'Cart resumed: ' . $cart_id );
         }
 
@@ -403,63 +392,5 @@ class Recovery_Handler {
         }, $saved_cart_items );
 
         return $current_cart === $saved_cart;
-    }
-
-
-    /**
-     * Deletes carts without contact info older than 1 hour
-     *
-     * @since 1.2.0
-     * @return void
-     */
-    public function delete_old_anonymous_carts() {
-        $one_hour_ago = time() - HOUR_IN_SECONDS;
-
-        $query = new \WP_Query( array(
-            'post_type' => 'fc-recovery-carts',
-            'post_status' => array( 'shopping', 'abandoned' ),
-            'posts_per_page' => -1,
-            'fields' => 'ids',
-            'meta_query' => array(
-                'relation' => 'AND',
-                array(
-                    'key' => '_fcrc_cart_updated_time',
-                    'value' => $one_hour_ago,
-                    'compare' => '<',
-                    'type' => 'NUMERIC',
-                ),
-                array(
-                    'relation' => 'AND',
-                    array(
-                        'key' => '_fcrc_cart_phone',
-                        'value' => '',
-                        'compare' => '=',
-                    ),
-                    array(
-                        'key' => '_fcrc_cart_email',
-                        'value' => '',
-                        'compare' => '=',
-                    ),
-                ),
-            ),
-        ) );
-
-        if ( $query->have_posts() ) {
-            foreach ( $query->posts as $post_id ) {
-                wp_delete_post( $post_id, true );
-
-                if ( defined('FC_RECOVERY_CARTS_DEV_MODE') && FC_RECOVERY_CARTS_DEV_MODE ) {
-                    error_log( '[FCRC] Cart deleted for missing contact: ' . $post_id );
-                }
-
-                /**
-                 * Trigger deletion hook
-                 * 
-                 * @since 1.2.0
-                 * @param int $post_id | The cart ID
-                 */
-                do_action( 'Flexify_Checkout/Recovery_Carts/Cart_Deleted_Manually', $post_id );
-            }
-        }
     }
 }

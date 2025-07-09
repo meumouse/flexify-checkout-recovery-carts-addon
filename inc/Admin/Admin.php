@@ -2,6 +2,8 @@
 
 namespace MeuMouse\Flexify_Checkout\Recovery_Carts\Admin;
 
+use MeuMouse\Flexify_Checkout\Recovery_Carts\Core\Helpers;
+
 // Exit if accessed directly.
 defined('ABSPATH') || exit;
 
@@ -9,7 +11,7 @@ defined('ABSPATH') || exit;
  * Admin actions class
  * 
  * @since 1.0.0
- * @version 1.2.0
+ * @version 1.3.0
  * @package MeuMouse.com
  */
 class Admin {
@@ -36,6 +38,9 @@ class Admin {
 
         // add screen options to carts table
         add_filter( 'set-screen-option', array( $this, 'set_screen_options' ), 10, 3 );
+
+        // register queue cron events post type
+        add_action( 'init', array( $this, 'register_cron_event_cpt' ) );
     }
 
     
@@ -43,7 +48,7 @@ class Admin {
      * Add admin menu
      * 
      * @since 1.0.0
-     * @version 1.1.0
+     * @version 1.3.0
      * @return void
      */
     public function add_admin_menu() {
@@ -54,22 +59,43 @@ class Admin {
             esc_html__( 'Carrinhos abandonados', 'fc-recovery-carts' ), // menu label
             'manage_options', // capatibilities
             'fc-recovery-carts', // slug
-            array( $this, 'carts_table_page' ), // callback
+            array( $this, 'analytics_page' ), // callback
             'data:image/svg+xml;base64,' . base64_encode('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 848.15 848.15"><defs><style>.cls-1{fill:#fff;}</style></defs><path class="cls-1" d="M514,116.38c-234.22,0-424.08,189.87-424.08,424.07S279.74,964.53,514,964.53,938,774.67,938,540.45,748.17,116.38,514,116.38Zm171.38,426.1c-141.76.37-257.11,117.69-257.4,259.45H339.72c0-191.79,153.83-347.42,345.62-347.42Zm0-176.64c-141.76.19-266.84,69.9-346,176.13V410.6C431,328.12,551.92,277.5,685.34,277.5Z" transform="translate(-89.88 -116.38)"/></svg>'),
             5, // menu priority
         );
 
         add_action( "load-{$fc_recovery_carts_hook}", array( $this, 'load_screen_options' ) );
 
-        if ( self::is_pro() ) {
+        // check if Flexify Checkout Pro is active
+        if ( Helpers::is_pro() ) {
             // Main page as first submenu item with a different name
+            add_submenu_page(
+                'fc-recovery-carts', // parent page slug
+                esc_html__( 'Análises', 'fc-recovery-carts' ), // page title
+                esc_html__( 'Análises', 'fc-recovery-carts' ), // submenu title
+                'manage_options', // user capabilities
+                'fc-recovery-carts', // page slug (same as the main menu page)
+                array( $this, 'analytics_page' ) // callback
+            );
+
+            // all carts list page
             add_submenu_page(
                 'fc-recovery-carts', // parent page slug
                 esc_html__( 'Todos os carrinhos', 'fc-recovery-carts' ), // page title
                 esc_html__( 'Todos os carrinhos', 'fc-recovery-carts' ), // submenu title
                 'manage_options', // user capabilities
-                'fc-recovery-carts', // page slug (same as the main menu page)
+                'fc-recovery-carts-list', // page slug
                 array( $this, 'carts_table_page' ) // callback
+            );
+
+            // all carts list page
+            add_submenu_page(
+                'fc-recovery-carts', // parent page slug
+                esc_html__( 'Fila de processamentos', 'fc-recovery-carts' ), // page title
+                esc_html__( 'Fila de processamentos', 'fc-recovery-carts' ), // submenu title
+                'manage_options', // user capabilities
+                'fc-recovery-carts-queue', // page slug
+                array( $this, 'queue_table_page' ) // callback
             );
 
             // settings page
@@ -98,6 +124,7 @@ class Admin {
      * Load screen options for carts table
      * 
      * @since 1.1.0
+     * @version 1.3.0
      * @return void
      */
     public function load_screen_options() {
@@ -115,7 +142,36 @@ class Admin {
 
         add_screen_option( 'per_page', $args );
 
-        new \MeuMouse\Flexify_Checkout\Recovery_Carts\Core\Carts_Table();
+        new \MeuMouse\Flexify_Checkout\Recovery_Carts\Views\Carts_Table();
+    }
+
+
+    /**
+     * Render analytics page content
+     * 
+     * @since 1.3.0
+     * @return void
+     */
+    public function analytics_page() {
+        include_once( FC_RECOVERY_CARTS_INC . 'Views/Analytics.php' );
+    }
+
+
+    /**
+     * Render queue table page
+     * 
+     * @since 1.3.0
+     * @return void
+     */
+    public function queue_table_page() {
+        global $fcrc_queue_table;
+
+        if ( empty( $fcrc_queue_table ) ) {
+            $fcrc_queue_table = new \MeuMouse\Flexify_Checkout\Recovery_Carts\Views\Queue_Table();
+        }
+
+        $fcrc_queue_table->prepare_items();
+        $fcrc_queue_table->display_page();
     }
 
 
@@ -126,7 +182,7 @@ class Admin {
      * @return void
      */
     public function render_settings_page() {
-        include FC_RECOVERY_CARTS_INC . 'Views/Settings.php';
+        include_once( FC_RECOVERY_CARTS_INC . 'Views/Settings.php' );
     }
 
 
@@ -137,7 +193,7 @@ class Admin {
      * @return void
      */
     public function render_settings_page_required_license() {
-        include FC_RECOVERY_CARTS_INC . 'Views/Settings_Info.php';
+        include_once( FC_RECOVERY_CARTS_INC . 'Views/Settings_Info.php' );
     }
 
 
@@ -145,14 +201,14 @@ class Admin {
      * Display table with all carts
      * 
      * @since 1.0.0
-     * @version 1.1.0
+     * @version 1.3.0
      * @return void
      */
     public function carts_table_page() {
         global $fc_recovery_carts_table;
 
         if ( empty( $fc_recovery_carts_table ) ) {
-            $fc_recovery_carts_table = new \MeuMouse\Flexify_Checkout\Recovery_Carts\Core\Carts_Table();
+            $fc_recovery_carts_table = new \MeuMouse\Flexify_Checkout\Recovery_Carts\Views\Carts_Table();
         }
 
         $fc_recovery_carts_table->prepare_items();
@@ -179,208 +235,20 @@ class Admin {
 
 
     /**
-     * Set default options
-     * 
-     * @since 1.0.0
-     * @version 1.2.0
-     * @return array
-     */
-    public static function set_default_options() {
-        // get current payment methods
-        $payment_gateways = WC()->payment_gateways->payment_gateways();
-        $payment_methods = array();
-
-        foreach ( $payment_gateways as $gateway_id => $gateway ) {
-            $payment_methods[$gateway_id] = array(
-                'delay_time' => 5,
-                'delay_unit' => 'minutes',
-            );
-        }
-
-        return apply_filters( 'Flexify_Checkout/Recovery_Carts/Set_Default_Options', array(
-            'time_for_lost_carts' => 15,
-            'time_unit_for_lost_carts' => 'minutes',
-            'toggle_switchs' => array(
-                'enable_modal_add_to_cart' => 'yes',
-                'enable_international_phone_modal' => 'yes',
-                'enable_joinotify_integration' => 'yes',
-                'enable_email_integration' => 'no',
-                'display_modal_for_logged_users' => 'no',
-                'enable_get_location_from_ip' => 'yes',
-            ),
-            'follow_up_events' => array(
-                'mensagem_em_1_hora' => array(
-                    'title' => 'Mensagem em 1 hora',
-                    'message' => "*{{ first_name }}, você esqueceu algo no carrinho?*\n\nOi {{ first_name }}, vimos que você adicionou produtos ao carrinho, mas não finalizou a compra. Eles ainda estão reservados para você! 😊\n\nFinalize seu pedido agora: {{ recovery_link }}\n\nSe precisar de ajuda, estamos por aqui!",
-                    'delay_time' => 1,
-                    'delay_type' => 'hours',
-                    'channels' => array(
-                        'email' => 'no',
-                        'whatsapp' => 'yes',
-                    ),
-                    'coupon' => array(
-                        'enabled' => 'no',
-                        'generate_coupon' => 'yes',
-                        'coupon_prefix' => 'CUPOM_',
-                        'coupon_code' => 'none',
-                        'discount_type' => 'percent',
-                        'discount_value' => '',
-                        'allow_free_shipping' => 'yes',
-                        'expiration_time' => '',
-                        'expiration_time_unit' => '',
-                        'limit_usages' => '',
-                        'limit_usages_per_user' => '',
-                    ),
-                ),
-                'mensagem_em_3_horas' => array(
-                    'title' => 'Mensagem em 3 horas',
-                    'message' => "*🔥 Seus itens ainda estão disponíveis!* \n\n{{ first_name }}, seu carrinho ainda está esperando por você! Mas não podemos garantir que os estoques durem muito tempo. \n\nAproveite e finalize sua compra agora: {{ recovery_link }}\n\nQualquer dúvida, estamos à disposição!",
-                    'delay_time' => 3,
-                    'delay_type' => 'hours',
-                    'channels' => array(
-                        'email' => 'no',
-                        'whatsapp' => 'yes',
-                    ),
-                    'coupon' => array(
-                        'enabled' => 'no',
-                        'generate_coupon' => 'yes',
-                        'coupon_prefix' => 'CUPOM_',
-                        'coupon_code' => 'none',
-                        'discount_type' => 'percent',
-                        'discount_value' => '',
-                        'allow_free_shipping' => 'yes',
-                        'expiration_time' => '',
-                        'expiration_time_unit' => '',
-                        'limit_usages' => '',
-                        'limit_usages_per_user' => '',
-                    ),
-                ),
-                'mensagem_em_5_horas' => array(
-                    'title' => 'Mensagem em 5 horas',
-                    'message' => "*🛍️ Não perca essa chance, {{ first_name }}!* \n\nAinda está interessado nos produtos do seu carrinho? Para te dar um empurrãozinho, conseguimos um *cupom especial de 5% de desconto* para você finalizar sua compra.\n\nUse o código *{{ coupon_code }}* e garanta já: {{ recovery_link }}\n\nMas corra, pois esse desconto expira em 1 hora! ⏳",
-                    'delay_time' => 5,
-                    'delay_type' => 'hours',
-                    'channels' => array(
-                        'email' => 'no',
-                        'whatsapp' => 'yes',
-                    ),
-                    'coupon' => array(
-                        'enabled' => 'yes',
-                        'generate_coupon' => 'yes',
-                        'coupon_prefix' => 'CUPOM_',
-                        'coupon_code' => 'none',
-                        'discount_type' => 'percent',
-                        'discount_value' => 5,
-                        'allow_free_shipping' => 'yes',
-                        'expiration_time' => 1,
-                        'expiration_time_unit' => 'hours',
-                        'limit_usages' => 1,
-                        'limit_usages_per_user' => 1,
-                    ),
-                ),
-                'mensagem_em_8_horas' => array(
-                    'title' => 'Mensagem em 8 horas',
-                    'message' => "*🚀 Última chance antes do estoque acabar!* \n\n{{ first_name }}, alguns itens do seu carrinho estão com *baixa disponibilidade*! Não deixe para depois.\n\nSe precisar de ajuda para concluir sua compra, estamos aqui para te auxiliar.\n\n🔗 Finalize agora: {{ recovery_link }}",
-                    'delay_time' => 8,
-                    'delay_type' => 'hours',
-                    'channels' => array(
-                        'email' => 'no',
-                        'whatsapp' => 'yes',
-                    ),
-                    'coupon' => array(
-                        'enabled' => 'no',
-                        'generate_coupon' => 'yes',
-                        'coupon_prefix' => 'CUPOM_',
-                        'coupon_code' => 'none',
-                        'discount_type' => 'percent',
-                        'discount_value' => '',
-                        'allow_free_shipping' => 'yes',
-                        'expiration_time' => '',
-                        'expiration_time_unit' => '',
-                        'limit_usages' => '',
-                        'limit_usages_per_user' => '',
-                    ),
-                ),
-                'mensagem_em_24_horas' => array(
-                    'title' => 'Mensagem em 24 horas',
-                    'message' => "*🎁 Oferta exclusiva para você, {{ first_name }}!* \n\nNotamos que você não finalizou sua compra e queremos te ajudar! Como um incentivo, liberamos um *cupom especial de 10% de desconto*.\n\nUse o código *{{ coupon_code }}*. *Atenção! Este cupom expira em 1 hora!*\n\nFinalize sua compra pelo link: {{ recovery_link }}\n\n📌 Estamos à disposição caso tenha alguma dúvida!",
-                    'delay_time' => 24,
-                    'delay_type' => 'hours',
-                    'channels' => array(
-                        'email' => 'no',
-                        'whatsapp' => 'yes',
-                    ),
-                    'coupon' => array(
-                        'enabled' => 'yes',
-                        'generate_coupon' => 'yes',
-                        'coupon_prefix' => 'CUPOM_',
-                        'coupon_code' => 'none',
-                        'discount_type' => 'percent',
-                        'discount_value' => 10,
-                        'allow_free_shipping' => 'yes',
-                        'expiration_time' => 1,
-                        'expiration_time_unit' => 'hours',
-                        'limit_usages' => 1,
-                        'limit_usages_per_user' => 1,
-                    ),
-                ),
-            ),
-            'primary_color' => '#008aff',
-            'select_coupon' => 'none',
-            'payment_methods' => $payment_methods,
-            'joinotify_sender_phone' => 'none',
-            'fallback_first_name' => 'Cliente',
-            'collect_lead_modal' => array(
-                'title' => 'Registre-se para receber um cupom de desconto e ficar por dentro das melhores ofertas!',
-                'button_title' => 'Receber meu cupom',
-                'message' => "Oi, {{ first_name }}! Aqui está seu cupom para usar em sua próxima compra 🎁:\n\n {{ coupon_code }}\n\nSe tiver qualquer dúvida estamos à disposição!",
-                'triggers_list' => 'button[name="add-to-cart"], a.add_to_cart_button, a.ajax_add_to_cart, #wd-add-to-cart',
-                'coupon' => array(
-                    'enabled' => 'yes',
-                    'generate_coupon' => 'yes',
-                    'coupon_prefix' => 'CUPOM_',
-                    'coupon_code' => 'none',
-                    'discount_type' => 'percent',
-                    'discount_value' => 5,
-                    'allow_free_shipping' => 'yes',
-                    'expiration_time' => '',
-                    'expiration_time_unit' => '',
-                    'limit_usages' => 1,
-                    'limit_usages_per_user' => 1,
-                ),
-            ),
-        ));
-    }
-
-
-    /**
      * Gets the items from the array and inserts them into the option if it is empty,
      * or adds new items with default value to the option
      * 
      * @since 1.0.0
-     * @version 1.2.0
+     * @version 1.3.0
      * @return void
      */
     public function update_default_options() {
-        $default_options = self::set_default_options();
-        $get_options = get_option('flexify_checkout_recovery_carts_settings', array());
+        $default_options = ( new Default_Options() )->set_default_options();
+        $get_options = get_option( 'flexify_checkout_recovery_carts_settings', array() );
 
-        // if empty settings
-        if ( empty( $get_options ) ) {
-            update_option( 'flexify_checkout_recovery_carts_settings', $default_options );
-        } else {
-            // iterate for each plugin settings
-            foreach ( $get_options as $option => $value ) {
-                // iterate for each default settings
-                foreach ( $default_options as $index => $option_value ) {
-                    if ( ! isset( $get_options[$index] ) ) {
-                        $get_options[$index] = $option_value;
-                    }
-                }
-            }
+        $merged_options = Helpers::recursive_merge( $default_options, $get_options );
 
-            update_option( 'flexify_checkout_recovery_carts_settings', $get_options );
-        }
+        update_option( 'flexify_checkout_recovery_carts_settings', $merged_options );
     }
 
 
@@ -493,24 +361,37 @@ class Admin {
             ));
         }
 
-        // update permacarrinhos
+        // update permalinks
         flush_rewrite_rules();
     }
 
 
     /**
-     * Check if plugin Flexify Checkout is Pro
-     * 
-     * @since 1.0.0
-     * @return bool
+     * Register the Cron Event custom post type
+     *
+     * @since 1.3.0
+     * @return void
      */
-    public static function is_pro() {
-        $get_status = get_option( 'flexify_checkout_license_status', 'invalid' );
+    public function register_cron_event_cpt() {
+        $labels = array(
+            'name'               => __( 'Cron Events', 'fc-recovery-carts' ),
+            'singular_name'      => __( 'Cron Event', 'fc-recovery-carts' ),
+            'menu_name'          => __( 'Cron Events', 'fc-recovery-carts' ),
+            'name_admin_bar'     => __( 'Cron Event', 'fc-recovery-carts' ),
+        );
 
-        if ( $get_status === 'valid' ) {
-            return true;
-        }
-
-        return false;
+        $args = array(
+            'labels'             => $labels,
+            'public'             => false,
+            'show_ui'            => false,
+            'show_in_menu'       => false,
+            'capability_type'    => 'post',
+            'hierarchical'       => false,
+            'supports'           => array( 'title' ),
+            'has_archive'        => false,
+            'show_in_rest'       => false,
+        );
+        
+        register_post_type( 'fcrc-cron-event', $args );
     }
 }

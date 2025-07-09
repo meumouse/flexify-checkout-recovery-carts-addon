@@ -1,8 +1,9 @@
 <?php
 
-namespace MeuMouse\Flexify_Checkout\Recovery_Carts\Core;
+namespace MeuMouse\Flexify_Checkout\Recovery_Carts\Views;
 
 use MeuMouse\Flexify_Checkout\Recovery_Carts\Admin\Admin;
+use MeuMouse\Flexify_Checkout\Recovery_Carts\Core\Helpers;
 
 use WP_List_Table;
 
@@ -17,7 +18,7 @@ if ( ! class_exists('WP_List_Table') ) {
  * Carts table class
  * 
  * @since 1.0.0
- * @version 1.1.0
+ * @version 1.3.0
  * @package MeuMouse.com
  */
 class Carts_Table extends WP_List_Table {
@@ -124,18 +125,20 @@ class Carts_Table extends WP_List_Table {
      * Define table columns
      * 
      * @since 1.0.0
+     * @version 1.3.0
      * @return array
      */
     public function get_columns() {
         $columns = array(
-            'cb'          => '<input type="checkbox" />',
-            'id'          => __('ID', 'fc-recovery-carts'),
-            'contact'     => __('Contato', 'fc-recovery-carts'),
-            'location'    => __('Localização', 'fc-recovery-carts'),
-            'products'    => __('Produtos', 'fc-recovery-carts'),
-            'total'       => __('Valor do carrinho', 'fc-recovery-carts'),
-            'abandoned'   => __('Data do evento', 'fc-recovery-carts'),
-            'status'      => __('Status', 'fc-recovery-carts'),
+            'cb'            => '<input type="checkbox" />',
+            'id'            => __('ID', 'fc-recovery-carts'),
+            'notifications' => __( 'Notificações enviadas', 'fc-recovery-carts' ),
+            'contact'       => __('Contato', 'fc-recovery-carts'),
+            'location'      => __('Localização', 'fc-recovery-carts'),
+            'products'      => __('Produtos', 'fc-recovery-carts'),
+            'total'         => __('Valor do carrinho', 'fc-recovery-carts'),
+            'abandoned'     => __('Data do evento', 'fc-recovery-carts'),
+            'status'        => __('Status', 'fc-recovery-carts'),
         );
 
         return $columns;
@@ -167,41 +170,112 @@ class Carts_Table extends WP_List_Table {
 
 
     /**
+     * Render the notifications column
+     *
+     * @since 1.3.0
+     * @param object $item | Cart data
+     * @return string
+     */
+    public function column_notifications( $item ) {
+        $notes = get_post_meta( $item->ID, '_fcrc_notifications_sent', true );
+
+        // check if the cart has notifications
+        if ( ! is_array( $notes ) || empty( $notes ) ) {
+            return '&mdash;';
+        }
+
+        $output  = '<ul class="fcrc-notifications-list" style="margin:0; padding-left:1em;">';
+            foreach ( $notes as $note ) {
+                $event_title = Admin::get_setting('follow_up_events')[$note['event_key']]['title'];
+                $channel = Helpers::get_formatted_channel_label( $note['channel'] );
+                $formatted_date = sprintf( __( '%s - %s', 'fc-recovery-carts' ), get_option('date_format'), get_option('time_format') );
+                $sent_at = date_i18n( $formatted_date, strtotime( $note['sent_at'] ) );
+                
+                $output .= sprintf(
+                    __( '<li><strong>%s</strong> via %s: <small>%s</small></li>', 'fc-recovery-carts' ),
+                    $event_title,
+                    $channel,
+                    $sent_at
+                );
+            }
+        $output .= '</ul>';
+
+        return $output;
+    }
+
+
+    /**
      * Render the contact column
      * 
      * @since 1.0.0
-     * @version 1.1.0
+     * @version 1.3.0
      * @param object $item | Cart data
      * @return void
      */
     public function column_contact( $item ) {
-        $contact_name = get_post_meta( $item->ID, '_fcrc_full_name', true ) ?? esc_html__( 'Visitante', 'fc-recovery-carts' );
-        $phone = get_post_meta( $item->ID, '_fcrc_cart_phone', true ) ?? '';
-        $email = get_post_meta( $item->ID, '_fcrc_cart_email', true ) ?? '';
-        $user_id = get_post_meta( $item->ID, '_fcrc_user_id', true ) ?? '';
+        $post_id = $item->ID;
+        $contact_name = get_post_meta( $post_id, '_fcrc_full_name', true );
+        $phone = get_post_meta( $post_id, '_fcrc_cart_phone', true );
+        $email = get_post_meta( $post_id, '_fcrc_cart_email', true );
+        $user_id = get_post_meta( $post_id, '_fcrc_user_id', true );
 
-        if ( get_post_meta( $item->ID, '_fcrc_full_name', true ) === ' ' ) {
+        // if is empty user id, but has email, try to get and save
+        if ( empty( $user_id ) && $email ) {
+            if ( $user = get_user_by( 'email', $email ) ) {
+                $user_id = $user->ID;
+                update_post_meta( $post_id, '_fcrc_user_id', $user_id );
+            }
+        }
+
+        // if is empty full name, but has account, fill with first + last name
+        if ( ( empty( $contact_name ) || trim( $contact_name ) === '' ) && $user_id ) {
+            $first = get_user_meta( $user_id, 'first_name', true );
+            $last = get_user_meta( $user_id, 'last_name', true );
+            $full_name = sprintf( '%s %s', $first, $last );
+
+            if ( $full_name ) {
+                $contact_name = $full_name;
+                update_post_meta( $post_id, '_fcrc_full_name', $full_name );
+            }
+        }
+
+        // set default label
+        if ( empty( $contact_name ) || trim( $contact_name ) === '' ) {
             $contact_name = esc_html__( 'Visitante', 'fc-recovery-carts' );
         }
 
-        if (  $contact_name ) {
-            echo esc_html( $contact_name );
+        // if is empty phone but has account, try to get billing_phone or shipping_phone user meta's
+        if ( empty( $phone ) && $user_id ) {
+            $billing_phone = get_user_meta( $user_id, 'billing_phone', true );
+            $shipping_phone = get_user_meta( $user_id, 'shipping_phone', true );
+            $use_phone = $billing_phone ?: $shipping_phone;
+
+            if ( $use_phone ) {
+                $phone = $use_phone;
+                update_post_meta( $post_id, '_fcrc_cart_phone', $use_phone );
+            }
         }
 
+        $output = esc_html( $contact_name );
+
         if ( $phone ) {
-            echo '<br>'. esc_html( $phone );
+            $output .= '<br>' . esc_html( $phone );
         }
 
         if ( $email ) {
-            echo '<br><a href="mailto:' . esc_attr( $email ) . '">' . esc_html( $email ) . '</a>';
+            $output .= '<br><a href="mailto:' . esc_attr( $email ) . '">' . esc_html( $email ) . '</a>';
         }
 
-        // if has a user associated, display the link to the profile
         if ( $user_id ) {
-            $user_profile_link = get_edit_user_link( $user_id );
-
-            echo $contact_display = '<br><small><a href="' . esc_url( $user_profile_link ) . '" class="button button-small" style="margin-top: 1rem;">' . __( 'Ver usuário', 'fc-recovery-carts' ) . '</a></small>';
+            $profile_link = get_edit_user_link( $user_id );
+            $output .= sprintf(
+                '<br><small><a href="%s" class="button button-small" style="margin-top:1rem;">%s</a></small>',
+                esc_url( $profile_link ),
+                esc_html__( 'Ver usuário', 'fc-recovery-carts' )
+            );
         }
+
+        return $output;
     }
 
 
@@ -209,57 +283,89 @@ class Carts_Table extends WP_List_Table {
      * Render the location column from user meta data
      *
      * @since 1.0.0
-     * @version 1.1.0
+     * @version 1.3.0
      * @param object $item | Cart data
      * @return string
      */
     public function column_location( $item ) {
-        $city = get_post_meta( $item->ID, '_fcrc_location_city', true );
-        $state = get_post_meta( $item->ID, '_fcrc_location_state', true );
-        $zipcode = get_post_meta( $item->ID, '_fcrc_location_zipcode', true );
-        $country = get_post_meta( $item->ID, '_fcrc_location_country_code', true );
-        $ip = get_post_meta( $item->ID, '_fcrc_location_ip', true );
-    
-        // if location data is empty, try to get the data from the user profile
-        if ( empty( $city ) || empty( $state ) || empty( $country ) ) {
-            $user_id = get_post_meta( $item->ID, '_fcrc_user_id', true );
-    
+        $post_id = $item->ID;
+        $city = get_post_meta( $post_id, '_fcrc_location_city', true );
+        $state = get_post_meta( $post_id, '_fcrc_location_state', true );
+        $zipcode = get_post_meta( $post_id, '_fcrc_location_zipcode', true );
+        $country = get_post_meta( $post_id, '_fcrc_location_country_code', true );
+        $ip = get_post_meta( $post_id, '_fcrc_location_ip', true );
+
+        // if is empty location data
+        if ( empty( $city ) && empty( $state ) && empty( $country ) ) {
+            // try to get user if from meta or email
+            $user_id = get_post_meta( $post_id, '_fcrc_user_id', true );
+            $email = get_post_meta( $post_id, '_fcrc_cart_email', true );
+
+            if ( empty( $user_id ) && $email ) {
+                if ( $user = get_user_by( 'email', $email ) ) {
+                    $user_id = $user->ID;
+                    update_post_meta( $post_id, '_fcrc_user_id', $user_id );
+                }
+            }
+
+            // if has user, try to get location data from profile
             if ( $user_id ) {
-                $city = get_user_meta( $user_id, 'billing_city', true ) ?: $city;
-                $state = get_user_meta( $user_id, 'billing_state', true ) ?: $state;
-                $zipcode = get_user_meta( $user_id, 'billing_postcode', true ) ?: $zipcode;
-                $country = get_user_meta( $user_id, 'billing_country', true ) ?: $country;
+                $billing_city = get_user_meta( $user_id, 'billing_city', true );
+                $billing_state = get_user_meta( $user_id, 'billing_state', true );
+                $billing_postal = get_user_meta( $user_id, 'billing_postcode', true );
+                $billing_country = get_user_meta( $user_id, 'billing_country', true );
+
+                if ( $billing_city ) {
+                    $city = $billing_city;
+                    update_post_meta( $post_id, '_fcrc_location_city', $billing_city );
+                }
+
+                if ( $billing_state ) {
+                    $state = $billing_state;
+                    update_post_meta( $post_id, '_fcrc_location_state', $billing_state );
+                }
+
+                if ( $billing_postal ) {
+                    $zipcode = $billing_postal;
+                    update_post_meta( $post_id, '_fcrc_location_zipcode', $billing_postal );
+                }
+
+                if ( $billing_country ) {
+                    $country = $billing_country;
+                    update_post_meta( $post_id, '_fcrc_location_country_code', $billing_country );
+                }
             }
         }
-    
-        // formatt the location only if there are data available
-        if ( ! empty( $city ) || ! empty( $state ) || ! empty( $country ) ) {
-            if ( ! empty( $zipcode ) ) {
-                $formatted_location = sprintf(
-                    '%s - %s (%s) - %s',
-                    esc_html( $city ?: 'N/A' ),
-                    esc_html( $state ?: 'N/A' ),
-                    esc_html__( $zipcode ?: 'N/A' ),
-                    esc_html( $country ?: 'N/A' )
-                );
-            } else {
-                $formatted_location = sprintf(
-                    '%s - %s - %s',
-                    esc_html( $city ?: 'N/A' ),
-                    esc_html( $state ?: 'N/A' ),
-                    esc_html( $country ?: 'N/A' )
-                );
-            }
-    
-            // add the IP if available
-            if ( ! empty( $ip ) ) {
-                $formatted_location .= sprintf( ' <br><small>IP: %s</small>', esc_html( $ip ) );
-            }
-    
-            return $formatted_location;
+
+        // return dash if empty data
+        if ( empty( $city ) && empty( $state ) && empty( $country ) ) {
+            return '&mdash;';
         }
-    
-        return esc_html__( 'Não informado', 'fc-recovery-carts' );
+
+        // build location string
+        if ( $zipcode ) {
+            $location = sprintf(
+                '%s - %s (%s) - %s',
+                esc_html( $city ?: 'N/A' ),
+                esc_html( $state ?: 'N/A' ),
+                esc_html( $zipcode ),
+                esc_html( $country )
+            );
+        } else {
+            $location = sprintf(
+                '%s - %s - %s',
+                esc_html( $city ?: 'N/A' ),
+                esc_html( $state ?: 'N/A' ),
+                esc_html( $country )
+            );
+        }
+
+        // add IP if exists
+        if ( $ip ) {
+            $location .= sprintf( '<br><small>IP: %s</small>', esc_html( $ip ) );
+        }
+
+        return $location;
     }
 
 
@@ -267,6 +373,7 @@ class Carts_Table extends WP_List_Table {
      * Render the products column
      *
      * @since 1.0.0
+     * @version 1.3.0
      * @param object $item | Cart data
      * @return string
      */
@@ -275,7 +382,8 @@ class Carts_Table extends WP_List_Table {
         $cart_items = is_array( $cart_items ) ? $cart_items : array();
 
         if ( empty( $cart_items ) ) {
-            return esc_html__('Nenhum produto', 'fc-recovery-carts');
+            // dash string html
+            return '&mdash;';
         }
 
         $output = '<div class="fcrc-cart-products">';
@@ -306,6 +414,7 @@ class Carts_Table extends WP_List_Table {
      * Render the cart total column
      * 
      * @since 1.0.0
+     * @version 1.3.0
      * @param object $item | Cart data
      * @return string
      */
@@ -314,7 +423,8 @@ class Carts_Table extends WP_List_Table {
         $status = get_post_status( $item->ID );
 
         if ( $status === 'lead' ) {
-            return __( 'Não informado', 'fc-recovery-carts' );
+            // dash string html
+            return '&mdash;';
         }
 
         $output = '<div class="fcrc-cart-total">';
@@ -329,7 +439,7 @@ class Carts_Table extends WP_List_Table {
      * Render the abandoned date column
      * 
      * @since 1.0.0
-     * @version 1.1.0
+     * @version 1.3.0
      * @param object $item | Cart data
      * @return string
      */
@@ -367,7 +477,8 @@ class Carts_Table extends WP_List_Table {
             return esc_html( date( 'd/m/Y H:i', strtotime( $abandoned_time ) ) );
         }
     
-        return esc_html__( 'N/A', 'fc-recovery-carts' );
+        // dash string html
+        return '&mdash;';
     }
 
 

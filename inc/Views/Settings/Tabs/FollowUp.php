@@ -16,6 +16,11 @@ defined('ABSPATH') || exit; ?>
 
 <div id="follow_up" class="nav-content">
     <div class="ps-5">
+        <div class="mb-3">
+            <span class="fw-semibold"><?php esc_html_e( 'Personalizar lista de mensagens de acompanhamento (Follow up)', 'fc-recovery-carts' ); ?></span>
+            <span class="fc-recovery-carts-description"><?php esc_html_e( 'As notificações de follow up irão ser disparadas em um tempo pré-definido para lembrar o usuário de finalizar seu pedido.', 'fc-recovery-carts' ); ?></span>
+        </div>
+
         <?php echo Admin_Components::follow_up_list(); ?>
 
         <button id="fcrc_add_new_follow_up_trigger" class="btn btn-primary mt-3"><?php esc_html_e( 'Adicionar novo evento', 'fc-recovery-carts' ); ?></button>
@@ -52,7 +57,7 @@ defined('ABSPATH') || exit; ?>
                     </div>
 
                     <div class="mb-5">
-                        <?php echo Admin_Components::render_coupon_form( 'new_follow_up_event' ); ?>
+                        <?php echo Admin_Components::render_coupon_form('new_follow_up_event'); ?>
                     </div>
 
                     <div class="mb-5">

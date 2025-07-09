@@ -7,7 +7,7 @@
 	 * @since 1.0.0
 	 * @return Object
 	 */
-	const params = fcrc_checkout_params;
+	const params = fcrc_checkout_params || {};
 
 	/**
 	 * Checkout events object variable
@@ -15,18 +15,7 @@
 	 * @since 1.0.0
 	 * @package MeuMouse.com
 	 */
-	const Checkout_Events = {
-        
-        /**
-		 * Initialize object functions
-		 * 
-		 * @since 1.0.0
-		 * @version 1.1.0
-		 */
-		init: function() {
-			this.bindEvents();
-			this.fillCheckoutFields();
-		},
+	var Checkout_Events = {
         
         /**
          * Set cookie value
@@ -115,6 +104,7 @@
 		 * Collect lead data and send via AJAX
 		 * 
 		 * @since 1.0.0
+		 * @version 1.3.0
 		 */
 		collectLeadData: function() {
 			let first_name = $('#billing_first_name').val();
@@ -149,6 +139,7 @@
 					phone: phone,
 					email: email,
 					cart_id: Checkout_Events.getCookie('fcrc_cart_id'),
+					ip_data: JSON.stringify( Events.getCookie('fcrc_location') ),
 				},
 				success: function(response) {
 					if (response.success) {
@@ -162,9 +153,20 @@
 				},
 			});
 		},
+
+		/**
+		 * Initialize object functions
+		 * 
+		 * @since 1.0.0
+		 * @version 1.1.0
+		 */
+		init: function() {
+			this.bindEvents();
+			this.fillCheckoutFields();
+		},
     }
 
-    // Initialize the Settings object on ready event
+    // Initialize the object on ready event
 	jQuery(document).ready( function($) {
 		Checkout_Events.init();
 	});

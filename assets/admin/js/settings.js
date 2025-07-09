@@ -7,7 +7,7 @@
 	 * @since 1.0.0
 	 * @return Object
 	 */
-	const params = fcrc_settings_params;
+	const params = fcrc_settings_params || {};
 
 	/**
 	 * Flexify Checkout Recovery Carts settings object variable
@@ -16,24 +16,7 @@
 	 * @package MeuMouse.com
 	 */
 	const Settings = {
-		/**
-		 * Initialize object functions
-		 * 
-		 * @since 1.0.0
-		 */
-		init: function() {
-			this.activateTabs();
-			this.saveOptions();
-			this.addNewFollowUp();
-			this.editFollowUp();
-			this.deleteFollowUp();
-			this.collectLeadSettings();
-			this.selectColor();
-			this.integrationSettings();
-			this.emojiPicker();
-			this.visibilityControllerForCoupons();
-		},
-
+		
 		/**
 		 * Activate tabs and save on Cookies
 		 * 
@@ -216,6 +199,9 @@
 				let btn = $(this);
 				let btn_state = Settings.keepButtonState(btn);
 
+				// force send unchecked checkboxes
+				Settings.forceUncheckedCheckboxes();
+
 				// send request
 				$.ajax({
 					url: params.ajax_url,
@@ -237,6 +223,8 @@
 								original_values = settings_form.serialize();
 
 								Settings.displayToast('success', response.toast_header_title, response.toast_body_title);
+							} else {
+								Settings.displayToast('error', response.toast_header_title, response.toast_body_title);
 							}
 						} catch (error) {
 							console.log(error);
@@ -260,7 +248,35 @@
 				}
 			});
 		},
+		
+		/**
+		 * Force all unchecked checkboxes to be sent as "no"
+		 *
+		 * @since 1.3.0
+		 */
+		forceUncheckedCheckboxes: function() {
+			$('input[type="checkbox"]').each( function() {
+				const checkbox = $(this);
+				const name = checkbox.attr('name');
 
+				// if the checkbox is unchecked, insert a hidden input with the same name
+				if ( ! checkbox.is(':checked') ) {
+					const hiddenInput = $('<input>')
+						.attr({
+							type: 'hidden',
+							name: name,
+							value: 'no'
+						}).addClass('fcrc-hidden-checkbox');
+
+					// remove all previous before reinsert
+					checkbox.siblings('.fcrc-hidden-checkbox').remove();
+					checkbox.after(hiddenInput);
+				} else {
+					// remove if checkbox is checked
+					checkbox.siblings('.fcrc-hidden-checkbox').remove();
+				}
+			});
+		},
 
 		/**
 		 * Add new follow up item
@@ -659,6 +675,39 @@
 
 				$(this).closest('.add-emoji-picker').val(content); // Update the textarea with the current content
 		  	});
+		},
+
+		/**
+		 * Display IP API settings
+		 * 
+		 * @since 1.3.0
+		 */
+		IpApiSettings: function() {
+			// display trigger modal
+			Settings.visibilityController( '#enable_get_location_from_ip', '#ip_api_settings_trigger' );
+
+			// open settings modal
+			Settings.displayModal( '#ip_api_settings_trigger', '#ip_api_settings_container', '#ip_api_settings_close' );
+		},
+
+		/**
+		 * Initialize object functions
+		 * 
+		 * @since 1.0.0
+		 * @version 1.3.0
+		 */
+		init: function() {
+			this.activateTabs();
+			this.saveOptions();
+			this.addNewFollowUp();
+			this.editFollowUp();
+			this.deleteFollowUp();
+			this.collectLeadSettings();
+			this.selectColor();
+			this.integrationSettings();
+			this.emojiPicker();
+			this.visibilityControllerForCoupons();
+			this.IpApiSettings();
 		},
 	};
 

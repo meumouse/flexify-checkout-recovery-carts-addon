@@ -2,7 +2,7 @@
 
 namespace MeuMouse\Flexify_Checkout\Recovery_Carts\Admin;
 
-use MeuMouse\Flexify_Checkout\Recovery_Carts\Core\Helpers;
+use MeuMouse\Flexify_Checkout\Recovery_Carts\Core\Placeholders;
 
 // Exit if accessed directly.
 defined('ABSPATH') || exit;
@@ -11,6 +11,7 @@ defined('ABSPATH') || exit;
  * Admin components class
  * 
  * @since 1.0.0
+ * @version 1.3.0
  * @package MeuMouse.com
  */
 class Components {
@@ -19,6 +20,7 @@ class Components {
      * Register settings tabs through a filter
      *
      * @since 1.0.0
+     * @version 1.3.0
      * @return array
      */
     public static function get_settings_tabs() {
@@ -34,6 +36,12 @@ class Components {
                 'label' => esc_html__('Follow Up', 'fc-recovery-carts'),
                 'icon' => '<svg class="fc-recovery-carts-tab-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M22 7.999a1 1 0 0 0-.516-.874l-9.022-5a1.003 1.003 0 0 0-.968 0l-8.978 4.96a1 1 0 0 0-.003 1.748l9.022 5.04a.995.995 0 0 0 .973.001l8.978-5A1 1 0 0 0 22 7.999zm-9.977 3.855L5.06 7.965l6.917-3.822 6.964 3.859-6.918 3.852z"></path><path d="M20.515 11.126 12 15.856l-8.515-4.73-.971 1.748 9 5a1 1 0 0 0 .971 0l9-5-.97-1.748z"></path><path d="M20.515 15.126 12 19.856l-8.515-4.73-.971 1.748 9 5a1 1 0 0 0 .971 0l9-5-.97-1.748z"></path></svg>',
                 'file' => FC_RECOVERY_CARTS_INC . 'Views/Settings/Tabs/FollowUp.php',
+            ),
+            'payment_methods' => array(
+                'id' => 'payment_methods',
+                'label' => esc_html__('Formas de pagamento', 'fc-recovery-carts'),
+                'icon' => '<svg class="fc-recovery-carts-tab-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path d="M20 4H4c-1.103 0-2 .897-2 2v12c0 1.103.897 2 2 2h16c1.103 0 2-.897 2-2V6c0-1.103-.897-2-2-2zM4 6h16v2H4V6zm0 12v-6h16.001l.001 6H4z"></path><path d="M6 14h6v2H6z"></path></svg>',
+                'file' => FC_RECOVERY_CARTS_INC . 'Views/Settings/Tabs/Payment_Methods.php',
             ),
             'integrations' => array(
                 'id' => 'integrations',
@@ -55,6 +63,7 @@ class Components {
      * Render follow up list settings
      * 
      * @since 1.0.0
+     * @version 1.3.0
      * @return string
      */
     public static function follow_up_list() {
@@ -129,6 +138,8 @@ class Components {
                                 <button class="btn btn-icon btn-outline-danger delete-follow-up-item ms-3" data-follow-up-item="<?php esc_attr_e( $key ) ?>">
                                     <svg class="icon icon-danger" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M15 2H9c-1.103 0-2 .897-2 2v2H3v2h2v12c0 1.103.897 2 2 2h10c1.103 0 2-.897 2-2V8h2V6h-4V4c0-1.103-.897-2-2-2zM9 4h6v2H9V4zm8 16H7V8h10v12z"></path></svg>
                                 </button>
+
+                                <input type="checkbox" class="toggle-switch ms-3" name="follow_up_events[<?php esc_attr_e( $key ) ?>][enabled]" value="yes" <?php checked( $follow_up['enabled'] === 'yes' ); ?> />
                             </div>
                         </div>
                     </li>
@@ -146,18 +157,24 @@ class Components {
      * Render message placeholders
      * 
      * @since 1.0.0
-     *  @return string
+     * @version 1.3.0
+     * @return string
      */
     public static function render_placeholders() {
+        $placeholders = Placeholders::register_placeholders();
+
+        // start buffer
         ob_start(); ?>
 
         <div class="message-placeholders w-fit">
-            <label class="form-label text-left mb-3"><?php esc_html_e( 'Variáveis de texto:', 'fc-recovery-carts' ); ?></label>
+            <label class="form-label text-left mb-3">
+                <?php echo esc_html__( 'Variáveis de texto:', 'fc-recovery-carts' ); ?>
+            </label>
 
-            <?php foreach ( Helpers::get_message_placeholders() as $placeholder => $title ) : ?>
+            <?php foreach ( $placeholders as $placeholder => $data ) : ?>
                 <div class="d-flex align-items-center mb-3">
-                    <span class="fs-sm fs-italic me-2"><code><?php esc_html_e( $placeholder ) ?></code></span>
-                    <span class="fs-sm mt-1"><?php esc_html_e( $title ) ?></span>
+                    <span class="fs-sm fs-italic me-2"><code><?php echo esc_html( $placeholder ); ?></code></span>
+                    <span class="fs-sm mt-1"><?php echo esc_html( $data['title'] ); ?></span>
                 </div>
             <?php endforeach; ?>
         </div>
@@ -309,6 +326,134 @@ class Components {
             <?php endforeach; ?>
         </ul>
 
+        <?php return ob_get_clean();
+    }
+
+
+    /**
+     * Total recovered widget for analytics dashboard
+     * 
+     * @since 1.3.0
+     * @param int $total | Total recovered
+     * @param int $period | Period to calculate the total recovered
+     * @return string
+     */
+    public static function get_total_recovered( $total = 0, $period = 7 ) {
+        ob_start(); ?>
+
+        <div class="fcrc-analytics-widget total-recovered-widget">
+            <div class="fcrc-analytics-widget-header">
+                <span class="fcrc-widget-title"><?php printf( __( 'Total recuperado %s', 'fc-recovery-carts' ), wc_price( $total ) ); ?></span>
+                <span class="fcrc-widget-description"><?php printf( __( 'Dados relacionados aos últimos %d dias', 'fc-recovery-carts' ), $period ); ?></span>
+            </div>
+
+            <div class="fcrc-analytics-widget-body">
+                <div id="fcrc-recovered-chart" class="chart-container" style="height: 320px;"></div>
+            </div
+        </div>
+
+        <?php return ob_get_clean();
+    }
+
+
+    /**
+     * Register period filter for analytics dashboard
+     * 
+     * @since 1.3.0
+     * @return array
+     */
+    public static function period_filter() {
+        /**
+         * Filter to add new period filter
+         * 
+         * @since 1.3.0
+         * @return array
+         */
+        return apply_filters( 'Flexify_Checkout/Recovery_Carts/Analytics/Period_Filter', array(
+            7 => esc_html__( '7 dias', 'fc-recovery-carts' ),
+            15 => esc_html__( '15 dias', 'fc-recovery-carts' ),
+            30 => esc_html__( '30 dias', 'fc-recovery-carts' ),
+            90 => esc_html__( '90 dias', 'fc-recovery-carts' ),
+            365 => esc_html__( '365 dias', 'fc-recovery-carts' ),
+        ));
+    }
+
+
+    /**
+     * Get cart status
+     * 
+     * @since 1.3.0
+     * @param int $period | Period to calculate the total recovered
+     * @return string
+     */
+    public static function get_cart_status( $period = 7 ) {
+        ob_start(); ?>
+
+        <div class="fcrc-analytics-widget cart-status-widget">
+            <div class="fcrc-analytics-widget-header">
+                <span class="fcrc-widget-title"><?php esc_html_e( 'Status de carrinhos e pedidos', 'fc-recovery-carts' ); ?></span>
+                <span class="fcrc-widget-description"><?php printf( __( 'Dados relacionados aos últimos %d dias', 'fc-recovery-carts' ), $period ); ?></span>
+            </div>
+
+            <div class="fcrc-analytics-widget-body">
+                <div class="fcrc-carts-group">
+                    <div class="fcrc-carts-group-item shopping">
+                        <span class="fcrc-cart-item-title">0</span>
+                        <span class="fcrc-cart-item-description"><?php esc_html_e( 'Carrinhos ativos', 'fc-recovery-carts' ); ?></span>
+                    </div>
+
+                    <div class="fcrc-carts-group-item abandoned">
+                        <span class="fcrc-cart-item-title">0</span>
+                        <span class="fcrc-cart-item-description"><?php esc_html_e( 'Carrinhos abandonados', 'fc-recovery-carts' ); ?></span>
+                    </div>
+
+                    <div class="fcrc-carts-group-item recovered">
+                        <span class="fcrc-cart-item-title">0</span>
+                        <span class="fcrc-cart-item-description"><?php esc_html_e( 'Carrinhos recuperados', 'fc-recovery-carts' ); ?></span>
+                    </div>
+
+                    <div class="fcrc-carts-group-item lost">
+                        <span class="fcrc-cart-item-title">0</span>
+                        <span class="fcrc-cart-item-description"><?php esc_html_e( 'Carrinhos perdidos', 'fc-recovery-carts' ); ?></span>
+                    </div>
+
+                    <div class="fcrc-carts-group-item leads">
+                        <span class="fcrc-cart-item-title">0</span>
+                        <span class="fcrc-cart-item-description"><?php esc_html_e( 'Visitantes capturados', 'fc-recovery-carts' ); ?></span>
+                    </div>
+
+                    <div class="fcrc-carts-group-item order_abandoned">
+                        <span class="fcrc-cart-item-title">0</span>
+                        <span class="fcrc-cart-item-description"><?php esc_html_e( 'Pedidos abandonados', 'fc-recovery-carts' ); ?></span>
+                    </div>
+                </div>
+            </div
+        </div>
+
+        <?php return ob_get_clean();
+    }
+
+
+    /**
+     * Render carts sent notifications
+     * 
+     * @since 1.3.0
+     * @param int $period | Period to calculate the total recovered
+     * @return string
+     */
+    public static function render_sent_notifications( $period = 7 ) {
+        ob_start(); ?>
+
+        <div class="fcrc-analytics-widget cart-status-widget">
+            <div class="fcrc-analytics-widget-header">
+                <span class="fcrc-widget-title"><?php esc_html_e( 'Notificações de follow up enviadas', 'fc-recovery-carts' ); ?></span>
+                <span class="fcrc-widget-description"><?php printf( __( 'Dados relacionados aos últimos %d dias', 'fc-recovery-carts' ), $period ); ?></span>
+            </div>
+
+            <div class="fcrc-analytics-widget-body">
+                <div id="fcrc_sent_notifications_chart" class="chart-container" style="height: 320px;"></div>
+            </div>
+        </div>
         <?php return ob_get_clean();
     }
 }

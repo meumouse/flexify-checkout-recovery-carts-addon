@@ -11,10 +11,18 @@ defined('ABSPATH') || exit;
  * Helpers class
  * 
  * @since 1.0.0
- * @version 1.1.2
+ * @version 1.3.0
  * @package MeuMouse.com
  */
 class Helpers {
+
+    /**
+     * Get debug mode
+     * 
+     * @since 1.3.0
+     * @return bool
+     */
+    public static $debug_mode = FC_RECOVERY_CARTS_DEBUG_MODE;
    
     /**
      * Check admin page from partial URL
@@ -27,22 +35,6 @@ class Helpers {
         $current_url = ( isset( $_SERVER['HTTPS'] ) && $_SERVER['HTTPS'] === 'on' ? 'https' : 'http' ) . '://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'];
     
         return strpos( $current_url, "admin.php?page=$admin_page" );
-    }
-
-
-    /**
-     * Get message placeholders
-     * 
-     * @since 1.0.0
-     * @return array
-     */
-    public static function get_message_placeholders() {
-        return apply_filters( 'Flexify_Checkout/Recovery_Carts/Message_Placeholders', array(
-            '{{ first_name }}' => esc_html__( 'Primeiro nome', 'fc-recovery-carts' ),
-            '{{ last_name }}' => esc_html__( 'Sobrenome', 'fc-recovery-carts' ),
-            '{{ recovery_link }}' => esc_html__( 'Link de recuperação do carrinho', 'fc-recovery-carts' ),
-            '{{ coupon_code }}' => esc_html__( 'Código do cupom', 'fc-recovery-carts' ),
-        ));
     }
 
 
@@ -81,6 +73,7 @@ class Helpers {
      * Converts abandonment time into seconds
      *
      * @since 1.0.0
+     * @version 1.3.0
      * @return int Time in seconds
      */
     public static function get_abandonment_time_seconds() {
@@ -89,11 +82,11 @@ class Helpers {
 
         switch ( $time_unit ) {
             case 'minutes':
-                return $time_limit * 60;
+                return (int) $time_limit * 60;
             case 'hours':
-                return $time_limit * 3600;
+                return (int) $time_limit * 3600;
             case 'days':
-                return $time_limit * 86400;
+                return (int) $time_limit * 86400;
             default:
                 return 1800; // Default: 30 minutes
         }
@@ -104,6 +97,7 @@ class Helpers {
      * Converts time to seconds based on unit
      *
      * @since 1.0.0
+     * @version 1.3.0
      * @param int $time | The time value
      * @param string $unit | The unit of time (minutes, hours, days)
      * @return int Time in seconds
@@ -111,11 +105,11 @@ class Helpers {
     public static function convert_to_seconds( $time, $unit ) {
         switch ( $unit ) {
             case 'minutes':
-                return $time * 60;
+                return (int) $time * 60;
             case 'hours':
-                return $time * 3600;
+                return (int) $time * 3600;
             case 'days':
-                return $time * 86400;
+                return (int) $time * 86400;
             default:
                 return 0; // Default: 0 seconds
         }
@@ -166,7 +160,7 @@ class Helpers {
         $cart_id = intval( $_GET['recovery_cart'] );
 
         if ( ! $cart_id || get_post_type( $cart_id ) !== 'fc-recovery-carts' ) {
-            if ( FC_RECOVERY_CARTS_DEV_MODE ) {
+            if ( self::$debug_mode ) {
                 error_log( "Error: Cart ID {$cart_id} invalid or not found." );
             }
 
@@ -177,7 +171,7 @@ class Helpers {
         $cart_items = get_post_meta( $cart_id, '_fcrc_cart_items', true );
 
         if ( empty( $cart_items ) || ! is_array( $cart_items ) ) {
-            if ( FC_RECOVERY_CARTS_DEV_MODE ) {
+            if ( self::$debug_mode ) {
                 error_log( "Error: Any product found for the cart: {$cart_id}." );
             }
             
@@ -197,9 +191,9 @@ class Helpers {
 
         // store cart ID in session and cookie
         WC()->session->set( 'fcrc_cart_id', $cart_id );
-        setcookie( 'fcrc_cart_id', $cart_id, time() + ( 7 * 24 * 60 * 60 ), COOKIEPATH, COOKIE_DOMAIN );
+        setcookie( 'fcrc_cart_id', $cart_id, strtotime( current_time('mysql') ) + ( 7 * 24 * 60 * 60 ), COOKIEPATH, COOKIE_DOMAIN );
 
-        if ( FC_RECOVERY_CARTS_DEV_MODE ) {
+        if ( self::$debug_mode ) {
             error_log( "Cart {$cart_id} restored and redirecting to checkout." );
         }
 
@@ -214,7 +208,7 @@ class Helpers {
      * Clears the cart ID from session and cookie
      *
      * @since 1.0.0
-     * @version 1.1.0
+     * @version 1.3.0
      * @return void
      */
     public static function clear_active_cart() {
@@ -227,10 +221,10 @@ class Helpers {
         // Remove from cookie
         if ( isset( $_COOKIE['fcrc_cart_id'] ) ) {
             unset( $_COOKIE['fcrc_cart_id'] );
-            setcookie( 'fcrc_cart_id', '', time() - 3600, COOKIEPATH, COOKIE_DOMAIN );
+            setcookie( 'fcrc_cart_id', '', strtotime( current_time('mysql') ) - 3600, COOKIEPATH, COOKIE_DOMAIN );
         }
 
-        if ( FC_RECOVERY_CARTS_DEV_MODE ) {
+        if ( self::$debug_mode ) {
             error_log( 'Cart ID removed from session and cookies.' );
         }
     }
@@ -272,10 +266,226 @@ class Helpers {
             $cart_id = $_COOKIE['fcrc_cart_id'] ?? null;
         }
 
-        if ( FC_RECOVERY_CARTS_DEV_MODE ) {
+        if ( self::$debug_mode ) {
             error_log( 'Current cart ID: ' . $cart_id );
         }
 
         return $cart_id;
+    }
+
+
+    /**
+     * Recursively merge two arrays, adding missing keys from defaults
+     *
+     * @since 1.3.0
+     * @param array $defaults | The default values
+     * @param array $current | The current values
+     * @return array
+     */
+    public static function recursive_merge( $defaults, $current ) {
+        foreach ( $defaults as $key => $value ) {
+            if ( is_array( $value ) ) {
+                if ( isset( $current[ $key ] ) && is_array( $current[ $key ] ) ) {
+                    $current[ $key ] = self::recursive_merge( $value, $current[ $key ] );
+                } else {
+                    $current[ $key ] = $value;
+                }
+            } else {
+                if ( ! isset( $current[ $key ] ) ) {
+                    $current[ $key ] = $value;
+                }
+            }
+        }
+
+        return $current;
+    }
+
+
+    /**
+     * Recursively sanitize array values
+     *
+     * @since 1.3.0
+     * @param array $array | The array to sanitize
+     * @return array
+     */
+    public static function sanitize_array( $array ) {
+        foreach ( $array as $key => $value ) {
+            if ( is_array( $value ) ) {
+                $array[ $key ] = self::sanitize_array( $value );
+            } else {
+                if ( strpos( $key, 'message' ) !== false ) {
+                    $array[ $key ] = sanitize_textarea_field( wp_unslash( $value ) );
+                } else {
+                    $array[ $key ] = sanitize_text_field( wp_unslash( $value ) );
+                }
+            }
+        }
+        return $array;
+    }
+
+
+    /**
+     * Check if plugin Flexify Checkout is Pro
+     * 
+     * @since 1.0.0
+     * @version 1.3.0
+     * @return bool
+     */
+    public static function is_pro() {
+        $get_status = get_option( 'flexify_checkout_license_status', 'invalid' );
+
+        if ( $get_status === 'valid' ) {
+            return true;
+        }
+
+        return false;
+    }
+
+    
+    /**
+     * Retrieve the client's IP address (Cookie or REMOTE_ADDR)
+     *
+     * @since 1.3.0
+     * @return string
+     */
+    public static function get_client_ip() {
+        if ( ! empty( $_COOKIE['fcrc_location'] ) ) {
+            $location = json_decode( stripslashes( $_COOKIE['fcrc_location'] ), true );
+
+            if ( ! empty( $location['ip'] ) ) {
+                return $location['ip'];
+            }
+        }
+
+        return $_SERVER['REMOTE_ADDR'] ?? '';
+    }
+
+
+    /**
+     * Retrieve user data previous collected by IP, if exists
+     *
+     * @since 1.3.0
+     * @param string $ip | IP address
+     * @return array User contact data
+     */
+    public static function get_user_data_by_ip( $ip ) {
+        $map = get_option( 'fcrc_ip_user_map', array() );
+
+        return $map[ $ip ] ?? array();
+    }
+
+
+    /**
+     * Get user data from multiple sources
+     *
+     * @since 1.3.0
+     * @return array {first_name, last_name, phone, email}
+     */
+    public static function get_cart_contact_data() {
+        // if user is logged
+        if ( is_user_logged_in() ) {
+            $user = wp_get_current_user();
+
+            return array(
+                'first_name' => $user->first_name,
+                'last_name' => $user->last_name,
+                'email' => $user->user_email,
+                'phone' => get_user_meta( $user->ID, 'billing_phone', true ),
+            );
+        }
+
+        // from flexify checkout session
+        if ( WC()->session && $session = WC()->session->get('flexify_checkout_customer_fields') ) {
+            return array(
+                'first_name' => $session['billing_first_name'] ?? '',
+                'last_name' => $session['billing_last_name'] ?? '',
+                'email' => $session['billing_email'] ?? '',
+                'phone' => $session['billing_phone'] ?? '',
+            );
+        }
+
+        // from cookies
+        $first = $_COOKIE['fcrc_first_name'] ?? '';
+        $last = $_COOKIE['fcrc_last_name'] ?? '';
+        $email = $_COOKIE['fcrc_email'] ?? '';
+        $phone = $_COOKIE['fcrc_phone'] ?? '';
+
+        if ( $first || $last || $email || $phone ) {
+            return compact( 'first', 'last', 'email', 'phone' );
+        }
+
+        // fallback IP
+        $ip = self::get_client_ip();
+
+        return self::get_user_data_by_ip( $ip );
+    }
+
+
+    /**
+     * Get formatted channel label
+     * 
+     * @since 1.3.0
+     * @param string $channel | Channel name
+     * @return string
+     */
+    public static function get_formatted_channel_label( $channel ) {
+        if ( $channel === 'whatsapp' ) {
+            return esc_html__( 'WhatsApp', 'fc-recovery-carts' );
+        } elseif ( $channel === 'email' ) {
+            return esc_html__( 'E-mail', 'fc-recovery-carts' );
+        }
+        
+        return ucfirst( $channel );
+    }
+
+
+    /**
+     * Cancel all scheduled follow-up events (hook 'fcrc_send_follow_up_message') for a given cart ID
+     *
+     * @since 1.3.0
+     * @param int $cart_id | The recovery cart post ID
+     * @return void
+     */
+    public static function cancel_scheduled_follow_up_events( $cart_id ) {
+        // Query all cron-event posts for this cart and the follow-up hook
+        $events = get_posts( array(
+            'post_type' => 'fcrc-cron-event',
+            'post_status' => 'publish',
+            'meta_query' => array(
+                array(
+                    'key' => '_fcrc_cart_id',
+                    'value' => $cart_id,
+                ),
+                array(
+                    'key' => '_fcrc_cron_event_key',
+                    'value' => 'fcrc_send_follow_up_message',
+                ),
+            ),
+            'posts_per_page' => -1, // get all posts
+        ));
+
+        foreach ( $events as $event ) {
+            // Retrieve the scheduled timestamp from post meta
+            $scheduled_at = get_post_meta( $event->ID, '_fcrc_cron_scheduled_at', true );
+            $timestamp = strtotime( $scheduled_at );
+
+            // Prepare the args array matching the original schedule call
+            $args = array(
+                'cart_id' => $cart_id,
+                'event_key' => get_post_meta( $event->ID, '_fcrc_cron_event_key', true ),
+                'cron_post_id' => $event->ID,
+            );
+
+            // Unschedule the event from WP-Cron
+            wp_unschedule_event( $timestamp, 'fcrc_send_follow_up_message', $args );
+
+            // Delete the cron-event post to clean up
+            wp_delete_post( $event->ID, true );
+
+            // Log the cancellation if debug mode is enabled
+            if ( defined( 'FC_RECOVERY_CARTS_DEBUG_MODE' ) && FC_RECOVERY_CARTS_DEBUG_MODE ) {
+                error_log( sprintf( 'Cancelled follow-up event for cart %d, cron_post_id %d', $cart_id, $event->ID ) );
+            }
+        }
     }
 }

@@ -7,11 +7,11 @@
  * Requires Plugins: 		flexify-checkout-for-woocommerce, woocommerce
  * Author:                  MeuMouse.com
  * Author URI:              https://meumouse.com/
- * Version:                 1.2.0
+ * Version:                 1.3.0
  * Requires PHP:            7.4
- * Tested up to:            6.7.2
+ * Tested up to:            6.8.1
  * WC requires at least:    6.0.0
- * WC tested up to: 		9.7.0
+ * WC tested up to: 		9.9.5
  * Text Domain:             fc-recovery-carts
  * Domain Path:             /languages
  * License:                 GPL2
@@ -52,20 +52,24 @@ if ( ! class_exists('Flexify_Checkout_Recovery_Carts') ) {
          * @var string
          * @since 1.0.0
          */
-        public static $version = '1.2.0';
+        public static $version = '1.3.0';
 
 
         /**
          * Constructor function
          *
          * @since 1.0.0
+         * @version 1.3.0
          * @return void
          */
         public function __construct() {
+            // hook before init plugin
             do_action('before_fc_recovery_carts_init');
 
-            add_action( 'plugins_loaded', array( $this, 'init' ), 99 );
+            // initialize the plugin after woocommerce has loaded
+            add_action( 'woocommerce_loaded', array( $this, 'init' ), 99 );
 
+            // hook after init plugin
             do_action('fc_recovery_carts_init');
         }
 
@@ -74,27 +78,23 @@ if ( ! class_exists('Flexify_Checkout_Recovery_Carts') ) {
          * Initialize the plugin
          *
          * @since 1.0.0
+         * @version 1.3.0
          * @return void
          */
         public function init() {
+            // check PHP version
             if ( version_compare( phpversion(), '7.4', '<' ) ) {
                 add_action( 'admin_notices', array( $this, 'php_version_notice' ) );
                 return;
             }
 
-            if ( ! is_plugin_active('flexify-checkout-for-woocommerce/flexify-checkout-for-woocommerce.php') ) {
-                add_action( 'admin_notices', array( $this, 'flexify_checkout_require_notice' ) );
-                return;
-            }
-
+            // define constants
             $this->setup_constants();
 
-            load_plugin_textdomain( 'fc-recovery-carts', false, dirname( FC_RECOVERY_CARTS_BASENAME ) . '/languages/' );
-            add_filter( 'plugin_action_links_' . FC_RECOVERY_CARTS_BASENAME, array( $this, 'add_action_plugin_links' ), 10, 4 );
-            add_filter( 'plugin_row_meta', array( $this, 'add_row_meta_links' ), 10, 4 );
+            // load Composer autoloader
+            require_once( FC_RECOVERY_CARTS_DIR . 'vendor/autoload.php' );
 
-            require_once FC_RECOVERY_CARTS_DIR . 'vendor/autoload.php';
-
+            // instance classes
             new \MeuMouse\Flexify_Checkout\Recovery_Carts\Core\Init;
         }
 
@@ -118,37 +118,35 @@ if ( ! class_exists('Flexify_Checkout_Recovery_Carts') ) {
          * Setup plugin constants
          *
          * @since 1.0.0
+         * @version 1.3.0
          * @return void
          */
         public function setup_constants() {
-            $this->define( 'FC_RECOVERY_CARTS_BASENAME', plugin_basename( __FILE__ ) );
-			$this->define( 'FC_RECOVERY_CARTS_DIR', plugin_dir_path( __FILE__ ) );
-			$this->define( 'FC_RECOVERY_CARTS_INC', FC_RECOVERY_CARTS_DIR . 'inc/' );
-			$this->define( 'FC_RECOVERY_CARTS_URL', plugin_dir_url( __FILE__ ) );
-			$this->define( 'FC_RECOVERY_CARTS_ASSETS', FC_RECOVERY_CARTS_URL . 'assets/' );
-			$this->define( 'FC_RECOVERY_CARTS_FILE', __FILE__ );
-			$this->define( 'FC_RECOVERY_CARTS_ABSPATH', dirname( FC_RECOVERY_CARTS_FILE ) . '/' );
-			$this->define( 'FC_RECOVERY_CARTS_ADMIN_EMAIL', get_option('admin_email') );
-			$this->define( 'FC_RECOVERY_CARTS_DOCS_URL', 'https://ajuda.meumouse.com/docs/fc-recovery-carts/overview' );
-			$this->define( 'FC_RECOVERY_CARTS_SLUG', self::$slug );
-			$this->define( 'FC_RECOVERY_CARTS_VERSION', self::$version );
-            $this->define( 'FC_RECOVERY_CARTS_DEBUG_MODE', false );
-			$this->define( 'FC_RECOVERY_CARTS_DEV_MODE', false );
-        }
+            $base_file = __FILE__;
+			$base_dir = plugin_dir_path( $base_file );
+			$base_url = plugin_dir_url( $base_file );
 
+			$constants = array(
+				'FC_RECOVERY_CARTS_BASENAME' => plugin_basename( $base_file ),
+				'FC_RECOVERY_CARTS_FILE' => $base_file,
+				'FC_RECOVERY_CARTS_DIR' => $base_dir,
+				'FC_RECOVERY_CARTS_INC' => $base_dir . 'inc/',
+				'FC_RECOVERY_CARTS_URL' => $base_url,
+				'FC_RECOVERY_CARTS_ASSETS' => $base_url . 'assets/',
+				'FC_RECOVERY_CARTS_ABSPATH' => dirname( $base_file ) . '/',
+				'FC_RECOVERY_CARTS_SLUG' => self::$slug,
+				'FC_RECOVERY_CARTS_VERSION' => self::$version,
+				'FC_RECOVERY_CARTS_ADMIN_EMAIL' => get_option('admin_email'),
+				'FC_RECOVERY_CARTS_DOCS_URL' => 'https://ajuda.meumouse.com/docs/fc-recovery-carts/overview',
+				'FC_RECOVERY_CARTS_DEBUG_MODE' => false,
+			);
 
-        /**
-         * Define a constant if not already set
-         *
-         * @since 1.0.0
-         * @param string $name | Constant name
-         * @param string|bool $value | Constant value
-         * @return void
-         */
-        private function define( $name, $value ) {
-            if ( ! defined( $name ) ) {
-                define( $name, $value );
-            }
+			// iterate for each constant item
+			foreach ( $constants as $key => $value ) {
+				if ( ! defined( $key ) ) {
+					define( $key, $value );
+				}
+			}
         }
 
 
@@ -163,59 +161,6 @@ if ( ! class_exists('Flexify_Checkout_Recovery_Carts') ) {
             $message = __( '<strong>Flexify Checkout - Recuperação de Carrinhos</strong> requer PHP 7.4 ou superior. Atualize seu ambiente de hospedagem.', 'fc-recovery-carts' );
 
             printf( '<div class="%1$s"><p>%2$s</p></div>', esc_attr( $class ), $message );
-        }
-
-
-        /**
-         * Flexify Checkout requires notice
-         * 
-         * @since 1.0.0
-         * @return void
-         */
-        public function flexify_checkout_require_notice() {
-            $class = 'notice notice-error is-dismissible';
-            $message = __( '<strong>Flexify Checkout - Recuperação de carrinhos abandonados</strong> requer o plugin Flexify Checkout para WooCommerce.', 'fc-recovery-carts' );
-
-            printf( '<div class="%1$s"><p>%2$s</p></div>', esc_attr( $class ), $message );
-        }
-
-
-        /**
-         * Plugin action links
-         *
-         * @since 1.0.0
-         * @param array $action_links | Default plugin action links
-         * @return array
-         */
-        public function add_action_plugin_links( $action_links ) {
-            $plugin_links = array(
-                '<a href="' . admin_url('admin.php?page=fc-recovery-carts-settings') . '">'. esc_html__( 'Configurações', 'fc-recovery-carts' ) .'</a>',
-            );
-
-            return array_merge( $plugin_links, $action_links );
-        }
-
-
-        /**
-         * Add meta links on plugin
-         *
-         * @since 1.0.0
-         * @param array $plugin_meta | Plugin metadata
-         * @param string $plugin_file | Plugin file path
-         * @param array $plugin_data | Plugin data
-         * @param string $status | Plugin status
-         * @return array
-         */
-        public function add_row_meta_links( $plugin_meta, $plugin_file, $plugin_data, $status ) {
-            if ( strpos( $plugin_file, FC_RECOVERY_CARTS_BASENAME ) !== false ) {
-                $new_links = array(
-                    'docs' => '<a href="'. esc_attr( FC_RECOVERY_CARTS_DOCS_URL ) .'" target="_blank">'. esc_html__( 'Documentação', 'fc-recovery-carts' ) .'</a>',
-                );
-
-                $plugin_meta = array_merge( $plugin_meta, $new_links );
-            }
-
-            return $plugin_meta;
         }
     }
 }

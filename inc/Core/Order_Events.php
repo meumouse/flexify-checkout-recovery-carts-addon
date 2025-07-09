@@ -3,6 +3,7 @@
 namespace MeuMouse\Flexify_Checkout\Recovery_Carts\Core;
 
 use MeuMouse\Flexify_Checkout\Recovery_Carts\Admin\Admin;
+use MeuMouse\Flexify_Checkout\Recovery_Carts\Core\Helpers;
 
 // Exit if accessed directly.
 defined('ABSPATH') || exit;
@@ -11,7 +12,7 @@ defined('ABSPATH') || exit;
  * Handles with orders events
  *
  * @since 1.0.0
- * @version 1.2.0
+ * @version 1.3.0
  * @package MeuMouse.com
  */
 class Order_Events {
@@ -31,7 +32,7 @@ class Order_Events {
         add_action( 'fcrc_check_order_payment_status', array( $this, 'check_order_payment_status' ), 10, 1 );
 
         // save cart id on order meta data
-        add_action( 'woocommerce_checkout_order_processed', array( $this, 'save_cart_id_to_order_meta' ), 10, 1 );
+        add_action( 'woocommerce_checkout_order_processed', array( $this, 'set_recovered_cart' ), 10, 1 );
 
         // Listen for order status changes
         add_action( 'woocommerce_order_status_changed', array( $this, 'mark_cart_as_recovered' ), 10, 3 );
@@ -45,6 +46,7 @@ class Order_Events {
      * Schedules an event to check if the order is paid within the configured delay
      *
      * @since 1.0.0
+     * @version 1.3.0
      * @param int $order_id | The order ID
      * @param array $posted_data | The posted data from checkout
      * @param object $order | The WooCommerce order object
@@ -72,8 +74,8 @@ class Order_Events {
         $delay_seconds = Helpers::convert_to_seconds( $delay_time, $delay_unit );
 
         // Schedule a task to check order payment status after the delay
-        if ( ! wp_next_scheduled( 'fcrc_check_order_payment_status', array( $order_id) ) ) {
-            wp_schedule_single_event( time() + $delay_seconds, 'fcrc_check_order_payment_status', array( $order_id ) );
+        if ( ! wp_next_scheduled( 'fcrc_check_final_cart_status', array( $order_id) ) ) {
+            wp_schedule_single_event( strtotime( current_time('mysql') ) + $delay_seconds, 'fcrc_check_final_cart_status', array( $order_id ) );
         }
     }
 
@@ -87,25 +89,16 @@ class Order_Events {
      */
     public function check_order_payment_status( $order_id ) {
         $order = wc_get_order( $order_id );
-
-        if ( ! $order ) {
-            return;
-        }
-
-        // If order is already paid, exit early
-        if ( $order->is_paid() ) {
-            return;
-        }
-
         $cart_id = get_post_meta( $order_id, '_fcrc_cart_id', true );
 
-        if ( ! $cart_id ) {
+        if ( ! $order || $order->is_paid() || ! $cart_id ) {
             return;
         }
 
         // Mark order as abandoned
-        update_post_meta( $cart_id, '_fcrc_abandoned_time', current_time('mysql') );
+        update_post_meta( $cart_id, '_fcrc_abandoned_time', strtotime( current_time('mysql') ) );
 
+        // update cart post
         wp_update_post( array(
             'ID' => $cart_id,
             'post_status' => 'order_abandoned',
@@ -126,11 +119,11 @@ class Order_Events {
      * Saves the cart ID, products, billing details, and location to the order meta when a new order is created.
      *
      * @since 1.0.0
-     * @version 1.0.1
+     * @version 1.3.0
      * @param int $order_id | The order ID
      * @return void
      */
-    public function save_cart_id_to_order_meta( $order_id ) {
+    public function set_recovered_cart( $order_id ) {
         if ( ! $order_id ) {
             return;
         }
@@ -215,18 +208,27 @@ class Order_Events {
             );
         }
 
+        // cancel scheduled follow up events
+        Helpers::cancel_scheduled_follow_up_events( $cart_id );
+
+        // update cart post
         wp_update_post( array(
             'ID' => $cart_id,
             'post_status' => 'purchased',
         ));
+
+        $payment_method = $order->get_payment_method();
+        $payment_method_title = $order->get_payment_method_title();
 
         update_post_meta( $cart_id, '_fcrc_cart_items', $order_items );
         update_post_meta( $cart_id, '_fcrc_purchased', true );
         update_post_meta( $cart_id, '_fcrc_order_id', $order_id );
         update_post_meta( $cart_id, '_fcrc_order_date_created', $order->get_date_created() );
         update_post_meta( $order_id, '_fcrc_cart_id', $cart_id );
+        update_post_meta( $cart_id, '_fcrc_payment_method', $payment_method );
+        update_post_meta( $cart_id, '_fcrc_payment_method_title', $payment_method_title );
 
-        if ( FC_RECOVERY_CARTS_DEV_MODE ) {
+        if ( FC_RECOVERY_CARTS_DEBUG_MODE ) {
             error_log( "Cart ID {$cart_id} updated with billing & location info for order {$order_id}" );
         }
 
@@ -270,7 +272,7 @@ class Order_Events {
 
         update_post_meta( $cart_id, '_fcrc_purchased', true );
 
-        if ( FC_RECOVERY_CARTS_DEV_MODE ) {
+        if ( FC_RECOVERY_CARTS_DEBUG_MODE ) {
             error_log( "Cart ID {$cart_id} linked to Order ID {$order_id} marked as recovered." );
         }
 
@@ -367,7 +369,7 @@ class Order_Events {
         update_post_meta( $cart_id, '_fcrc_purchased', true );
         update_post_meta( $cart_id, '_fcrc_cart_recovered', true );
 
-        if ( FC_RECOVERY_CARTS_DEV_MODE ) {
+        if ( FC_RECOVERY_CARTS_DEBUG_MODE ) {
             error_log( "[woocommerce_payment_complete] Cart ID {$cart_id} linked to Order ID {$order_id} marked as recovered." );
         }
 
