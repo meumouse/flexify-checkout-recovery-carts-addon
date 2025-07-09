@@ -1,4 +1,4 @@
-Versão 1.3.0 (07/07/2025)
+Versão 1.3.0 (08/07/2025)
 * Correção de bugs
 * Otimizações
     - Não registrar evento Cron se carrinho for de visitante anônimo

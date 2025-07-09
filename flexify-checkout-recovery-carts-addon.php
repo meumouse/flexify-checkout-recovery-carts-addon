@@ -138,7 +138,7 @@ if ( ! class_exists('Flexify_Checkout_Recovery_Carts') ) {
 				'FC_RECOVERY_CARTS_VERSION' => self::$version,
 				'FC_RECOVERY_CARTS_ADMIN_EMAIL' => get_option('admin_email'),
 				'FC_RECOVERY_CARTS_DOCS_URL' => 'https://ajuda.meumouse.com/docs/fc-recovery-carts/overview',
-				'FC_RECOVERY_CARTS_DEBUG_MODE' => true,
+				'FC_RECOVERY_CARTS_DEBUG_MODE' => false,
 			);
 
 			// iterate for each constant item
