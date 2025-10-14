@@ -74,9 +74,18 @@ class Order_Events {
         $delay_seconds = Helpers::convert_to_seconds( $delay_time, $delay_unit );
 
         // Schedule a task to check order payment status after the delay
-        if ( ! wp_next_scheduled( 'fcrc_check_final_cart_status', array( $order_id) ) ) {
-            wp_schedule_single_event( strtotime( current_time('mysql') ) + $delay_seconds, 'fcrc_check_final_cart_status', array( $order_id ) );
-        }
+        $event_delay = current_time('timestamp') + $delay_seconds;
+
+        \MeuMouse\Flexify_Checkout\Recovery_Carts\Cron\Scheduler_Manager::schedule_single_event(
+            $event_delay,
+            'fcrc_check_final_cart_status',
+            array(
+                'cart_id' => intval( $order_id ),
+            ),
+            array(
+                '_fcrc_cart_id' => intval( $order_id ),
+            )
+        );
     }
 
 

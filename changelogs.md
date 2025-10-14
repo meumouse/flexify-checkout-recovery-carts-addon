@@ -1,3 +1,6 @@
+Versão 1.3.2 (??/10/2025)
+* Recurso adicionado: Agendador de tarefas PHP-Cron
+
 Versão 1.3.0 (08/07/2025)
 * Correção de bugs
 * Otimizações

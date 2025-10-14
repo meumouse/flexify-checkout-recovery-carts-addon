@@ -11,7 +11,7 @@ defined('ABSPATH') || exit;
  * Helpers class
  * 
  * @since 1.0.0
- * @version 1.3.0
+ * @version 1.3.2
  * @package MeuMouse.com
  */
 class Helpers {
@@ -443,6 +443,7 @@ class Helpers {
      * Cancel all scheduled follow-up events (hook 'fcrc_send_follow_up_message') for a given cart ID
      *
      * @since 1.3.0
+     * @version 1.3.2
      * @param int $cart_id | The recovery cart post ID
      * @return void
      */
@@ -465,22 +466,15 @@ class Helpers {
         ));
 
         foreach ( $events as $event ) {
-            // Retrieve the scheduled timestamp from post meta
-            $scheduled_at = get_post_meta( $event->ID, '_fcrc_cron_scheduled_at', true );
-            $timestamp = strtotime( $scheduled_at );
+            $args = get_post_meta( $event->ID, '_fcrc_cron_args', true );
 
-            // Prepare the args array matching the original schedule call
-            $args = array(
-                'cart_id' => $cart_id,
-                'event_key' => get_post_meta( $event->ID, '_fcrc_cron_event_key', true ),
-                'cron_post_id' => $event->ID,
-            );
+            if ( ! is_array( $args ) ) {
+                $args = array(
+                    'cart_id' => $cart_id,
+                );
+            }
 
-            // Unschedule the event from WP-Cron
-            wp_unschedule_event( $timestamp, 'fcrc_send_follow_up_message', $args );
-
-            // Delete the cron-event post to clean up
-            wp_delete_post( $event->ID, true );
+            \MeuMouse\Flexify_Checkout\Recovery_Carts\Cron\Scheduler_Manager::unschedule_event( 'fcrc_send_follow_up_message', $args );
 
             // Log the cancellation if debug mode is enabled
             if ( defined( 'FC_RECOVERY_CARTS_DEBUG_MODE' ) && FC_RECOVERY_CARTS_DEBUG_MODE ) {

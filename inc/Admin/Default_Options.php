@@ -9,6 +9,7 @@ defined('ABSPATH') || exit;
  * Default options class
  * 
  * @since 1.3.0
+ * @version 1.3.2
  * @package MeuMouse.com
  */
 class Default_Options {
@@ -17,7 +18,7 @@ class Default_Options {
      * Set default options
      * 
      * @since 1.0.0
-     * @version 1.3.0
+     * @version 1.3.2
      * @return array
      */
     public function set_default_options() {
@@ -33,6 +34,7 @@ class Default_Options {
         }
 
         return apply_filters( 'Flexify_Checkout/Recovery_Carts/Set_Default_Options', array(
+            'task_scheduler' => 'wp_cron',
             'time_for_lost_carts' => 15,
             'time_unit_for_lost_carts' => 'minutes',
             'toggle_switchs' => array(

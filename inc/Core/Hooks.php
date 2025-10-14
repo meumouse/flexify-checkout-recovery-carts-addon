@@ -9,6 +9,7 @@ defined('ABSPATH') || exit;
  * Handle with fire hooks
  * 
  * @since 1.3.0
+ * @version 1.3.2
  * @package MeuMouse.com
  */
 class Hooks {
@@ -56,7 +57,7 @@ class Hooks {
      * Cancels scheduled cart process
      *
      * @since 1.0.0
-     * @version 1.3.0
+     * @version 1.3.2
      * @param int $cart_id | The cart ID
      * @return void
      */
@@ -96,6 +97,31 @@ class Hooks {
                 }
             }
         }
+
+        // Remove queue entries linked to the cart
+        $queue_events = get_posts( array(
+            'post_type'      => 'fcrc-cron-event',
+            'post_status'    => array( 'publish', 'draft' ),
+            'fields'         => 'ids',
+            'posts_per_page' => -1,
+            'meta_query'     => array(
+                array(
+                    'key'   => '_fcrc_cart_id',
+                    'value' => intval( $cart_id ),
+                ),
+            ),
+        ) );
+
+        foreach ( $queue_events as $event_id ) {
+            $hook = get_post_meta( $event_id, '_fcrc_cron_event_key', true );
+            $args = get_post_meta( $event_id, '_fcrc_cron_args', true );
+
+            if ( $hook ) {
+                \MeuMouse\Flexify_Checkout\Recovery_Carts\Cron\Scheduler_Manager::unschedule_event( $hook, is_array( $args ) ? $args : array() );
+            } else {
+                wp_delete_post( $event_id, true );
+            }
+        }
     }
 
 
@@ -103,11 +129,11 @@ class Hooks {
      * Deletes carts without contact info older than 1 hour
      *
      * @since 1.2.0
-     * @version 1.3.0
+     * @version 1.3.2
      * @return void
      */
     public function delete_old_anonymous_carts() {
-        $one_hour_ago = strtotime( current_time('mysql') ); - HOUR_IN_SECONDS;
+        $one_hour_ago = current_time('timestamp') - HOUR_IN_SECONDS;
 
         $query = new \WP_Query( array(
             'post_type' => 'fc-recovery-carts',
