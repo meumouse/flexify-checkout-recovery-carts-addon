@@ -7,11 +7,11 @@
  * Requires Plugins: 		flexify-checkout-for-woocommerce, woocommerce
  * Author:                  MeuMouse.com
  * Author URI:              https://meumouse.com/
- * Version:                 1.3.0
+ * Version:                 1.3.2
  * Requires PHP:            7.4
- * Tested up to:            6.8.1
+ * Tested up to:            6.8.3
  * WC requires at least:    6.0.0
- * WC tested up to: 		9.9.5
+ * WC tested up to: 		10.2.2
  * Text Domain:             fc-recovery-carts
  * Domain Path:             /languages
  * License:                 GPL2
@@ -52,7 +52,7 @@ if ( ! class_exists('Flexify_Checkout_Recovery_Carts') ) {
          * @var string
          * @since 1.0.0
          */
-        public static $version = '1.3.0';
+        public static $version = '1.3.2';
 
 
         /**
@@ -138,7 +138,7 @@ if ( ! class_exists('Flexify_Checkout_Recovery_Carts') ) {
 				'FC_RECOVERY_CARTS_VERSION' => self::$version,
 				'FC_RECOVERY_CARTS_ADMIN_EMAIL' => get_option('admin_email'),
 				'FC_RECOVERY_CARTS_DOCS_URL' => 'https://ajuda.meumouse.com/docs/fc-recovery-carts/overview',
-				'FC_RECOVERY_CARTS_DEBUG_MODE' => false,
+				'FC_RECOVERY_CARTS_DEBUG_MODE' => true,
 			);
 
 			// iterate for each constant item
