@@ -125,6 +125,8 @@ class Scheduler_Manager {
             }
         }
 
+        self::schedule_queue_runner();
+
         return $post_id;
     }
 
@@ -154,6 +156,8 @@ class Scheduler_Manager {
         if ( $existing ) {
             wp_delete_post( $existing->ID, true );
         }
+
+        self::schedule_queue_runner();
     }
 
 
@@ -204,5 +208,110 @@ class Scheduler_Manager {
         }
 
         return $scheduler;
+    }
+
+
+    /**
+     * Ensure the queue processor is scheduled when using PHP Cron.
+     *
+     * This provides a fallback so that hosts triggering wp-cron.php
+     * (or any request that runs WP-Cron) can dispatch the queued
+     * follow-up events even if the dedicated CLI job is unavailable.
+     *
+     * @since 1.3.2
+     * @return void
+     */
+    public static function schedule_queue_runner() {
+        if ( ! self::is_wp_cron_available() ) {
+            return;
+        }
+
+        if ( ! self::is_php_cron_enabled() ) {
+            self::clear_queue_runner();
+            return;
+        }
+
+        $next_timestamp = self::get_next_queue_timestamp();
+
+        if ( ! $next_timestamp ) {
+            self::clear_queue_runner();
+            return;
+        }
+
+        $next_timestamp = max( $next_timestamp, current_time( 'timestamp', true ) );
+        $scheduled = wp_next_scheduled( 'fcrc_dispatch_queue' );
+
+        if ( $scheduled && absint( $scheduled ) === $next_timestamp ) {
+            return;
+        }
+
+        if ( $scheduled ) {
+            wp_unschedule_event( $scheduled, 'fcrc_dispatch_queue' );
+        }
+
+        wp_schedule_single_event( $next_timestamp, 'fcrc_dispatch_queue' );
+    }
+
+
+    /**
+     * Remove any scheduled queue runner events.
+     *
+     * @since 1.3.2
+     * @return void
+     */
+    protected static function clear_queue_runner() {
+        if ( ! self::is_wp_cron_available() ) {
+            return;
+        }
+
+        $timestamp = wp_next_scheduled('fcrc_dispatch_queue');
+
+        while ( $timestamp ) {
+            wp_unschedule_event( $timestamp, 'fcrc_dispatch_queue' );
+            $timestamp = wp_next_scheduled('fcrc_dispatch_queue');
+        }
+    }
+
+
+    /**
+     * Retrieve the next queued event timestamp.
+     *
+     * @since 1.3.2
+     * @return int Timestamp in GMT or 0 when there is no queued event.
+     */
+    protected static function get_next_queue_timestamp() {
+        $events = get_posts( array(
+            'post_type'      => 'fcrc-cron-event',
+            'post_status'    => 'publish',
+            'posts_per_page' => 1,
+            'orderby'        => 'meta_value_num',
+            'order'          => 'ASC',
+            'meta_key'       => '_fcrc_cron_scheduled_at',
+            'no_found_rows'  => true,
+            'fields'         => 'ids',
+        ) );
+
+        if ( empty( $events ) ) {
+            return 0;
+        }
+
+        $timestamp = get_post_meta( $events[0], '_fcrc_cron_scheduled_at', true );
+
+        return $timestamp ? absint( $timestamp ) : 0;
+    }
+
+
+    /**
+     * Whether WP-Cron is available for scheduling fallbacks.
+     *
+     * @since 1.3.2
+     * @return bool
+     */
+    protected static function is_wp_cron_available() {
+        if ( ! function_exists('wp_next_scheduled') ) {
+            return false;
+        }
+
+        return ! ( defined('DISABLE_WP_CRON') && DISABLE_WP_CRON );
     }
 }

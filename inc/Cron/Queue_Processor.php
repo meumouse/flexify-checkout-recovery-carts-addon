@@ -44,7 +44,7 @@ class Queue_Processor {
         ) );
 
         if ( empty( $events ) ) {
-            return;
+            Scheduler_Manager::schedule_queue_runner();
         }
 
         foreach ( $events as $event ) {
@@ -67,7 +67,7 @@ class Queue_Processor {
             wp_update_post( array(
                 'ID'          => $event->ID,
                 'post_status' => 'draft',
-            ) );
+            ));
 
             do_action_ref_array( $hook, array_values( $args ) );
 
@@ -75,5 +75,7 @@ class Queue_Processor {
                 wp_delete_post( $event->ID, true );
             }
         }
+
+        Scheduler_Manager::schedule_queue_runner();
     }
 }

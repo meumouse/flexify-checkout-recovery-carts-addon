@@ -55,6 +55,11 @@ class Recovery_Handler {
 
         // Hook to handle the scheduled final cart status check
         add_action( 'fcrc_check_final_cart_status', array( $this, 'check_final_cart_status_callback' ), 10, 2 );
+
+        // Fallback queue runner for PHP-Cron when wp-cron.php is triggered externally.
+        add_action( 'fcrc_dispatch_queue', array( '\MeuMouse\Flexify_Checkout\Recovery_Carts\Cron\Queue_Processor', 'dispatch_due_events' ) );
+
+        Scheduler_Manager::schedule_queue_runner();
     }
 
 
