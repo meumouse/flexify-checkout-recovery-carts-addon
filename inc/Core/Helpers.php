@@ -528,9 +528,19 @@ class Helpers {
         $checks = array();
 
         if ( self::is_shell_function_available('shell_exec') ) {
-            $checks[] = trim( @shell_exec( 'command -v ' . escapeshellarg( $command ) ) );
-            $checks[] = trim( @shell_exec( 'which ' . escapeshellarg( $command ) ) );
-            $checks[] = trim( @shell_exec( 'where ' . escapeshellarg( $command ) ) );
+            $shell_variants = array(
+                'command -v ' . escapeshellarg( $command ),
+                'which ' . escapeshellarg( $command ),
+                'where ' . escapeshellarg( $command ),
+            );
+
+            foreach ( $shell_variants as $variant ) {
+                $result = @shell_exec( $variant );
+
+                if ( is_string( $result ) ) {
+                    $checks[] = trim( $result );
+                }
+            }
         }
 
         foreach ( $checks as $result ) {

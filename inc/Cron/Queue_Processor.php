@@ -29,7 +29,7 @@ class Queue_Processor {
         $events = get_posts( array(
             'post_type'      => 'fcrc-cron-event',
             'post_status'    => 'publish',
-            'posts_per_page' => -1,
+            'posts_per_page' => -1, // all posts
             'orderby'        => 'meta_value_num',
             'order'          => 'ASC',
             'meta_key'       => '_fcrc_cron_scheduled_at',
@@ -65,7 +65,7 @@ class Queue_Processor {
 
             // Prevent concurrent execution by marking as draft before running.
             wp_update_post( array(
-                'ID'          => $event->ID,
+                'ID' => $event->ID,
                 'post_status' => 'draft',
             ));
 
