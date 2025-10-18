@@ -133,7 +133,7 @@ class Hooks {
      * @return void
      */
     public function delete_old_anonymous_carts() {
-        $one_hour_ago = current_time('timestamp') - HOUR_IN_SECONDS;
+        $one_hour_ago = current_time('timestamp', true) - HOUR_IN_SECONDS;
 
         $query = new \WP_Query( array(
             'post_type' => 'fc-recovery-carts',

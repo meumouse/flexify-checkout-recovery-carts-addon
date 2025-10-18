@@ -12,15 +12,19 @@ defined('ABSPATH') || exit;
  * @package MeuMouse.com
  */
 class Queue_Processor {
+
     /**
-     * Run all due events in the queue.
+     * Run all due events in the queue
+     * 
+     * @since 1.3.2
+     * @return void
      */
     public static function dispatch_due_events() {
         if ( ! Scheduler_Manager::is_php_cron_enabled() ) {
             return;
         }
 
-        $now = current_time('timestamp');
+        $now = current_time('timestamp', true);
 
         $events = get_posts( array(
             'post_type'      => 'fcrc-cron-event',

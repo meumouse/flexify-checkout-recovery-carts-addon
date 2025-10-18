@@ -78,7 +78,7 @@ class Recovery_Handler {
      */
     public function check_abandoned_carts() {
         $time_limit_seconds = Helpers::get_abandonment_time_seconds();
-        $current_time = current_time('timestamp');
+        $current_time = current_time('timestamp', true);
         $time_threshold = $current_time - ( $time_limit_seconds + 30 ); // add 30 seconds to account for any time differences
 
         $query = new \WP_Query( array(
@@ -143,7 +143,7 @@ class Recovery_Handler {
      * Schedules follow-up messages based on admin settings
      *
      * @since 1.0.0
-     * @version 1.3.0
+     * @version 1.3.2
      * @param int $cart_id | The abandoned cart ID
      * @return void
      */
@@ -174,7 +174,7 @@ class Recovery_Handler {
             $delay = Helpers::convert_to_seconds( $event_data['delay_time'], $event_data['delay_type'] );
     
             if ( $delay ) {
-                $event_delay = current_time('timestamp') + $delay;
+                $event_delay = current_time('timestamp', true) + $delay;
 
                 Scheduler_Manager::schedule_single_event(
                     $event_delay,
@@ -264,7 +264,7 @@ class Recovery_Handler {
             $notifications[] = array(
                 'event_key' => sanitize_key( $event_key ),
                 'channel' => sanitize_key( $channel ),
-                'sent_at' => strtotime( current_time('mysql') ),
+                'sent_at' => current_time('timestamp', true),
             );
         }
 
@@ -416,7 +416,7 @@ class Recovery_Handler {
         // check if there was recent activity
         $last_ping = (int) get_post_meta( $cart_id, '_fcrc_cart_updated_time', true );
         $time_limit_seconds = Helpers::get_abandonment_time_seconds();
-        $time_threshold = current_time('timestamp') - $time_limit_seconds;
+        $time_threshold = current_time('timestamp', true) - $time_limit_seconds;
     
         // if last ping is before the time threshold, it's considered abandoned
         if ( $last_ping < $time_threshold ) {
