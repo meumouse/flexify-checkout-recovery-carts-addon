@@ -197,13 +197,30 @@ class Recovery_Handler {
      * Sends a follow-up message based on the event
      *
      * @since 1.0.0
-     * @version 1.3.0
+     * @version 1.3.2
      * @param int $cart_id | The abandoned cart ID
      * @param string $event_key | The follow-up event key
      * @param int $cron_post_id | The cron post ID
      * @return void
      */
-    public function send_follow_up_message_callback( $cart_id, $event_key, $cron_post_id ) {
+    public function send_follow_up_message_callback( ...$raw_args ) {
+        $args = $this->normalize_callback_arguments(
+            $raw_args,
+            array(
+                'cart_id' => 0,
+                'event_key' => '',
+                'cron_post_id' => null,
+            )
+        );
+
+        $cart_id = absint( $args['cart_id'] );
+        $event_key = sanitize_key( $args['event_key'] );
+        $cron_post_id = $args['cron_post_id'] ? absint( $args['cron_post_id'] ) : null;
+
+        if ( ! $cart_id || ! $event_key ) {
+            return;
+        }
+
         $settings = Admin::get_setting('follow_up_events');
 
         if ( ! isset( $settings[ $event_key ] ) ) {
@@ -264,12 +281,27 @@ class Recovery_Handler {
      * Checks the final status of the abandoned cart after the last follow-up.
      *
      * @since 1.0.0
-     * @version 1.1.0
+     * @version 1.3.2
      * @param int $cart_id The abandoned cart ID
      * @param int $cron_post_id | The cron post ID
      * @return void
      */
-    public function check_final_cart_status_callback( $cart_id, $cron_post_id  ) {
+    public function check_final_cart_status_callback( ...$raw_args ) {
+        $args = $this->normalize_callback_arguments(
+            $raw_args,
+            array(
+                'cart_id' => 0,
+                'cron_post_id' => null,
+            )
+        );
+
+        $cart_id = absint( $args['cart_id'] );
+        $cron_post_id = $args['cron_post_id'] ? absint( $args['cron_post_id'] ) : null;
+
+        if ( ! $cart_id ) {
+            return;
+        }
+
         $cart_status = get_post_status( $cart_id );
 
         // if still abandoned after 1 hour, mark as "lost"
@@ -295,6 +327,42 @@ class Recovery_Handler {
         if ( $cron_post_id ) {
             wp_delete_post( intval( $cron_post_id ), true );
         }
+    }
+
+
+    /**
+     * Normalizes callback arguments passed by WP Cron or PHP Cron.
+     *
+     * @since 1.3.2
+     * @param array $raw_args | Arguments forwarded by the scheduler.
+     * @param array $defaults | Default values keyed by argument name.
+     * @return array Normalized associative array of arguments.
+     */
+    private function normalize_callback_arguments( array $raw_args, array $defaults ) {
+        if ( empty( $raw_args ) ) {
+            return $defaults;
+        }
+
+        if ( 1 === count( $raw_args ) && is_array( $raw_args[0] ) ) {
+            $raw_args = $raw_args[0];
+        }
+
+        $normalized = array();
+        $index = 0;
+
+        foreach ( $defaults as $key => $default ) {
+            if ( array_key_exists( $key, $raw_args ) ) {
+                $normalized[ $key ] = $raw_args[ $key ];
+            } elseif ( array_key_exists( $index, $raw_args ) ) {
+                $normalized[ $key ] = $raw_args[ $index ];
+            } else {
+                $normalized[ $key ] = $default;
+            }
+
+            $index++;
+        }
+
+        return $normalized;
     }
 
 

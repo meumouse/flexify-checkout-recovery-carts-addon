@@ -26,7 +26,7 @@ defined('ABSPATH') || exit; ?>
                     <?php $task_scheduler = Admin::get_setting('task_scheduler'); ?>
                     <select class="form-select" name="task_scheduler">
                         <option value="wp_cron" <?php selected( $task_scheduler, 'wp_cron' ); ?>><?php esc_html_e( 'WP-Cron (padrão)', 'fc-recovery-carts' ); ?></option>
-                        <option value="php_cron" <?php selected( $task_scheduler, 'php_cron' ); ?>><?php esc_html_e( 'PHP-Cron (requer cron no servidor)', 'fc-recovery-carts' ); ?></option>
+                        <option value="php_cron" <?php selected( $task_scheduler, 'php_cron' ); ?>><?php esc_html_e( 'PHP-Cron', 'fc-recovery-carts' ); ?></option>
                     </select>
                 </td>
             </tr>
