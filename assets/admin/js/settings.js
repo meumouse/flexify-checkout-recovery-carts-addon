@@ -460,6 +460,7 @@
 		 * @since 1.3.2
 		 */
 		initWebhooks: function() {
+			this.handleWebhookModals();
 			this.handleAddWebhook();
 			this.handleRemoveWebhook();
 			this.handleAddWebhookHeader();
@@ -527,6 +528,35 @@
 		},
 
 		/**
+		 * Update webhook count badge
+		 *
+		 * @since 1.3.2
+		 * @param {string} eventKey | Webhook event key
+		 */
+		updateWebhookCount: function(eventKey) {
+			if (typeof eventKey === 'undefined') {
+				return;
+			}
+
+			const list = Settings.getWebhookList(eventKey);
+			const count = list.length ? list.children('.fcrc-webhook-item').length : 0;
+			const badge = $('.fcrc-webhook-event[data-event-key="' + eventKey + '"]').find('.fcrc-webhook-count');
+
+			if (badge.length) {
+				const singular = badge.data('countSingular');
+				const plural = badge.data('countPlural');
+				let text = count;
+
+				if (typeof singular !== 'undefined' && typeof plural !== 'undefined') {
+					const template = count === 1 ? singular : plural;
+					text = template.replace('%d', count);
+				}
+
+				badge.text(text);
+			}
+		},
+
+		/**
 		 * Refresh initial webhook states
 		 *
 		 * @since 1.3.2
@@ -540,6 +570,12 @@
 				list.find('.fcrc-webhook-headers').each( function() {
 					Settings.toggleHeadersEmptyState($(this));
 				});
+
+				const eventKey = list.data('event');
+
+				if ( typeof eventKey !== 'undefined' ) {
+					Settings.updateWebhookCount(eventKey);
+				}
 			});
 		},
 
@@ -579,6 +615,7 @@
 
 				Settings.toggleWebhookEmptyState(list);
 				Settings.addWebhookHeaderRow(eventKey, nextIndex, false);
+				Settings.updateWebhookCount(eventKey);
 
 				$('#fcrc_save_options').prop('disabled', false);
 			});
@@ -598,6 +635,12 @@
 
 				item.remove();
 				Settings.toggleWebhookEmptyState(list);
+
+				const eventKey = list.data('event');
+
+				if ( typeof eventKey !== 'undefined' ) {
+					Settings.updateWebhookCount(eventKey);
+				}
 
 				$('#fcrc_save_options').prop('disabled', false);
 			});
@@ -623,6 +666,56 @@
 				Settings.addWebhookHeaderRow(eventKey, webhookIndex, true);
 
 				$('#fcrc_save_options').prop('disabled', false);
+			});
+		},
+
+		/**
+		 * Add a new header row to a webhook
+		 *
+		 * @since 1.3.2
+		 */
+		handleRemoveWebhookHeader: function() {
+			$(document).on('click', '.fcrc-remove-webhook-header', function(e) {
+				e.preventDefault();
+
+				const row = $(this).closest('.fcrc-webhook-header-row');
+				const container = row.closest('.fcrc-webhook-headers');
+
+				row.remove();
+				Settings.toggleHeadersEmptyState(container);
+
+				$('#fcrc_save_options').prop('disabled', false);
+			});
+		},
+
+		/**
+		 * Handle webhook configuration modals
+		 *
+		 * @since 1.4.0
+		 */
+		handleWebhookModals: function() {
+			$(document).on('click', '.fcrc-configure-webhook', function(e) {
+				e.preventDefault();
+
+				const target = $(this).data('target');
+
+				if (typeof target === 'undefined' || ! target) {
+					return;
+				}
+
+				$(target).addClass('show');
+			});
+
+			$(document).on('click', '.fcrc-webhook-modal', function(e) {
+				if (e.target === this) {
+					$(this).removeClass('show');
+				}
+			});
+
+			$(document).on('click', '.fcrc-webhook-modal-close', function(e) {
+				e.preventDefault();
+
+				$(this).closest('.fcrc-webhook-modal').removeClass('show');
 			});
 		},
 

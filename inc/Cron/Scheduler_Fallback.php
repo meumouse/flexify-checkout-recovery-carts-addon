@@ -139,7 +139,7 @@ class SchedulerJob {
         }
 
         $last_run = get_option( $this->storage_key, 0 );
-        $now      = $this->current_timestamp();
+        $now = $this->current_timestamp();
 
         return ( $now - intval( $last_run ) ) >= $this->interval;
     }
@@ -171,7 +171,7 @@ class SchedulerJob {
      * @return $this
      */
     protected function set_interval( $seconds ) {
-        $this->interval    = intval( $seconds );
+        $this->interval = intval( $seconds );
         $this->storage_key = 'fcrc_scheduler_stub_' . md5( $this->identifier . '|' . $this->interval );
 
         return $this;

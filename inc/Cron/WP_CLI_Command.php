@@ -10,6 +10,7 @@ use function get_post_time;
 use function get_posts;
 use function sanitize_text_field;
 use function WP_CLI\Utils\format_items;
+use function WP_CLI\Utils\get_flag_value;
 use function strtolower;
 use function trim;
 use function implode;
@@ -56,12 +57,56 @@ class WP_CLI_Command {
         })->everyMinute();
 
         $scheduler->call( function() {
-            do_action( 'fcrc_delete_old_anonymous_carts' );
+            do_action('fcrc_delete_old_anonymous_carts');
         })->hourly();
 
-        $scheduler->run();
+        $interval = Scheduler_Manager::get_php_cron_interval_seconds();
+        $loop = (bool) get_flag_value( $assoc_args, 'loop', false );
+        $max_runs = (int) get_flag_value( $assoc_args, 'max-runs', 0 );
 
-        WP_CLI::success( 'Scheduler executed successfully.' );
+        if ( $loop ) {
+            if ( function_exists('ignore_user_abort') ) {
+                ignore_user_abort( true );
+            }
+
+            if ( function_exists('set_time_limit') ) {
+                set_time_limit( 0 );
+            }
+
+            WP_CLI::log( sprintf( 'Running scheduler loop every %d seconds.', $interval ) );
+        }
+
+        $runs = 0;
+
+        do {
+            $cycle_start = microtime( true );
+
+            $scheduler->run();
+            $runs++;
+
+            if ( ! $loop ) {
+                break;
+            }
+
+            if ( $max_runs > 0 && $runs >= $max_runs ) {
+                break;
+            }
+
+            $elapsed = microtime( true ) - $cycle_start;
+            $sleep_for = $interval - $elapsed;
+
+            if ( $sleep_for > 0 ) {
+                usleep( (int) round( $sleep_for * 1000000 ) );
+            }
+        } while ( true );
+
+        if ( $loop && $max_runs > 0 ) {
+            WP_CLI::success( sprintf( 'Scheduler loop finished after %d runs.', $runs ) );
+        } elseif ( $loop ) {
+            WP_CLI::success( 'Scheduler loop stopped.' );
+        } else {
+            WP_CLI::success( 'Scheduler executed successfully.' );
+        }
     }
 
 

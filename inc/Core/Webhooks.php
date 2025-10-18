@@ -329,7 +329,7 @@ class Webhooks {
      * @return void
      */
     protected function dispatch_event_webhooks( $event_key, array $payload ) {
-        $settings = Admin::get_setting( 'webhooks' );
+        $settings = Admin::get_setting('webhooks');
 
         if ( ! is_array( $settings ) || empty( $settings[ $event_key ] ) || ! is_array( $settings[ $event_key ] ) ) {
             return;
@@ -473,17 +473,48 @@ class Webhooks {
         $prepared = array();
 
         foreach ( $items as $item ) {
+            $product_id = isset( $item['product_id'] ) ? absint( $item['product_id'] ) : 0;
+
             $prepared[] = array(
-                'product_id' => isset( $item['product_id'] ) ? absint( $item['product_id'] ) : 0,
-                'name' => isset( $item['name'] ) ? sanitize_text_field( $item['name'] ) : '',
-                'quantity' => isset( $item['quantity'] ) ? absint( $item['quantity'] ) : 0,
-                'price' => isset( $item['price'] ) ? floatval( $item['price'] ) : 0.0,
-                'total' => isset( $item['total'] ) ? floatval( $item['total'] ) : 0.0,
-                'image' => isset( $item['image'] ) ? esc_url_raw( $item['image'] ) : '',
+                'product_id' => $product_id,
+                'name'       => isset( $item['name'] ) ? sanitize_text_field( $item['name'] ) : '',
+                'quantity'   => isset( $item['quantity'] ) ? absint( $item['quantity'] ) : 0,
+                'price'      => isset( $item['price'] ) ? floatval( $item['price'] ) : 0.0,
+                'total'      => isset( $item['total'] ) ? floatval( $item['total'] ) : 0.0,
+                'image'      => isset( $item['image'] ) ? esc_url_raw( $item['image'] ) : '',
+                'url'        => $this->get_product_permalink( $product_id ),
             );
         }
 
         return $prepared;
+    }
+
+
+    /**
+     * Get product permalink by ID
+     *
+     * @since 1.3.2
+     * @param int $product_id | Product ID
+     * @return string
+     */
+    protected function get_product_permalink( $product_id ) {
+        $product_id = absint( $product_id );
+
+        if ( ! $product_id ) {
+            return '';
+        }
+
+        if ( function_exists('wc_get_product') ) {
+            $product = wc_get_product( $product_id );
+
+            if ( $product && is_callable( array( $product, 'get_permalink' ) ) ) {
+                return esc_url_raw( $product->get_permalink() );
+            }
+        }
+
+        $url = get_permalink( $product_id );
+
+        return $url ? esc_url_raw( $url ) : '';
     }
 
 
@@ -501,7 +532,7 @@ class Webhooks {
             return array();
         }
 
-        if ( ! function_exists( 'wc_get_order' ) ) {
+        if ( ! function_exists('wc_get_order') ) {
             return array( 'id' => $order_id );
         }
 
@@ -518,10 +549,11 @@ class Webhooks {
 
             $items[] = array(
                 'product_id' => $product ? $product->get_id() : 0,
-                'name' => $item->get_name(),
-                'quantity' => $item->get_quantity(),
-                'total' => floatval( $item->get_total() ),
-                'subtotal' => floatval( $item->get_subtotal() ),
+                'name'       => $item->get_name(),
+                'quantity'   => $item->get_quantity(),
+                'total'      => floatval( $item->get_total() ),
+                'subtotal'   => floatval( $item->get_subtotal() ),
+                'url'        => $product ? esc_url_raw( $product->get_permalink() ) : '',
             );
         }
 

@@ -201,13 +201,42 @@ class Scheduler_Manager {
     public static function build_scheduler() {
         $scheduler = new GoScheduler();
 
-        $wp_timezone = wp_timezone_string();
+        $timezone = function_exists('wp_timezone') ? wp_timezone() : null;
 
-        if ( $wp_timezone ) {
-            $scheduler->setTimeZone( $wp_timezone );
+        if ( $timezone instanceof \DateTimeZone ) {
+            $scheduler->setTimeZone( $timezone );
+        } else {
+            $wp_timezone = wp_timezone_string();
+
+            if ( $wp_timezone ) {
+                $scheduler->setTimeZone( $wp_timezone );
+            }
         }
 
         return $scheduler;
+    }
+
+
+    /**
+     * Retrieve the interval (in seconds) used by the PHP Cron runner.
+     *
+     * @since 1.3.2
+     * @return int
+     */
+    public static function get_php_cron_interval_seconds() {
+        $interval = apply_filters( 'Flexify_Checkout/Recovery_Carts/PHP_Cron_Interval', MINUTE_IN_SECONDS );
+
+        if ( ! is_numeric( $interval ) ) {
+            $interval = MINUTE_IN_SECONDS;
+        }
+
+        $interval = (int) $interval;
+
+        if ( $interval < 1 ) {
+            $interval = MINUTE_IN_SECONDS;
+        }
+
+        return $interval;
     }
 
 
