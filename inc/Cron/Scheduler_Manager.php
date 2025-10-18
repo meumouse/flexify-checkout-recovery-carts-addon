@@ -12,7 +12,7 @@ defined('ABSPATH') || exit;
 require_once FC_RECOVERY_CARTS_INC . 'Cron/Scheduler_Fallback.php';
 
 /**
- * Centralises the interaction with the selected task scheduler.
+ * Centralises the interaction with the selected task scheduler
  *
  * @since 1.3.2
  * @package MeuMouse.com
@@ -23,10 +23,13 @@ class Scheduler_Manager {
     public const TYPE_PHP_CRON = 'php_cron';
 
     /**
-     * Retrieve the configured scheduler.
+     * Retrieve the configured scheduler
+     * 
+     * @since 1.3.2
+     * @return string
      */
     public static function get_scheduler_type() {
-        $type = Admin::get_setting( 'task_scheduler' );
+        $type = Admin::get_setting('task_scheduler');
 
         if ( ! in_array( $type, array( self::TYPE_PHP_CRON, self::TYPE_WP_CRON ), true ) ) {
             $type = self::TYPE_WP_CRON;
@@ -35,28 +38,38 @@ class Scheduler_Manager {
         return $type;
     }
 
+
     /**
-     * Whether PHP Cron is enabled.
+     * Whether PHP Cron is enabled
+     * 
+     * @since 1.3.2
+     * @return bool
      */
     public static function is_php_cron_enabled() {
         return self::TYPE_PHP_CRON === self::get_scheduler_type();
     }
 
+
     /**
-     * Whether WP Cron is enabled.
+     * Whether WP Cron is enabled
+     * 
+     * @since 1.3.2
+     * @return bool
      */
     public static function is_wp_cron_enabled() {
         return self::TYPE_WP_CRON === self::get_scheduler_type();
     }
 
+
     /**
      * Schedule a single event.
      *
-     * @param int    $timestamp Unix timestamp.
-     * @param string $hook      Action hook name.
-     * @param array  $args      Arguments passed to the action hook.
-     * @param array  $meta      Additional meta saved on the queue post.
-     * @return int  Post ID of the queue entry.
+     * @since 1.3.2
+     * @param int $timestamp | Unix timestamp
+     * @param string $hook | Action hook name
+     * @param array  $args | Arguments passed to the action hook
+     * @param array  $meta | Additional meta saved on the queue post
+     * @return int  Post ID of the queue entry
      */
     public static function schedule_single_event( $timestamp, $hook, $args = array(), $meta = array() ) {
         $timestamp = absint( $timestamp );
@@ -77,25 +90,25 @@ class Scheduler_Manager {
             $post_id = $existing->ID;
         } else {
             $post_id = wp_insert_post( array(
-                'post_type'   => 'fcrc-cron-event',
+                'post_type' => 'fcrc-cron-event',
                 'post_status' => 'publish',
-                'post_title'  => sanitize_text_field( $hook ),
-            ) );
+                'post_title' => sanitize_text_field( $hook ),
+            ));
         }
 
         if ( ! $post_id || is_wp_error( $post_id ) ) {
             return 0;
         }
 
-        $queue_args             = $args;
+        $queue_args = $args;
         $queue_args['cron_post_id'] = $post_id;
 
         $meta_input = array_merge(
             array(
-                '_fcrc_cron_event_key'   => sanitize_text_field( $hook ),
+                '_fcrc_cron_event_key' => sanitize_text_field( $hook ),
                 '_fcrc_cron_scheduled_at' => $timestamp,
-                '_fcrc_cron_args'        => $queue_args,
-                '_fcrc_cron_args_hash'   => $args_hash,
+                '_fcrc_cron_args' => $queue_args,
+                '_fcrc_cron_args_hash' => $args_hash,
             ),
             $meta
         );
@@ -117,11 +130,14 @@ class Scheduler_Manager {
         return $post_id;
     }
 
+
     /**
      * Remove scheduled event and queue entry.
      *
-     * @param string $hook Action hook name.
-     * @param array  $args Hook args used when scheduling.
+     * @since 1.3.2
+     * @param string $hook | Action hook name.
+     * @param array $args | Hook args used when scheduling
+     * @return void
      */
     public static function unschedule_event( $hook, $args ) {
         $args = is_array( $args ) ? $args : array();
@@ -134,7 +150,7 @@ class Scheduler_Manager {
             }
         }
 
-        $hash     = md5( wp_json_encode( array( 'hook' => $hook, 'args' => $args ) ) );
+        $hash = md5( wp_json_encode( array( 'hook' => $hook, 'args' => $args ) ) );
         $existing = self::find_existing_event( $hook, $hash );
 
         if ( $existing ) {
@@ -142,33 +158,43 @@ class Scheduler_Manager {
         }
     }
 
+
     /**
-     * Locate an existing queue post.
+     * Locate an existing queue post
+     * 
+     * @since 1.3.2
+     * @param string $hook | Action hook name
+     * @param string $hash | Args hash
+     * @return WP_Post|null
      */
     protected static function find_existing_event( $hook, $hash ) {
         $query = get_posts( array(
-            'post_type'      => 'fcrc-cron-event',
+            'post_type' => 'fcrc-cron-event',
             'posts_per_page' => 1,
-            'post_status'    => 'publish',
-            'meta_query'     => array(
+            'post_status' => 'publish',
+            'meta_query' => array(
                 array(
-                    'key'   => '_fcrc_cron_event_key',
+                    'key' => '_fcrc_cron_event_key',
                     'value' => sanitize_text_field( $hook ),
                 ),
                 array(
-                    'key'   => '_fcrc_cron_args_hash',
+                    'key' => '_fcrc_cron_args_hash',
                     'value' => sanitize_text_field( $hash ),
                 ),
             ),
             'orderby' => 'ID',
-            'order'   => 'ASC',
-        ) );
+            'order' => 'ASC',
+        ));
 
         return ! empty( $query ) ? $query[0] : null;
     }
 
+
     /**
-     * Helper to build a scheduler instance (real or stub).
+     * Helper to build a scheduler instance (real or stub)
+     * 
+     * @since 1.3.2
+     * @return GoScheduler
      */
     public static function build_scheduler() {
         $scheduler = new GoScheduler();
