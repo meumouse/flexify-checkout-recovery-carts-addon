@@ -482,4 +482,100 @@ class Helpers {
             }
         }
     }
+
+
+    /**
+     * Checks if WP-CLI is available in the current environment.
+     *
+     * @since 1.3.2
+     * @return bool
+     */
+    public static function has_wp_cli() {
+        $available = false;
+
+        if ( defined('WP_CLI') && WP_CLI ) {
+            $available = true;
+        } elseif ( class_exists( '\\WP_CLI' ) ) {
+            $available = true;
+        } elseif ( self::command_exists('wp') ) {
+            $available = true;
+        } elseif ( defined('ABSPATH') && file_exists( ABSPATH . 'wp-cli.phar' ) ) {
+            $available = true;
+        }
+
+        /**
+         * Filter the detection of the WP-CLI availability.
+         *
+         * @since 1.3.2
+         * @param bool $available Whether WP-CLI appears to be available.
+         */
+        return (bool) apply_filters( 'Flexify_Checkout/Recovery_Carts/Has_WP_CLI', $available );
+    }
+
+
+    /**
+     * Checks if a shell command exists on the server
+     *
+     * @since 1.3.2
+     * @param string $command | Command name
+     * @return bool
+     */
+    protected static function command_exists( $command ) {
+        if ( empty( $command ) ) {
+            return false;
+        }
+
+        $checks = array();
+
+        if ( self::is_shell_function_available('shell_exec') ) {
+            $checks[] = trim( @shell_exec( 'command -v ' . escapeshellarg( $command ) ) );
+            $checks[] = trim( @shell_exec( 'which ' . escapeshellarg( $command ) ) );
+            $checks[] = trim( @shell_exec( 'where ' . escapeshellarg( $command ) ) );
+        }
+
+        foreach ( $checks as $result ) {
+            if ( ! empty( $result ) ) {
+                return true;
+            }
+        }
+
+        if ( self::is_shell_function_available('exec') ) {
+            $variants = array(
+                'command -v ' . escapeshellarg( $command ),
+                'which ' . escapeshellarg( $command ),
+                'where ' . escapeshellarg( $command ),
+            );
+
+            foreach ( $variants as $variant ) {
+                $output = array();
+                $return_var = 1;
+
+                @exec( $variant, $output, $return_var );
+
+                if ( 0 === $return_var && ! empty( $output ) ) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+
+    /**
+     * Checks if a shell function is enabled in the current PHP configuration.
+     *
+     * @since 1.3.2
+     * @param string $function | Function name
+     * @return bool
+     */
+    protected static function is_shell_function_available( $function ) {
+        if ( ! function_exists( $function ) ) {
+            return false;
+        }
+
+        $disabled = array_map( 'trim', explode( ',', (string) ini_get('disable_functions') ) );
+
+        return ! in_array( $function, $disabled, true );
+    }
 }

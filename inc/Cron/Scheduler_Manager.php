@@ -19,7 +19,7 @@ require_once FC_RECOVERY_CARTS_INC . 'Cron/Scheduler_Fallback.php';
  */
 class Scheduler_Manager {
     
-    public const TYPE_WP_CRON  = 'wp_cron';
+    public const TYPE_WP_CRON = 'wp_cron';
     public const TYPE_PHP_CRON = 'php_cron';
 
     /**
@@ -80,9 +80,7 @@ class Scheduler_Manager {
 
         $args = is_array( $args ) ? $args : array();
         $args = Helpers::sanitize_array( $args );
-
         $meta = is_array( $meta ) ? $meta : array();
-
         $args_hash = md5( wp_json_encode( array( 'hook' => $hook, 'args' => $args ) ) );
         $existing  = self::find_existing_event( $hook, $args_hash );
 
