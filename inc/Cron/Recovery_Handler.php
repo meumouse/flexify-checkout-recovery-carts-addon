@@ -276,6 +276,18 @@ class Recovery_Handler {
         // save notifications
         update_post_meta( $cart_id, '_fcrc_notifications_sent', $notifications );
 
+        /**
+         * Trigger webhook dispatch for follow up messages
+         *
+         * @since 1.3.2
+         * @param int $cart_id | Cart ID
+         * @param string $event_key | Follow up event key
+         * @param string $message | Message sent
+         * @param array $sent_channels | Channels used
+         * @param array $event | Follow up settings
+         */
+        do_action( 'Flexify_Checkout/Recovery_Carts/Follow_Up_Message_Sent', $cart_id, $event_key, $message, $sent_channels, $event );
+
         if ( $cron_post_id ) {
             wp_delete_post( intval( $cron_post_id ), true );
         }

@@ -455,6 +455,239 @@
 		},
 
 		/**
+		 * Initialize webhook handlers
+		 *
+		 * @since 1.3.2
+		 */
+		initWebhooks: function() {
+			this.handleAddWebhook();
+			this.handleRemoveWebhook();
+			this.handleAddWebhookHeader();
+			this.handleRemoveWebhookHeader();
+			this.refreshWebhooksState();
+		},
+
+		/**
+		 * Get webhook list container
+		 *
+		 * @since 1.3.2
+		 * @param {string} eventKey | Webhook event key
+		 * @returns {object}
+		 */
+		getWebhookList: function(eventKey) {
+			return $('.fcrc-webhook-list[data-event="' + eventKey + '"]');
+		},
+
+		/**
+		 * Get headers container for a webhook
+		 *
+		 * @since 1.3.2
+		 * @param {string} eventKey | Webhook event key
+		 * @param {string|number} webhookIndex | Webhook index
+		 * @returns {object}
+		 */
+		getHeadersContainer: function(eventKey, webhookIndex) {
+			return $('.fcrc-webhook-headers[data-event="' + eventKey + '"][data-index="' + webhookIndex + '"]');
+		},
+
+		/**
+		 * Toggle empty state for webhook list
+		 *
+		 * @since 1.3.2
+		 * @param {object} list | Webhook list container
+		 */
+		toggleWebhookEmptyState: function(list) {
+			if ( ! list || ! list.length ) {
+				return;
+			}
+
+			const emptyState = list.siblings('.fcrc-webhook-empty');
+
+			if (emptyState.length) {
+				emptyState.toggleClass('d-none', list.children('.fcrc-webhook-item').length > 0);
+			}
+		},
+
+		/**
+		 * Toggle empty state for headers list
+		 *
+		 * @since 1.3.2
+		 * @param {object} container | Headers container
+		 */
+		toggleHeadersEmptyState: function(container) {
+			if ( ! container || ! container.length ) {
+				return;
+			}
+
+			const emptyState = container.siblings('.fcrc-no-headers');
+
+			if (emptyState.length) {
+				emptyState.toggleClass('d-none', container.children('.fcrc-webhook-header-row').length > 0);
+			}
+		},
+
+		/**
+		 * Refresh initial webhook states
+		 *
+		 * @since 1.3.2
+		 */
+		refreshWebhooksState: function() {
+			$('.fcrc-webhook-list').each( function() {
+				const list = $(this);
+
+				Settings.toggleWebhookEmptyState(list);
+
+				list.find('.fcrc-webhook-headers').each( function() {
+					Settings.toggleHeadersEmptyState($(this));
+				});
+			});
+		},
+
+		/**
+		 * Add a new webhook block
+		 *
+		 * @since 1.3.2
+		 */
+		handleAddWebhook: function() {
+			$(document).on('click', '.fcrc-add-webhook', function(e) {
+				e.preventDefault();
+
+				const button = $(this);
+				const eventKey = button.data('event');
+				const template = $('#fcrc-webhook-template').html();
+
+				if (typeof eventKey === 'undefined' || ! template) {
+					return;
+				}
+
+				const list = Settings.getWebhookList(eventKey);
+
+				if ( ! list.length ) {
+					return;
+				}
+
+				let nextIndex = parseInt(list.data('nextIndex'), 10);
+
+				if (Number.isNaN(nextIndex)) {
+					nextIndex = list.children('.fcrc-webhook-item').length;
+				}
+
+				const webhookHtml = template.replace(/__event__/g, eventKey).replace(/__index__/g, nextIndex);
+
+				list.append(webhookHtml);
+				list.data('nextIndex', nextIndex + 1);
+
+				Settings.toggleWebhookEmptyState(list);
+				Settings.addWebhookHeaderRow(eventKey, nextIndex, false);
+
+				$('#fcrc_save_options').prop('disabled', false);
+			});
+		},
+
+		/**
+		 * Remove a webhook block
+		 *
+		 * @since 1.3.2
+		 */
+		handleRemoveWebhook: function() {
+			$(document).on('click', '.fcrc-remove-webhook', function(e) {
+				e.preventDefault();
+
+				const item = $(this).closest('.fcrc-webhook-item');
+				const list = item.closest('.fcrc-webhook-list');
+
+				item.remove();
+				Settings.toggleWebhookEmptyState(list);
+
+				$('#fcrc_save_options').prop('disabled', false);
+			});
+		},
+
+		/**
+		 * Add a new header row to a webhook
+		 *
+		 * @since 1.3.2
+		 */
+		handleAddWebhookHeader: function() {
+			$(document).on('click', '.fcrc-add-webhook-header', function(e) {
+				e.preventDefault();
+
+				const button = $(this);
+				const eventKey = button.data('event');
+				const webhookIndex = button.data('index');
+
+				if (typeof eventKey === 'undefined') {
+					return;
+				}
+
+				Settings.addWebhookHeaderRow(eventKey, webhookIndex, true);
+
+				$('#fcrc_save_options').prop('disabled', false);
+			});
+		},
+
+		/**
+		 * Remove a header row from a webhook
+		 *
+		 * @since 1.3.2
+		 */
+		handleRemoveWebhookHeader: function() {
+			$(document).on('click', '.fcrc-remove-webhook-header', function(e) {
+				e.preventDefault();
+
+				const row = $(this).closest('.fcrc-webhook-header-row');
+				const container = row.closest('.fcrc-webhook-headers');
+
+				row.remove();
+				Settings.toggleHeadersEmptyState(container);
+
+				$('#fcrc_save_options').prop('disabled', false);
+			});
+		},
+
+		/**
+		 * Append a new header row template
+		 *
+		 * @since 1.3.2
+		 * @param {string} eventKey | Webhook event key
+		 * @param {string|number} webhookIndex | Webhook index
+		 * @param {boolean} focusInput | Whether to focus on the new header row
+		 */
+		addWebhookHeaderRow: function(eventKey, webhookIndex, focusInput) {
+			const headersContainer = Settings.getHeadersContainer(eventKey, webhookIndex);
+			const template = $('#fcrc-webhook-header-template').html();
+
+			if ( ! headersContainer.length || ! template ) {
+				return;
+			}
+
+			let nextHeaderIndex = parseInt(headersContainer.data('nextHeaderIndex'), 10);
+
+			if (Number.isNaN(nextHeaderIndex)) {
+				nextHeaderIndex = headersContainer.children('.fcrc-webhook-header-row').length;
+			}
+
+			const headerHtml = template
+				.replace(/__event__/g, eventKey)
+				.replace(/__index__/g, webhookIndex)
+				.replace(/__header_index__/g, nextHeaderIndex);
+
+			headersContainer.append(headerHtml);
+			headersContainer.data('nextHeaderIndex', nextHeaderIndex + 1);
+
+			Settings.toggleHeadersEmptyState(headersContainer);
+
+			if (focusInput) {
+				headersContainer
+					.find('.fcrc-webhook-header-row[data-header-index="' + nextHeaderIndex + '"]')
+					.last()
+					.find('input')
+					.first()
+					.trigger('focus');
+			}
+		},
+
+		/**
 		 * Change visibility for elements
 		 * 
 		 * @since 1.0.0
@@ -694,7 +927,7 @@
 		 * Initialize object functions
 		 * 
 		 * @since 1.0.0
-		 * @version 1.3.0
+		 * @version 1.3.2
 		 */
 		init: function() {
 			this.activateTabs();
@@ -702,6 +935,7 @@
 			this.addNewFollowUp();
 			this.editFollowUp();
 			this.deleteFollowUp();
+			this.initWebhooks();
 			this.collectLeadSettings();
 			this.selectColor();
 			this.integrationSettings();

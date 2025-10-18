@@ -37,6 +37,7 @@ return array(
     'MeuMouse\\Flexify_Checkout\\Recovery_Carts\\Core\\Placeholders' => $baseDir . '/inc/Core/Placeholders.php',
     'MeuMouse\\Flexify_Checkout\\Recovery_Carts\\Core\\Session_Handler' => $baseDir . '/inc/Core/Session_Handler.php',
     'MeuMouse\\Flexify_Checkout\\Recovery_Carts\\Core\\Updater' => $baseDir . '/inc/Core/Updater.php',
+    'MeuMouse\\Flexify_Checkout\\Recovery_Carts\\Core\\Webhooks' => $baseDir . '/inc/Core/Webhooks.php',
     'MeuMouse\\Flexify_Checkout\\Recovery_Carts\\Cron\\Queue_Processor' => $baseDir . '/inc/Cron/Queue_Processor.php',
     'MeuMouse\\Flexify_Checkout\\Recovery_Carts\\Cron\\Recovery_Handler' => $baseDir . '/inc/Cron/Recovery_Handler.php',
     'MeuMouse\\Flexify_Checkout\\Recovery_Carts\\Cron\\Scheduler_Manager' => $baseDir . '/inc/Cron/Scheduler_Manager.php',

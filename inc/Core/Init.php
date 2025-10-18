@@ -132,6 +132,7 @@ class Init {
             '\MeuMouse\Flexify_Checkout\Recovery_Carts\Integrations\Joinotify',
             '\MeuMouse\Flexify_Checkout\Recovery_Carts\Core\Cart_Events',
             '\MeuMouse\Flexify_Checkout\Recovery_Carts\Core\Hooks',
+            '\MeuMouse\Flexify_Checkout\Recovery_Carts\Core\Webhooks',
             '\MeuMouse\Flexify_Checkout\Recovery_Carts\Cron\Recovery_Handler',
             '\MeuMouse\Flexify_Checkout\Recovery_Carts\Core\Session_Handler',
             '\MeuMouse\Flexify_Checkout\Recovery_Carts\Core\Order_Events',
