@@ -1,5 +1,9 @@
-Versão 1.3.2 (??/10/2025)
+Versão 1.3.2 (18/10/2025)
+* Correção de bugs:
+    - Data e hora com padrão GMT
+* Otimizações
 * Recurso adicionado: Agendador de tarefas PHP-Cron
+* Recurso adicionado: Enviar dados de eventos via Webhook
 
 Versão 1.3.0 (08/07/2025)
 * Correção de bugs

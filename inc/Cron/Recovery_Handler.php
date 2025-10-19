@@ -83,7 +83,7 @@ class Recovery_Handler {
      */
     public function check_abandoned_carts() {
         $time_limit_seconds = Helpers::get_abandonment_time_seconds();
-        $current_time = current_time('timestamp', true);
+        $current_time = current_time( 'timestamp', true );
         $time_threshold = $current_time - ( $time_limit_seconds + 30 ); // add 30 seconds to account for any time differences
 
         $query = new \WP_Query( array(

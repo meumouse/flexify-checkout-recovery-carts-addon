@@ -134,7 +134,7 @@ class SchedulerJob {
      * avoided.
      */
     public function is_due() {
-        if ( ! function_exists( 'get_option' ) ) {
+        if ( ! function_exists('get_option') ) {
             return true;
         }
 
@@ -148,7 +148,7 @@ class SchedulerJob {
      * Execute the callback and store the run timestamp.
      */
     public function execute() {
-        if ( function_exists( 'update_option' ) ) {
+        if ( function_exists('update_option') ) {
             update_option( $this->storage_key, $this->current_timestamp(), false );
         }
 

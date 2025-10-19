@@ -47,7 +47,7 @@ function fcrc_get_carts_count_by_status( $status, $days = 7 ) {
  */
 function fcrc_get_daily_recovered_totals( $days = 7 ) {
     $days = intval( $days );
-    $now_ts  = current_time('timestamp', true);
+    $now_ts  = current_time( 'timestamp', true );
     $start_ts = $now_ts - ( $days * DAY_IN_SECONDS );
     $start_date = date( 'Y-m-d H:i:s', $start_ts );
 

@@ -167,7 +167,7 @@ class Cart_Events {
         // get cached location data
         $location = isset( $_COOKIE['fcrc_location'] ) ? json_decode( stripslashes( $_COOKIE['fcrc_location'] ), true ) : array();
         $contact = Helpers::get_cart_contact_data();
-        $current_time = current_time('timestamp', true);
+        $current_time = current_time( 'timestamp', true );
 
         // Create new cart post
         $cart_id = wp_insert_post( array(
@@ -331,7 +331,7 @@ class Cart_Events {
 
         // get IP address
         $ip = $location['ip'] ?? '';
-        $current_time = current_time('timestamp', true);
+        $current_time = current_time( 'timestamp', true );
 
         // map user by IP
         if ( $ip ) {

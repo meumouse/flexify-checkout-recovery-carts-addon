@@ -24,7 +24,7 @@ class Queue_Processor {
             return;
         }
 
-        $now = current_time('timestamp', true);
+        $now = current_time( 'timestamp', true );
 
         $events = get_posts( array(
             'post_type'      => 'fcrc-cron-event',

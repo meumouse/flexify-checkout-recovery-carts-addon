@@ -146,7 +146,7 @@ class WP_CLI_Command {
      * @return string
      */
     protected function build_cron_example() {
-        $path = defined( 'ABSPATH' ) ? untrailingslashit( ABSPATH ) : getcwd();
+        $path = defined('ABSPATH') ? untrailingslashit( ABSPATH ) : getcwd();
         $path = $path ? $path : '.';
 
         $quoted_path = escapeshellarg( $path );
