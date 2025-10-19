@@ -14,6 +14,7 @@ use function WP_CLI\Utils\get_flag_value;
 use function strtolower;
 use function trim;
 use function implode;
+use function untrailingslashit;
 
 // Exit if accessed directly.
 defined('ABSPATH') || exit;
@@ -41,12 +42,35 @@ class WP_CLI_Command {
     /**
      * Execute pending jobs using the configured scheduler.
      *
-     * @param array $args      Positional arguments.
+     * ## OPTIONS
+     *
+     * [--loop]
+     * : Mantém o processo ativo, executando o agendador continuamente no intervalo configurado.
+     *
+     * [--max-runs=<number>]
+     * : Limita a quantidade de ciclos quando utilizado com `--loop`.
+     *
+     * [--print-cron]
+     * : Exibe uma linha de cron já formatada com o caminho do WordPress e encerra a execução.
+     *
+     * @since 1.3.2
+     * @param array $args | Positional arguments.
      * @param array $assoc_args Associative arguments.
      */
     public function run_scheduler( $args, $assoc_args ) {
         if ( ! Scheduler_Manager::is_php_cron_enabled() ) {
             WP_CLI::warning( 'PHP Cron is not enabled in the plugin settings.' );
+            return;
+        }
+
+        $print_cron = (bool) get_flag_value( $assoc_args, 'print-cron', false );
+
+        if ( $print_cron ) {
+            $cron_entry = $this->build_cron_example();
+
+            WP_CLI::log( 'Add the following line to your system crontab (crontab -e):' );
+            WP_CLI::log( $cron_entry );
+
             return;
         }
 
@@ -63,6 +87,11 @@ class WP_CLI_Command {
         $interval = Scheduler_Manager::get_php_cron_interval_seconds();
         $loop = (bool) get_flag_value( $assoc_args, 'loop', false );
         $max_runs = (int) get_flag_value( $assoc_args, 'max-runs', 0 );
+
+        if ( ! $loop ) {
+            WP_CLI::log( sprintf( 'Run this command every %d seconds using a system cron or as a long-lived process.', $interval ) );
+            WP_CLI::log( 'Use "wp fcrc scheduler --loop" to keep the process alive or "wp fcrc scheduler --print-cron" for a cron example.' );
+        }
 
         if ( $loop ) {
             if ( function_exists('ignore_user_abort') ) {
@@ -107,6 +136,35 @@ class WP_CLI_Command {
         } else {
             WP_CLI::success( 'Scheduler executed successfully.' );
         }
+    }
+
+
+    /**
+     * Build a sample cron line to execute the scheduler via system cron.
+     *
+     * @since 1.3.2
+     * @return string
+     */
+    protected function build_cron_example() {
+        $path = defined( 'ABSPATH' ) ? untrailingslashit( ABSPATH ) : getcwd();
+        $path = $path ? $path : '.';
+
+        $quoted_path = escapeshellarg( $path );
+
+        $command = sprintf(
+            'cd %1$s && wp --path=%1$s fcrc scheduler --quiet >> %1$s/wp-content/uploads/fcrc-scheduler.log 2>&1',
+            $quoted_path
+        );
+
+        $cron_interval = Scheduler_Manager::get_php_cron_interval_seconds();
+        $expression = $cron_interval >= MINUTE_IN_SECONDS ? '* * * * *' : '*/1 * * * *';
+
+        if ( $cron_interval > MINUTE_IN_SECONDS && $cron_interval % MINUTE_IN_SECONDS === 0 ) {
+            $minutes = (int) ( $cron_interval / MINUTE_IN_SECONDS );
+            $expression = sprintf( '*/%d * * * *', $minutes );
+        }
+
+        return sprintf( '%s %s', $expression, $command );
     }
 
 

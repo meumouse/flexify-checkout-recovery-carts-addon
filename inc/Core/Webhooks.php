@@ -11,6 +11,7 @@ defined('ABSPATH') || exit;
  * Handle webhook dispatchers for plugin events
  *
  * @since 1.3.2
+ * @package MeuMouse.com
  */
 class Webhooks {
 

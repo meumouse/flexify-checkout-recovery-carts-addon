@@ -224,7 +224,7 @@ class Scheduler_Manager {
      * @return int
      */
     public static function get_php_cron_interval_seconds() {
-        $interval = apply_filters( 'Flexify_Checkout/Recovery_Carts/PHP_Cron_Interval', MINUTE_IN_SECONDS );
+        $interval = apply_filters( 'Flexify_Checkout/Recovery_Carts/PHP_Cron_Interval', 5 * MINUTE_IN_SECONDS );
 
         if ( ! is_numeric( $interval ) ) {
             $interval = MINUTE_IN_SECONDS;

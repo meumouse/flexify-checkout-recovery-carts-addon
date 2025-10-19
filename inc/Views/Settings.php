@@ -4,8 +4,6 @@ namespace MeuMouse\Flexify_Checkout\Recovery_Carts\Views;
 
 use MeuMouse\Flexify_Checkout\Recovery_Carts\Admin\Components as Admin_Components;
 
-error_log( 'Webhooks settings: ' . print_r( \MeuMouse\Flexify_Checkout\Recovery_Carts\Admin\Admin::get_setting('webhooks'), true ) );
-
 // Exit if accessed directly.
 defined('ABSPATH') || exit; ?>
 
