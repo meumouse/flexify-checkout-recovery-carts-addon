@@ -18,7 +18,7 @@ if ( ! class_exists('WP_List_Table') ) {
  * Carts table class
  * 
  * @since 1.0.0
- * @version 1.3.0
+ * @version 1.3.2
  * @package MeuMouse.com
  */
 class Carts_Table extends WP_List_Table {
@@ -173,6 +173,7 @@ class Carts_Table extends WP_List_Table {
      * Render the notifications column
      *
      * @since 1.3.0
+     * @version 1.3.2
      * @param object $item | Cart data
      * @return string
      */
@@ -184,12 +185,12 @@ class Carts_Table extends WP_List_Table {
             return '&mdash;';
         }
 
-        $output  = '<ul class="fcrc-notifications-list" style="margin:0; padding-left:1em;">';
+        $output = '<ul class="fcrc-notifications-list" style="margin: 0;">';
             foreach ( $notes as $note ) {
                 $event_title = Admin::get_setting('follow_up_events')[$note['event_key']]['title'];
                 $channel = Helpers::get_formatted_channel_label( $note['channel'] );
                 $formatted_date = sprintf( __( '%s - %s', 'fc-recovery-carts' ), get_option('date_format'), get_option('time_format') );
-                $sent_at = date_i18n( $formatted_date, strtotime( $note['sent_at'] ) );
+                $sent_at = wp_date( $formatted_date, absint( $note['sent_at'] ) );
                 
                 $output .= sprintf(
                     __( '<li><strong>%s</strong> via %s: <small>%s</small></li>', 'fc-recovery-carts' ),
@@ -439,7 +440,7 @@ class Carts_Table extends WP_List_Table {
      * Render the abandoned date column
      * 
      * @since 1.0.0
-     * @version 1.3.0
+     * @version 1.3.2
      * @param object $item | Cart data
      * @return string
      */
@@ -474,7 +475,17 @@ class Carts_Table extends WP_List_Table {
         $abandoned_time = get_post_meta( $item->ID, '_fcrc_abandoned_time', true );
     
         if ( ! empty( $abandoned_time ) ) {
-            return esc_html( date( 'd/m/Y H:i', strtotime( $abandoned_time ) ) );
+            if ( is_numeric( $abandoned_time ) ) {
+                $timestamp = absint( $abandoned_time );
+            } else {
+                $timestamp = strtotime( $abandoned_time );
+            }
+
+            if ( $timestamp ) {
+                $date_format = get_option( 'date_format' ) . ' - ' . get_option( 'time_format' );
+
+                return esc_html( wp_date( $date_format, $timestamp ) );
+            }
         }
     
         // dash string html

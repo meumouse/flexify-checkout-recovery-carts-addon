@@ -41,12 +41,13 @@ function fcrc_get_carts_count_by_status( $status, $days = 7 ) {
  * Get recovered cart totals grouped by day
  *
  * @since 1.3.0
+ * @version 1.3.2
  * @param int $days | Number of days back
  * @return array
  */
 function fcrc_get_daily_recovered_totals( $days = 7 ) {
     $days = intval( $days );
-    $now_ts  = current_time('timestamp');
+    $now_ts  = current_time( 'timestamp', true );
     $start_ts = $now_ts - ( $days * DAY_IN_SECONDS );
     $start_date = date( 'Y-m-d H:i:s', $start_ts );
 
@@ -99,12 +100,13 @@ function fcrc_get_daily_recovered_totals( $days = 7 ) {
  * Get notifications sent in the last X days, formatted for ApexCharts
  *
  * @since 1.3.0
+ * @version 1.3.2
  * @param int $days | Number of days to look back
  * @return array
  */
 function fcrc_get_notifications_chart_data( $days = 7 ) {
 	// calculate initial timestamp and empty array
-    $start_ts = current_time('timestamp') - ( $days * DAY_IN_SECONDS );
+    $start_ts = current_time('timestamp', true) - ( $days * DAY_IN_SECONDS );
     $counts = array();
 
 	// get all the carts that have notifications
@@ -129,7 +131,7 @@ function fcrc_get_notifications_chart_data( $days = 7 ) {
         }
 
         foreach ( $notes as $note ) {
-            $timestamp = strtotime( $note['sent_at'] );
+            $timestamp = absint( $note['sent_at'] );
 
             if ( $timestamp < $start_ts ) {
                 continue;
@@ -153,7 +155,7 @@ function fcrc_get_notifications_chart_data( $days = 7 ) {
     $categories = array();
 
     for ( $i = 0; $i < $days; $i++ ) {
-        $ts = current_time('timestamp') - ( $i * DAY_IN_SECONDS );
+        $ts = current_time('timestamp', true) - ( $i * DAY_IN_SECONDS );
         $day_key = date( 'Y-m-d', $ts );
 
         // keep raw date for data lookup

@@ -59,7 +59,7 @@ class Session_Handler extends WC_Session_Handler {
         parent::cleanup_sessions(); // Run the default WooCommerce cleanup
 
         $time_limit_seconds = Helpers::get_abandonment_time_seconds();
-        $current_time = strtotime( current_time('mysql') );
+        $current_time = current_time( 'timestamp', true );
 
         $query = $wpdb->prepare("
             SELECT session_id, session_key

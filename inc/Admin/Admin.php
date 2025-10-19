@@ -3,6 +3,7 @@
 namespace MeuMouse\Flexify_Checkout\Recovery_Carts\Admin;
 
 use MeuMouse\Flexify_Checkout\Recovery_Carts\Core\Helpers;
+use MeuMouse\Flexify_Checkout\Recovery_Carts\Cron\Scheduler_Manager;
 
 // Exit if accessed directly.
 defined('ABSPATH') || exit;
@@ -11,7 +12,7 @@ defined('ABSPATH') || exit;
  * Admin actions class
  * 
  * @since 1.0.0
- * @version 1.3.0
+ * @version 1.3.2
  * @package MeuMouse.com
  */
 class Admin {
@@ -20,7 +21,7 @@ class Admin {
      * Construct function
      * 
      * @since 1.0.0
-     * @version 1.1.0
+     * @version 1.3.2
      * @return void
      */
     public function __construct() {
@@ -41,6 +42,9 @@ class Admin {
 
         // register queue cron events post type
         add_action( 'init', array( $this, 'register_cron_event_cpt' ) );
+
+        // display notices on settings pages
+        add_action( 'admin_notices', array( $this, 'display_settings_notices' ) );
     }
 
     
@@ -393,5 +397,25 @@ class Admin {
         );
         
         register_post_type( 'fcrc-cron-event', $args );
+    }
+
+
+    /**
+     * Display admin notices on plugin settings pages
+     *
+     * @since 1.3.2
+     * @return void
+     */
+    public function display_settings_notices() {
+        $scheduler = self::get_setting('task_scheduler');
+
+        if ( Scheduler_Manager::TYPE_PHP_CRON !== $scheduler || Helpers::has_wp_cli() ) {
+            return;
+        }
+
+        $class = 'notice notice-warning is-dismissible';
+        $message = __( 'O modo PHP-Cron requer o WP-CLI instalado no servidor. Instale o WP-CLI ou altere o agendador para WP-Cron.', 'fc-recovery-carts' );
+
+        printf( '<div class="%1$s"><p>%2$s</p></div>', esc_attr( $class ), $message );
     }
 }

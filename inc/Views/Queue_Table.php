@@ -15,6 +15,7 @@ if ( ! class_exists('WP_List_Table') ) {
  * Queue Cron vvents table class
  *
  * @since 1.3.0
+ * @version 1.3.2
  * @package MeuMouse.com
  */
 class Queue_Table extends WP_List_Table {
@@ -203,13 +204,20 @@ class Queue_Table extends WP_List_Table {
      * Render scheduled_at column
      * 
      * @since 1.3.0
+     * @version 1.3.2
      * @param object $item | Cron event data
      * @return string
      */
     public function column_scheduled_at( $item ) {
         $timestamp = get_post_meta( $item->ID, '_fcrc_cron_scheduled_at', true );
 
-        return $timestamp ? esc_html( date_i18n( get_option('date_format') . ' ' . get_option('time_format'), strtotime( $timestamp ) ) ) : '&mdash;';
+        if ( empty( $timestamp ) ) {
+            return '&mdash;';
+        }
+
+        $timestamp = absint( $timestamp );
+
+        return esc_html( wp_date( get_option('date_format') . ' ' . get_option('time_format'), $timestamp ) );
     }
     
 

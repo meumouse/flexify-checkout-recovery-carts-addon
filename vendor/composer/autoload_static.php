@@ -7,20 +7,41 @@ namespace Composer\Autoload;
 class ComposerStaticInit2d0d8e5718943d4e0f4f7aa59d79d9d9
 {
     public static $prefixLengthsPsr4 = array (
+        'W' => 
+        array (
+            'Webmozart\\Assert\\' => 17,
+        ),
         'M' => 
         array (
             'MeuMouse\\Flexify_Checkout_Recovery_Carts\\' => 41,
         ),
+        'G' => 
+        array (
+            'GO\\' => 3,
+        ),
         'C' => 
         array (
+            'Cron\\' => 5,
             'Composer\\Installers\\' => 20,
         ),
     );
 
     public static $prefixDirsPsr4 = array (
+        'Webmozart\\Assert\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/webmozart/assert/src',
+        ),
         'MeuMouse\\Flexify_Checkout_Recovery_Carts\\' => 
         array (
             0 => __DIR__ . '/../..' . '/inc',
+        ),
+        'GO\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/peppeocchi/php-cron-scheduler/src/GO',
+        ),
+        'Cron\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/dragonmantank/cron-expression/src/Cron',
         ),
         'Composer\\Installers\\' => 
         array (
@@ -30,6 +51,21 @@ class ComposerStaticInit2d0d8e5718943d4e0f4f7aa59d79d9d9
 
     public static $classMap = array (
         'Composer\\InstalledVersions' => __DIR__ . '/..' . '/composer/InstalledVersions.php',
+        'Cron\\AbstractField' => __DIR__ . '/..' . '/dragonmantank/cron-expression/src/Cron/AbstractField.php',
+        'Cron\\CronExpression' => __DIR__ . '/..' . '/dragonmantank/cron-expression/src/Cron/CronExpression.php',
+        'Cron\\DayOfMonthField' => __DIR__ . '/..' . '/dragonmantank/cron-expression/src/Cron/DayOfMonthField.php',
+        'Cron\\DayOfWeekField' => __DIR__ . '/..' . '/dragonmantank/cron-expression/src/Cron/DayOfWeekField.php',
+        'Cron\\FieldFactory' => __DIR__ . '/..' . '/dragonmantank/cron-expression/src/Cron/FieldFactory.php',
+        'Cron\\FieldFactoryInterface' => __DIR__ . '/..' . '/dragonmantank/cron-expression/src/Cron/FieldFactoryInterface.php',
+        'Cron\\FieldInterface' => __DIR__ . '/..' . '/dragonmantank/cron-expression/src/Cron/FieldInterface.php',
+        'Cron\\HoursField' => __DIR__ . '/..' . '/dragonmantank/cron-expression/src/Cron/HoursField.php',
+        'Cron\\MinutesField' => __DIR__ . '/..' . '/dragonmantank/cron-expression/src/Cron/MinutesField.php',
+        'Cron\\MonthField' => __DIR__ . '/..' . '/dragonmantank/cron-expression/src/Cron/MonthField.php',
+        'GO\\FailedJob' => __DIR__ . '/..' . '/peppeocchi/php-cron-scheduler/src/GO/FailedJob.php',
+        'GO\\Job' => __DIR__ . '/..' . '/peppeocchi/php-cron-scheduler/src/GO/Job.php',
+        'GO\\Scheduler' => __DIR__ . '/..' . '/peppeocchi/php-cron-scheduler/src/GO/Scheduler.php',
+        'GO\\Traits\\Interval' => __DIR__ . '/..' . '/peppeocchi/php-cron-scheduler/src/GO/Traits/Interval.php',
+        'GO\\Traits\\Mailer' => __DIR__ . '/..' . '/peppeocchi/php-cron-scheduler/src/GO/Traits/Mailer.php',
         'MeuMouse\\Flexify_Checkout\\Recovery_Carts\\Admin\\Admin' => __DIR__ . '/../..' . '/inc/Admin/Admin.php',
         'MeuMouse\\Flexify_Checkout\\Recovery_Carts\\Admin\\Components' => __DIR__ . '/../..' . '/inc/Admin/Components.php',
         'MeuMouse\\Flexify_Checkout\\Recovery_Carts\\Admin\\Default_Options' => __DIR__ . '/../..' . '/inc/Admin/Default_Options.php',
@@ -45,13 +81,20 @@ class ComposerStaticInit2d0d8e5718943d4e0f4f7aa59d79d9d9
         'MeuMouse\\Flexify_Checkout\\Recovery_Carts\\Core\\Placeholders' => __DIR__ . '/../..' . '/inc/Core/Placeholders.php',
         'MeuMouse\\Flexify_Checkout\\Recovery_Carts\\Core\\Session_Handler' => __DIR__ . '/../..' . '/inc/Core/Session_Handler.php',
         'MeuMouse\\Flexify_Checkout\\Recovery_Carts\\Core\\Updater' => __DIR__ . '/../..' . '/inc/Core/Updater.php',
+        'MeuMouse\\Flexify_Checkout\\Recovery_Carts\\Core\\Webhooks' => __DIR__ . '/../..' . '/inc/Core/Webhooks.php',
+        'MeuMouse\\Flexify_Checkout\\Recovery_Carts\\Cron\\Queue_Processor' => __DIR__ . '/../..' . '/inc/Cron/Queue_Processor.php',
         'MeuMouse\\Flexify_Checkout\\Recovery_Carts\\Cron\\Recovery_Handler' => __DIR__ . '/../..' . '/inc/Cron/Recovery_Handler.php',
+        'MeuMouse\\Flexify_Checkout\\Recovery_Carts\\Cron\\Scheduler_Manager' => __DIR__ . '/../..' . '/inc/Cron/Scheduler_Manager.php',
+        'MeuMouse\\Flexify_Checkout\\Recovery_Carts\\Cron\\WP_CLI_Command' => __DIR__ . '/../..' . '/inc/Cron/WP_CLI_Command.php',
         'MeuMouse\\Flexify_Checkout\\Recovery_Carts\\Frontend\\Lead_Capture' => __DIR__ . '/../..' . '/inc/Frontend/Lead_Capture.php',
         'MeuMouse\\Flexify_Checkout\\Recovery_Carts\\Frontend\\Styles' => __DIR__ . '/../..' . '/inc/Frontend/Styles.php',
         'MeuMouse\\Flexify_Checkout\\Recovery_Carts\\Integrations\\Integrations_Base' => __DIR__ . '/../..' . '/inc/Integrations/Integrations_Base.php',
         'MeuMouse\\Flexify_Checkout\\Recovery_Carts\\Integrations\\Joinotify' => __DIR__ . '/../..' . '/inc/Integrations/Joinotify.php',
         'MeuMouse\\Flexify_Checkout\\Recovery_Carts\\Views\\Carts_Table' => __DIR__ . '/../..' . '/inc/Views/Carts_Table.php',
         'MeuMouse\\Flexify_Checkout\\Recovery_Carts\\Views\\Queue_Table' => __DIR__ . '/../..' . '/inc/Views/Queue_Table.php',
+        'Webmozart\\Assert\\Assert' => __DIR__ . '/..' . '/webmozart/assert/src/Assert.php',
+        'Webmozart\\Assert\\InvalidArgumentException' => __DIR__ . '/..' . '/webmozart/assert/src/InvalidArgumentException.php',
+        'Webmozart\\Assert\\Mixin' => __DIR__ . '/..' . '/webmozart/assert/src/Mixin.php',
     );
 
     public static function getInitializer(ClassLoader $loader)

@@ -11,7 +11,7 @@ defined('ABSPATH') || exit;
  * Helpers class
  * 
  * @since 1.0.0
- * @version 1.3.0
+ * @version 1.3.2
  * @package MeuMouse.com
  */
 class Helpers {
@@ -443,6 +443,7 @@ class Helpers {
      * Cancel all scheduled follow-up events (hook 'fcrc_send_follow_up_message') for a given cart ID
      *
      * @since 1.3.0
+     * @version 1.3.2
      * @param int $cart_id | The recovery cart post ID
      * @return void
      */
@@ -465,27 +466,126 @@ class Helpers {
         ));
 
         foreach ( $events as $event ) {
-            // Retrieve the scheduled timestamp from post meta
-            $scheduled_at = get_post_meta( $event->ID, '_fcrc_cron_scheduled_at', true );
-            $timestamp = strtotime( $scheduled_at );
+            $args = get_post_meta( $event->ID, '_fcrc_cron_args', true );
 
-            // Prepare the args array matching the original schedule call
-            $args = array(
-                'cart_id' => $cart_id,
-                'event_key' => get_post_meta( $event->ID, '_fcrc_cron_event_key', true ),
-                'cron_post_id' => $event->ID,
-            );
+            if ( ! is_array( $args ) ) {
+                $args = array(
+                    'cart_id' => $cart_id,
+                );
+            }
 
-            // Unschedule the event from WP-Cron
-            wp_unschedule_event( $timestamp, 'fcrc_send_follow_up_message', $args );
-
-            // Delete the cron-event post to clean up
-            wp_delete_post( $event->ID, true );
+            \MeuMouse\Flexify_Checkout\Recovery_Carts\Cron\Scheduler_Manager::unschedule_event( 'fcrc_send_follow_up_message', $args );
 
             // Log the cancellation if debug mode is enabled
             if ( defined( 'FC_RECOVERY_CARTS_DEBUG_MODE' ) && FC_RECOVERY_CARTS_DEBUG_MODE ) {
                 error_log( sprintf( 'Cancelled follow-up event for cart %d, cron_post_id %d', $cart_id, $event->ID ) );
             }
         }
+    }
+
+
+    /**
+     * Checks if WP-CLI is available in the current environment.
+     *
+     * @since 1.3.2
+     * @return bool
+     */
+    public static function has_wp_cli() {
+        $available = false;
+
+        if ( defined('WP_CLI') && WP_CLI ) {
+            $available = true;
+        } elseif ( class_exists( '\\WP_CLI' ) ) {
+            $available = true;
+        } elseif ( self::command_exists('wp') ) {
+            $available = true;
+        } elseif ( defined('ABSPATH') && file_exists( ABSPATH . 'wp-cli.phar' ) ) {
+            $available = true;
+        }
+
+        /**
+         * Filter the detection of the WP-CLI availability.
+         *
+         * @since 1.3.2
+         * @param bool $available Whether WP-CLI appears to be available.
+         */
+        return (bool) apply_filters( 'Flexify_Checkout/Recovery_Carts/Has_WP_CLI', $available );
+    }
+
+
+    /**
+     * Checks if a shell command exists on the server
+     *
+     * @since 1.3.2
+     * @param string $command | Command name
+     * @return bool
+     */
+    protected static function command_exists( $command ) {
+        if ( empty( $command ) ) {
+            return false;
+        }
+
+        $checks = array();
+
+        if ( self::is_shell_function_available('shell_exec') ) {
+            $shell_variants = array(
+                'command -v ' . escapeshellarg( $command ),
+                'which ' . escapeshellarg( $command ),
+                'where ' . escapeshellarg( $command ),
+            );
+
+            foreach ( $shell_variants as $variant ) {
+                $result = @shell_exec( $variant );
+
+                if ( is_string( $result ) ) {
+                    $checks[] = trim( $result );
+                }
+            }
+        }
+
+        foreach ( $checks as $result ) {
+            if ( ! empty( $result ) ) {
+                return true;
+            }
+        }
+
+        if ( self::is_shell_function_available('exec') ) {
+            $variants = array(
+                'command -v ' . escapeshellarg( $command ),
+                'which ' . escapeshellarg( $command ),
+                'where ' . escapeshellarg( $command ),
+            );
+
+            foreach ( $variants as $variant ) {
+                $output = array();
+                $return_var = 1;
+
+                @exec( $variant, $output, $return_var );
+
+                if ( 0 === $return_var && ! empty( $output ) ) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+
+    /**
+     * Checks if a shell function is enabled in the current PHP configuration.
+     *
+     * @since 1.3.2
+     * @param string $function | Function name
+     * @return bool
+     */
+    protected static function is_shell_function_available( $function ) {
+        if ( ! function_exists( $function ) ) {
+            return false;
+        }
+
+        $disabled = array_map( 'trim', explode( ',', (string) ini_get('disable_functions') ) );
+
+        return ! in_array( $function, $disabled, true );
     }
 }

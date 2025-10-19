@@ -19,6 +19,20 @@ defined('ABSPATH') || exit; ?>
         <tbody>
             <tr>
                 <th>
+                    <?php esc_html_e( 'Agendador de tarefas', 'fc-recovery-carts' ); ?>
+                    <span class="fc-recovery-carts-description"><?php esc_html_e( 'Escolha como as notificações serão agendadas e processadas.', 'fc-recovery-carts' ); ?></span>
+                </th>
+                <td>
+                    <?php $task_scheduler = Admin::get_setting('task_scheduler'); ?>
+                    <select class="form-select" name="task_scheduler">
+                        <option value="wp_cron" <?php selected( $task_scheduler, 'wp_cron' ); ?>><?php esc_html_e( 'WP-Cron (padrão)', 'fc-recovery-carts' ); ?></option>
+                        <option value="php_cron" <?php selected( $task_scheduler, 'php_cron' ); ?>><?php esc_html_e( 'PHP-Cron', 'fc-recovery-carts' ); ?></option>
+                    </select>
+                </td>
+            </tr>
+
+            <tr>
+                <th>
                     <?php esc_html_e( 'Ativar modal de coleta de lead', 'fc-recovery-carts' ); ?>
                     <span class="fc-recovery-carts-description"><?php esc_html_e( 'Ative essa opção para exibir o modal de coleta informações de contato quando o usuário adicionar um produto ao carrinho.', 'fc-recovery-carts' ); ?></span>
                 </th>

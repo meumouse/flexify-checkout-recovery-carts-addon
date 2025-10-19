@@ -14,7 +14,7 @@ defined('ABSPATH') || exit;
  * Handles cart recovery events, such as tracking and updating cart data
  *
  * @since 1.0.0
- * @version 1.3.0
+ * @version 1.3.2
  * @package MeuMouse.com
  */
 class Cart_Events {
@@ -95,7 +95,7 @@ class Cart_Events {
      * Creates a new cart post if none exists
      * 
      * @since 1.1.0
-     * @version 1.3.0
+     * @version 1.3.2
      * @return int $cart_id | The cart ID
      */
     public static function create_cart_post() {
@@ -167,13 +167,13 @@ class Cart_Events {
         // get cached location data
         $location = isset( $_COOKIE['fcrc_location'] ) ? json_decode( stripslashes( $_COOKIE['fcrc_location'] ), true ) : array();
         $contact = Helpers::get_cart_contact_data();
-        $current_time = strtotime( current_time('mysql') );
+        $current_time = current_time( 'timestamp', true );
 
         // Create new cart post
         $cart_id = wp_insert_post( array(
             'post_type' => 'fc-recovery-carts',
             'post_status' => 'shopping',
-            'post_title' => sprintf( __( 'Novo carrinho - %s', 'fc-recovery-carts' ), strtotime( current_time('mysql') ) ),
+            'post_title' => sprintf( __( 'Novo carrinho - %s', 'fc-recovery-carts' ), $current_time ),
             'meta_input' => array(
                 '_fcrc_cart_items' => $cart_items,
                 '_fcrc_cart_total' => $cart_total,
@@ -234,7 +234,7 @@ class Cart_Events {
      * Synchronizes WooCommerce cart data with the recovery cart post
      *
      * @since 1.0.0
-     * @version 1.3.0
+     * @version 1.3.2
      * @param string $cart_id | The cart ID
      * @return void
      */
@@ -331,7 +331,7 @@ class Cart_Events {
 
         // get IP address
         $ip = $location['ip'] ?? '';
-        $current_time = strtotime( current_time('mysql') );
+        $current_time = current_time( 'timestamp', true );
 
         // map user by IP
         if ( $ip ) {

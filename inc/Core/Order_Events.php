@@ -12,7 +12,7 @@ defined('ABSPATH') || exit;
  * Handles with orders events
  *
  * @since 1.0.0
- * @version 1.3.0
+ * @version 1.3.2
  * @package MeuMouse.com
  */
 class Order_Events {
@@ -74,9 +74,18 @@ class Order_Events {
         $delay_seconds = Helpers::convert_to_seconds( $delay_time, $delay_unit );
 
         // Schedule a task to check order payment status after the delay
-        if ( ! wp_next_scheduled( 'fcrc_check_final_cart_status', array( $order_id) ) ) {
-            wp_schedule_single_event( strtotime( current_time('mysql') ) + $delay_seconds, 'fcrc_check_final_cart_status', array( $order_id ) );
-        }
+        $event_delay = current_time('timestamp', true) + $delay_seconds;
+
+        \MeuMouse\Flexify_Checkout\Recovery_Carts\Cron\Scheduler_Manager::schedule_single_event(
+            $event_delay,
+            'fcrc_check_final_cart_status',
+            array(
+                'cart_id' => intval( $order_id ),
+            ),
+            array(
+                '_fcrc_cart_id' => intval( $order_id ),
+            )
+        );
     }
 
 
@@ -84,6 +93,7 @@ class Order_Events {
      * Checks if an order is still unpaid after the delay and marks it as abandoned
      *
      * @since 1.0.0
+     * @version 1.3.2
      * @param int $order_id | The order ID
      * @return void
      */
@@ -96,7 +106,7 @@ class Order_Events {
         }
 
         // Mark order as abandoned
-        update_post_meta( $cart_id, '_fcrc_abandoned_time', strtotime( current_time('mysql') ) );
+        update_post_meta( $cart_id, '_fcrc_abandoned_time', current_time('timestamp', true) );
 
         // update cart post
         wp_update_post( array(

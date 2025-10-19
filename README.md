@@ -4,6 +4,23 @@ Recupere carrinhos e pedidos abandonados com follow up cadenciado. Plugin adicio
 
 ---
 
+### Agendador de tarefas
+
+O plugin permite escolher entre o WP-Cron padrão ou o agendador em PHP baseado na biblioteca `peppeocchi/php-cron-scheduler`.
+
+1. Em **Configurações → Geral → Agendador de tarefas** selecione **PHP-Cron** para utilizar um cron job real e evitar filas presas à visitação do site.
+2. Execute o comando abaixo para configurar um cron job no servidor (A cada 5 minutos por padrão):
+
+   ```bash
+   wp fcrc scheduler --loop
+   ```
+
+   O comando usa a biblioteca para processar a fila de notificações e as rotinas de limpeza. Ele **não** adiciona a entrada ao crontab automaticamente; utilize `crontab -e` ou o agendador do seu provedor e, se preferir, execute `wp fcrc scheduler --print-cron` para obter uma sugestão de linha já formatada com o caminho do WordPress.
+
+3. Enquanto o cron dedicado não estiver configurado, o plugin executará a fila nas requisições web para garantir que as notificações continuem funcionando. Também é possível manter o processo ativo continuamente com `wp fcrc scheduler --loop`, caso você utilize systemd, supervisord ou serviço equivalente.
+
+---
+
 ### Instalação:
 
 #### Instalação via painel de administração:
@@ -31,6 +48,13 @@ Você pode instalar um plugin WordPress de duas maneiras: via o painel de admini
 ---
 
 ### Registro de alterações (Changelogs):
+
+Versão 1.3.2 (18/10/2025)
+* Correção de bugs:
+    - Data e hora com padrão GMT
+* Otimizações
+* Recurso adicionado: Agendador de tarefas PHP-Cron
+* Recurso adicionado: Enviar dados de eventos via Webhook
 
 Versão 1.3.0 (08/07/2025)
 * Correção de bugs
