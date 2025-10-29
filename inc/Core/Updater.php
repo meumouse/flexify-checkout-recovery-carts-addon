@@ -17,12 +17,12 @@ defined('ABSPATH') || exit;
  * Class for handling plugin updates
  *
  * @since 1.0.0
- * @version 1.3.0
+ * @version 1.3.3
  * @package MeuMouse.com
  */
 class Updater {
 
-    public $update_checker_file = 'https://raw.githubusercontent.com/meumouse/flexify-checkout-recovery-carts-addon/refs/heads/main/dist/update-checker.json';
+    public $update_checker_file = 'https://packages.meumouse.com/v1/updates/flexify-checkout-recovery-carts-addon';
     public $plugin_slug;
     public $version;
     public $cache_key;
