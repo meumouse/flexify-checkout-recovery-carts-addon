@@ -18,7 +18,7 @@ if ( ! class_exists('WP_List_Table') ) {
  * Carts table class
  * 
  * @since 1.0.0
- * @version 1.3.2
+ * @version 1.3.4
  * @package MeuMouse.com
  */
 class Carts_Table extends WP_List_Table {
@@ -173,7 +173,7 @@ class Carts_Table extends WP_List_Table {
      * Render the notifications column
      *
      * @since 1.3.0
-     * @version 1.3.2
+     * @version 1.3.4
      * @param object $item | Cart data
      * @return string
      */
@@ -186,19 +186,40 @@ class Carts_Table extends WP_List_Table {
         }
 
         $output = '<ul class="fcrc-notifications-list" style="margin: 0;">';
-            foreach ( $notes as $note ) {
-                $event_title = Admin::get_setting('follow_up_events')[$note['event_key']]['title'];
-                $channel = Helpers::get_formatted_channel_label( $note['channel'] );
-                $formatted_date = sprintf( __( '%s - %s', 'fc-recovery-carts' ), get_option('date_format'), get_option('time_format') );
-                $sent_at = wp_date( $formatted_date, absint( $note['sent_at'] ) );
-                
-                $output .= sprintf(
-                    __( '<li><strong>%s</strong> via %s: <small>%s</small></li>', 'fc-recovery-carts' ),
-                    $event_title,
-                    $channel,
-                    $sent_at
-                );
+
+        foreach ( $notes as $note ) {
+            if ( ! isset( $note['event_key'] ) || empty( $note['event_key'] ) ) {
+                continue;
             }
+
+            $follow_up_events = Admin::get_setting('follow_up_events');
+            
+            if ( ! is_array( $follow_up_events ) || empty( $follow_up_events ) ) {
+                continue;
+            }
+            
+            if ( ! isset( $follow_up_events[$note['event_key']] ) ) {
+                $event_title = sprintf( __( 'Evento: %s', 'fc-recovery-carts' ), esc_html( $note['event_key'] ) );
+            } else {
+                $event_title = isset( $follow_up_events[$note['event_key']]['title'] ) 
+                    ? $follow_up_events[$note['event_key']]['title'] 
+                    : sprintf( __( 'Evento: %s', 'fc-recovery-carts' ), esc_html( $note['event_key'] ) );
+            }
+            
+            $channel = Helpers::get_formatted_channel_label( $note['channel'] ?? '' );
+            $formatted_date = sprintf( __( '%s - %s', 'fc-recovery-carts' ), get_option('date_format'), get_option('time_format') );
+            $sent_at = isset( $note['sent_at'] ) && is_numeric( $note['sent_at'] ) 
+                ? wp_date( $formatted_date, absint( $note['sent_at'] ) ) 
+                : __( 'Data inválida', 'fc-recovery-carts' );
+            
+            $output .= sprintf(
+                __( '<li><strong>%s</strong> via %s: <small>%s</small></li>', 'fc-recovery-carts' ),
+                $event_title,
+                $channel,
+                $sent_at
+            );
+        }
+
         $output .= '</ul>';
 
         return $output;
