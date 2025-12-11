@@ -9,7 +9,7 @@ defined('ABSPATH') || exit;
  * Class for initialize classes
  * 
  * @since 1.0.0
- * @version 1.3.2
+ * @version 1.3.4
  * @package MeuMouse.com
  */
 class Init {
@@ -21,6 +21,30 @@ class Init {
      * @return string
      */
     public $basename = FC_RECOVERY_CARTS_BASENAME;
+
+    /**
+     * Plugin instance.
+     * 
+     * @since 1.3.3
+     * @var Init
+     */
+    private static $instance = null;
+
+
+    /**
+     * Get plugin instance
+     * 
+     * @since 1.3.3
+     * @return Init
+     */
+    public static function get_instance() {
+        if ( null === self::$instance ) {
+            self::$instance = new self();
+        }
+
+        return self::$instance;
+    }
+
 
     /**
      * Construct function
@@ -53,8 +77,8 @@ class Init {
         // include plugin functions
         include_once( FC_RECOVERY_CARTS_INC . 'Core/Functions.php' );
 
-        // instance classes
-        self::instance_classes();
+        // instance classes after WooCommerce is loaded
+        add_action( 'woocommerce_loaded', array( $this, 'instance_classes' ) );
     }
 
 
@@ -118,32 +142,158 @@ class Init {
      * Instance classes after load Composer
      * 
      * @since 1.0.0
-     * @version 1.3.2
+     * @version 1.3.4
      * @return void
      */
-    public static function instance_classes() {
-        $classes = apply_filters( 'Flexify_Checkout/Recovery_Carts/Instance_Classes', array(
-			'\MeuMouse\Flexify_Checkout\Recovery_Carts\Core\Compatibility',
-            '\MeuMouse\Flexify_Checkout\Recovery_Carts\Admin\Admin',
-            '\MeuMouse\Flexify_Checkout\Recovery_Carts\Core\Assets',
-            '\MeuMouse\Flexify_Checkout\Recovery_Carts\Core\Ajax',
-            '\MeuMouse\Flexify_Checkout\Recovery_Carts\Frontend\Lead_Capture',
-            '\MeuMouse\Flexify_Checkout\Recovery_Carts\Frontend\Styles',
-            '\MeuMouse\Flexify_Checkout\Recovery_Carts\Integrations\Joinotify',
-            '\MeuMouse\Flexify_Checkout\Recovery_Carts\Core\Cart_Events',
-            '\MeuMouse\Flexify_Checkout\Recovery_Carts\Core\Hooks',
-            '\MeuMouse\Flexify_Checkout\Recovery_Carts\Core\Webhooks',
-            '\MeuMouse\Flexify_Checkout\Recovery_Carts\Cron\Recovery_Handler',
-            '\MeuMouse\Flexify_Checkout\Recovery_Carts\Core\Session_Handler',
-            '\MeuMouse\Flexify_Checkout\Recovery_Carts\Core\Order_Events',
-            '\MeuMouse\Flexify_Checkout\Recovery_Carts\Core\Updater',
-            '\MeuMouse\Flexify_Checkout\Recovery_Carts\Cron\WP_CLI_Command',
-        ));
+    public function instance_classes() {
+        // Check WooCommerce dependency
+        if ( ! class_exists('WooCommerce') ) {
+            return;
+        }
 
-        foreach ( $classes as $class ) {
+        // Legacy instance for compatibility
+        $legacy_classes = apply_filters( 'Flexify_Checkout/Recovery_Carts/Instance_Classes', array() );
+
+        foreach ( $legacy_classes as $class ) {
             if ( class_exists( $class ) ) {
                 new $class();
             }
         }
+
+        // Auto instance classes from Composer
+        $this->auto_instance_classes();
+    }
+
+
+    /**
+     * Auto instance classes from Composer classmap
+     * 
+     * @since 1.3.3
+     * @return void
+     */
+    private function auto_instance_classes() {
+        $classmap_file = FC_RECOVERY_CARTS_PATH . 'vendor/composer/autoload_classmap.php';
+
+        if ( ! file_exists( $classmap_file ) ) {
+            return;
+        }
+
+        $classmap = include_once $classmap_file;
+
+        // Ensure classmap is an array
+        if ( ! is_array( $classmap ) ) {
+            $classmap = array();
+        }
+
+        // Filter and instance classes
+        $this->instance_filtered_classes( $classmap );
+    }
+
+
+    /**
+     * Filter and instance classes
+     * 
+     * @since 1.3.3
+     * @param array $classmap
+     * @return void
+     */
+    private function instance_filtered_classes( $classmap ) {
+        $filtered_classes = array_filter( $classmap, function( $file, $class ) {
+            // Skip if not in our namespace
+            if ( strpos( $class, 'MeuMouse\\Flexify_Checkout\\Recovery_Carts\\' ) !== 0 ) {
+                return false;
+            }
+
+            // Skip abstract classes
+            if ( strpos( $class, 'Abstract' ) !== false ) {
+                return false;
+            }
+            
+            // Skip interfaces
+            if ( strpos( $class, 'Interface' ) !== false ) {
+                return false;
+            }
+            
+            // Skip traits
+            if ( strpos( $class, 'Trait' ) !== false ) {
+                return false;
+            }
+            
+            // Skip Init class itself
+            if ( $class === 'MeuMouse\\Flexify_Checkout\\Recovery_Carts\\Core\\Init' ) {
+                return false;
+            }
+
+            // Check if class exists
+            if ( ! class_exists( $class ) ) {
+                return false;
+            }
+            
+            return true;
+            
+        }, ARRAY_FILTER_USE_BOTH );
+
+        foreach ( array_keys( $filtered_classes ) as $class ) {
+            $this->safe_instance_class( $class );
+        }
+    }
+
+
+    /**
+     * Safely instance a class
+     * 
+     * @since 1.3.3
+     * @param string $class
+     * @return void
+     */
+    private function safe_instance_class( $class ) {
+        try {
+            $reflection = new \ReflectionClass( $class );
+            
+            if ( ! $reflection->isInstantiable() ) {
+                return;
+            }
+
+            $constructor = $reflection->getConstructor();
+            
+            // Only instance classes without required constructor parameters
+            if ( $constructor && $constructor->getNumberOfRequiredParameters() > 0 ) {
+                return;
+            }
+
+            $instance = new $class();
+            
+            // Call init method if exists
+            if ( method_exists( $instance, 'init' ) ) {
+                $instance->init();
+            }
+            
+        } catch ( \Exception $e ) {
+            if ( defined('WP_DEBUG') && WP_DEBUG ) {
+                error_log( 'Flexify Checkout Recovery Carts: Error instancing class ' . $class . ' - ' . $e->getMessage() );
+            }
+        }
+    }
+
+
+    /**
+     * Cloning is forbidden
+     *
+     * @since 1.3.3
+     * @return void
+     */
+    public function __clone() {
+        _doing_it_wrong( __FUNCTION__, esc_html__( 'Trapaceando?', 'fc-recovery-carts' ), '1.3.3' );
+    }
+
+
+    /**
+     * Unserializing instances of this class is forbidden
+     *
+     * @since 1.3.3
+     * @return void
+     */
+    public function __wakeup() {
+        _doing_it_wrong( __FUNCTION__, esc_html__( 'Trapaceando?', 'fc-recovery-carts' ), '1.3.3' );
     }
 }

@@ -3,7 +3,7 @@
 	"slug": "flexify-checkout-recovery-carts-addon",
 	"author": "<a href='https://meumouse.com'>MeuMouse.com</a>",
 	"author_profile": "https://profiles.wordpress.org/meumouse",
-	"version": "1.3.3",
+	"version": "1.3.4",
 	"download_url": "https://packages.meumouse.com/v1/downloads/flexify-checkout-recovery-carts-addon",
 	"requires": "5.6",
 	"tested": "6.8.3",
