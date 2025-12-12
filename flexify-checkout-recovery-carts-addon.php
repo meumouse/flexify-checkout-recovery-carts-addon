@@ -1,17 +1,17 @@
 <?php
 
 /**
- * Plugin Name:             Flexify Checkout - Recuperação de carrinhos abandonados
+ * Plugin Name:             Flexify Checkout: Recuperação de carrinhos abandonados
  * Description:             Recupere carrinhos e pedidos abandonados com follow up cadenciado. Plugin adicional do Flexify Checkout para WooCommerce.
  * Plugin URI:              https://meumouse.com/plugins/flexify-checkout-para-woocommerce/?utm_source=plugins_list&utm_medium=flexify_checkout_recovery_cart&utm_campaign=plugin_addon
  * Requires Plugins: 		flexify-checkout-for-woocommerce, woocommerce
  * Author:                  MeuMouse.com
  * Author URI:              https://meumouse.com/
- * Version:                 1.3.3
+ * Version:                 1.3.4
  * Requires PHP:            7.4
- * Tested up to:            6.8.3
+ * Tested up to:            6.9
  * WC requires at least:    6.0.0
- * WC tested up to: 		10.3.3
+ * WC tested up to: 		10.4.0
  * Text Domain:             fc-recovery-carts
  * Domain Path:             /languages
  * License:                 GPL2
@@ -52,7 +52,7 @@ if ( ! class_exists('Flexify_Checkout_Recovery_Carts') ) {
          * @var string
          * @since 1.0.0
          */
-        public static $version = '1.3.3';
+        public static $version = '1.3.4';
 
 
         /**
@@ -68,9 +68,6 @@ if ( ! class_exists('Flexify_Checkout_Recovery_Carts') ) {
 
             // initialize the plugin after woocommerce has loaded
             add_action( 'woocommerce_loaded', array( $this, 'init' ), 99 );
-
-            // hook after init plugin
-            do_action('fc_recovery_carts_init');
         }
 
 

@@ -12,7 +12,7 @@ defined('ABSPATH') || exit;
  * Admin actions class
  * 
  * @since 1.0.0
- * @version 1.3.2
+ * @version 1.3.4
  * @package MeuMouse.com
  */
 class Admin {
@@ -243,16 +243,30 @@ class Admin {
      * or adds new items with default value to the option
      * 
      * @since 1.0.0
-     * @version 1.3.0
+     * @version 1.3.4
      * @return void
      */
     public function update_default_options() {
         $default_options = ( new Default_Options() )->set_default_options();
-        $get_options = get_option( 'flexify_checkout_recovery_carts_settings', array() );
+        $existing_options = get_option( 'flexify_checkout_recovery_carts_settings', array() );
+        
+        if ( empty( $existing_options ) ) {
+            update_option( 'flexify_checkout_recovery_carts_settings', $default_options );
+            return;
+        }
+        
+        $needs_update = false;
 
-        $merged_options = Helpers::recursive_merge( $default_options, $get_options );
-
-        update_option( 'flexify_checkout_recovery_carts_settings', $merged_options );
+        foreach ( $default_options as $key => $default_value ) {
+            if ( ! array_key_exists( $key, $existing_options ) ) {
+                $existing_options[$key] = $default_value;
+                $needs_update = true;
+            }
+        }
+        
+        if ( $needs_update ) {
+            update_option( 'flexify_checkout_recovery_carts_settings', $existing_options );
+        }
     }
 
 
