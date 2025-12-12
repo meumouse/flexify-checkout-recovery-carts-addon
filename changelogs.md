@@ -1,4 +1,4 @@
-Versão 1.3.4 (11/12/2025)
+Versão 1.3.4 (12/12/2025)
 * Correção de bugs
     - Exclusão de itens de follow up
 * Otimizações
