@@ -68,9 +68,6 @@ if ( ! class_exists('Flexify_Checkout_Recovery_Carts') ) {
 
             // initialize the plugin after woocommerce has loaded
             add_action( 'woocommerce_loaded', array( $this, 'init' ), 99 );
-
-            // hook after init plugin
-            do_action('fc_recovery_carts_init');
         }
 
 

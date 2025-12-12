@@ -60,7 +60,7 @@ class Init {
      * Construct function
      * 
      * @since 1.0.0
-     * @version 1.3.0
+     * @version 1.3.4
      * @return void
      */
     public function __construct() {
@@ -92,6 +92,9 @@ class Init {
 
         // instance classes after WordPress is fully loaded
         add_action( 'plugins_loaded', array( $this, 'instance_classes' ) );
+
+        // hook after init plugin
+        do_action('fc_recovery_carts_init');
     }
 
 
