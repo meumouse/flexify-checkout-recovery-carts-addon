@@ -11,7 +11,7 @@ defined('ABSPATH') || exit;
  * Helpers class
  * 
  * @since 1.0.0
- * @version 1.3.2
+ * @version 1.3.5
  * @package MeuMouse.com
  */
 class Helpers {
@@ -150,6 +150,7 @@ class Helpers {
      * Restores the cart from the recovery link
      *
      * @since 1.0.0
+     * @version 1.3.5
      * @return void
      */
     public static function maybe_restore_cart() {
@@ -165,6 +166,17 @@ class Helpers {
             }
 
             return;
+        }
+
+        // Do not restore carts that already completed the recovery cycle
+        if ( self::is_cart_cycle_finished( $cart_id ) ) {
+            if ( self::$debug_mode ) {
+                error_log( "Cart ID {$cart_id} already completed. Skipping restore." );
+            }
+
+            wp_safe_redirect( wc_get_checkout_url() );
+
+            exit;
         }
 
         // get products from cart

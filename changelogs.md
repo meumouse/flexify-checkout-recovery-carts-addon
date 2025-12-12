@@ -1,3 +1,7 @@
+Versão 1.3.5 (12/12/2025)
+* Correção de bugs
+    - Prevenir restauração do carrinho após ciclo ter finalizado (Recuperado, Comprou, Concluído, Pedido abandonado, Perdido)
+
 Versão 1.3.4 (12/12/2025)
 * Correção de bugs
     - Exclusão de itens de follow up
