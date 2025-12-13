@@ -91,6 +91,7 @@
          * Fetch analytics data from backend
          * 
          * @since 1.3.0
+         * @version 1.3.5
          * @param {int} days | Number of days to fetch data
          * @return void
          */
@@ -101,6 +102,7 @@
                 dataType: 'json',
                 data: {
                     action: 'fcrc_get_analytics_data',
+                    nonce: params.ajax_nonce,
                     period: days,
                 },
                 success: function(response) {

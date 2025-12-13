@@ -296,11 +296,18 @@ class Ajax {
                 }
             }
 
-            // Update dynamic arrays
             foreach ( $default_options as $key => $value ) {
                 if ( is_array( $value ) && isset( $form_data[ $key ] ) ) {
-                    $options[ $key ] = Helpers::recursive_merge( $value, Helpers::sanitize_array( $form_data[ $key ] ) );
+                    if ( $key === 'follow_up_events' ) {
+                        $options[ $key ] = Helpers::sanitize_array( $form_data[ $key ] );
+                    } else {
+                        $options[ $key ] = Helpers::recursive_merge( $value, Helpers::sanitize_array( $form_data[ $key ] ) );
+                    }
                 }
+            }
+
+            if ( ! isset( $form_data['follow_up_events'] ) ) {
+                $options['follow_up_events'] = array();
             }
 
             // Save options

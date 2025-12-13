@@ -187,6 +187,7 @@
 		 * Save options in AJAX
 		 * 
 		 * @since 1.0.0
+		 * @version 1.3.5
 		 */
 		saveOptions: function() {
 			let settings_form = $('form[name="fc-recovery-carts-options-form"]');
@@ -208,6 +209,7 @@
 					type: 'POST',
 					data: {
 						action: 'fc_recovery_carts_save_options',
+						nonce: params.ajax_nonce,
 						form_data: settings_form.serialize(),
 					},
 					beforeSend: function() {
@@ -282,7 +284,7 @@
 		 * Add new follow up item
 		 * 
 		 * @since 1.0.0
-		 * @version 1.2.0
+		 * @version 1.3.5
 		 */
 		addNewFollowUp: function() {
 			var container = $('#fcrc_add_new_follow_up_container');
@@ -321,6 +323,7 @@
 					type: 'POST',
 					data: {
 						action: 'fcrc_add_new_follow_up',
+						nonce: params.ajax_nonce,
 						title: follow_up_title.val() || '',
 						message: follow_up_message.val() || '',
 						delay_time: follow_up_delay_time.val() || '',
@@ -407,6 +410,7 @@
 		 * Delete follow up item
 		 * 
 		 * @since 1.0.0
+		 * @version 1.3.5
 		 */
 		deleteFollowUp: function() {
 			// delete follow up item on click delete button
@@ -427,6 +431,7 @@
 					type: 'POST',
 					data: {
 						action: 'fcrc_delete_follow_up',
+						nonce: params.ajax_nonce,
 						event_key: get_item,
 					},
 					beforeSend: function() {

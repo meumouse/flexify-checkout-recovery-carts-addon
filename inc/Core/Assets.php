@@ -11,7 +11,7 @@ defined('ABSPATH') || exit;
  * Enqueue assets class
  * 
  * @since 1.0.0
- * @version 1.3.0
+ * @version 1.3.5
  * @package MeuMouse.com
  */
 class Assets {
@@ -59,7 +59,7 @@ class Assets {
      * Register admin scripts
      * 
      * @since 1.0.0
-     * @version 1.3.0
+     * @version 1.3.5
      * @return void
      */
     public function admin_scripts() {
@@ -85,6 +85,7 @@ class Assets {
 			wp_localize_script( 'fc-recovery-carts-scripts', 'fcrc_settings_params', array(
 				'debug_mode' => self::$debug_mode,
 				'ajax_url' => admin_url('admin-ajax.php'),
+                'ajax_nonce' => wp_create_nonce('fcrc_ajax_nonce'),
 				'i18n' => array(
 					'toast_aria_label' => esc_html__( 'Fechar', 'fc-recovery-carts' ),
                     'confirm_delete_follow_up' => esc_html__( 'Tem certeza que deseja excluir este evento?', 'fc-recovery-carts' ),
