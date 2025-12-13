@@ -14,7 +14,7 @@ defined('ABSPATH') || exit;
  * Handler for ajax requests
  * 
  * @since 1.0.0
- * @version 1.3.0
+ * @version 1.3.5
  * @package MeuMouse.com
  */
 class Ajax {
@@ -26,40 +26,232 @@ class Ajax {
      * @return bool
      */
     public static $debug_mode = FC_RECOVERY_CARTS_DEBUG_MODE;
-   
+
+    /**
+     * Cached settings to avoid multiple get_option calls
+     * 
+     * @since 1.3.0
+     * @var array|null
+     */
+    private static $cached_settings = null;
+
+    /**
+     * AJAX action nonce name
+     * 
+     * @since 1.3.0
+     * @var string
+     */
+    private $ajax_nonce_name = 'fcrc_ajax_nonce';
+
     /**
      * Construct function
      *
      * @since 1.0.0
-     * @version 1.3.0
+     * @version 1.3.5
      * @return void
      */
     public function __construct() {
-        $ajax_actions = array(
+        // Define AJAX actions for admin (logged in users only)
+        $admin_ajax_actions = array(
             'fc_recovery_carts_save_options' => 'admin_save_options_callback',
             'fcrc_add_new_follow_up' => 'fcrc_add_new_follow_up_callback',
             'fcrc_delete_follow_up' => 'fcrc_delete_follow_up_callback',
-            'fcrc_lead_collected' => 'fcrc_lead_collected_callback',
-            'fcrc_save_checkout_lead' => 'fcrc_save_checkout_lead_callback',
-            'fcrc_update_location' => 'fcrc_update_location_callback',
             'fcrc_get_analytics_data' => 'get_analytics_data_callback',
         );
 
-        // loop for each ajax action
-        foreach ( $ajax_actions as $action => $callback ) {
-            add_action( "wp_ajax_$action", array( $this, $callback ) );
-        }
-
-        // ajax actions for not logged in users
-        $nopriv_ajax_actions = array(
+        // Define AJAX actions for public (both logged in and not logged in users)
+        $public_ajax_actions = array(
             'fcrc_lead_collected' => 'fcrc_lead_collected_callback',
             'fcrc_save_checkout_lead' => 'fcrc_save_checkout_lead_callback',
             'fcrc_update_location' => 'fcrc_update_location_callback',
         );
 
-        // loop for each nopriv ajax action
-        foreach ( $nopriv_ajax_actions as $action => $callback ) {
+        // Register admin AJAX actions
+        foreach ( $admin_ajax_actions as $action => $callback ) {
+            add_action( "wp_ajax_$action", array( $this, $callback ) );
+        }
+
+        // Register public AJAX actions for both logged in and not logged in users
+        foreach ( $public_ajax_actions as $action => $callback ) {
+            add_action( "wp_ajax_$action", array( $this, $callback ) );
             add_action( "wp_ajax_nopriv_$action", array( $this, $callback ) );
+        }
+    }
+
+
+    /**
+     * Get settings with caching
+     * 
+     * @since 1.3.5
+     * @return array
+     */
+    private function get_settings() {
+        if ( self::$cached_settings === null ) {
+            self::$cached_settings = get_option( 'flexify_checkout_recovery_carts_settings', array() );
+        }
+
+        return self::$cached_settings;
+    }
+
+
+    /**
+     * Update settings with cache clearing
+     * 
+     * @since 1.3.5
+     * @param array $settings
+     * @return bool
+     */
+    private function update_settings( $settings ) {
+        self::$cached_settings = $settings;
+        
+        return update_option( 'flexify_checkout_recovery_carts_settings', $settings );
+    }
+
+
+    /**
+     * Validate AJAX request with nonce and required parameters
+     * 
+     * @since 1.3.5
+     * @param array $required_params | Required parameters
+     * @return void
+     */
+    private function validate_ajax_request( $required_params = array() ) {
+        // Verify nonce for security
+        if ( ! isset( $_POST['nonce'] ) || ! wp_verify_nonce( $_POST['nonce'], $this->ajax_nonce_name ) ) {
+            wp_send_json_error( array(
+                'message' => esc_html__( 'Requisição inválida ou expirada. Por favor, atualize a página.', 'fc-recovery-carts' )
+            ));
+        }
+
+        // Check for required parameters
+        foreach ( $required_params as $param ) {
+            if ( ! isset( $_POST[ $param ] ) ) {
+                wp_send_json_error( array(
+                    'message' => sprintf( esc_html__( 'Parâmetro obrigatório ausente: %s', 'fc-recovery-carts' ), $param )
+                ));
+            }
+        }
+    }
+
+    /**
+     * Safely decode JSON data from POST requests
+     * 
+     * @since 1.3.5
+     * @param mixed $input JSON string or array
+     * @param bool $assoc Return associative array
+     * @return array
+     */
+    private function safe_json_decode( $input, $assoc = true ) {
+        if ( empty( $input ) ) {
+            return array();
+        }
+
+        if ( is_array( $input ) ) {
+            return $input;
+        }
+
+        $decoded = json_decode( stripslashes( $input ), $assoc );
+        
+        if ( json_last_error() !== JSON_ERROR_NONE ) {
+            if ( self::$debug_mode ) {
+                error_log( 'JSON decode error: ' . json_last_error_msg() . ' Input: ' . substr( $input, 0, 100 ) );
+            }
+
+            return array();
+        }
+
+        return $decoded ?: array();
+    }
+
+
+    /**
+     * Handle exceptions in AJAX callbacks
+     * 
+     * @since 1.3.5
+     * @param string $callback_name
+     * @param \Exception $e
+     * @return void
+     */
+    private function handle_ajax_exception( $callback_name, $e ) {
+        if ( self::$debug_mode ) {
+            error_log( "Error in $callback_name: " . $e->getMessage() . "\n" . $e->getTraceAsString() );
+        }
+
+        wp_send_json_error( array(
+            'message' => esc_html__( 'Ocorreu um erro interno. Por favor, tente novamente.', 'fc-recovery-carts' ),
+            'debug' => self::$debug_mode ? $e->getMessage() : null
+        ));
+    }
+
+
+    /**
+     * Generate event key from title
+     * 
+     * @since 1.3.0
+     * @param string $title
+     * @return string
+     */
+    private function generate_event_key( $title ) {
+        $key = strtolower( trim( $title ) );
+        $key = preg_replace( '/[^a-z0-9]+/', '_', $key );
+        $key = preg_replace( '/_+/', '_', $key );
+        $key = trim( $key, '_' );
+        
+        return $key ?: 'event_' . time();
+    }
+
+
+    /**
+     * Get cart data with single WC()->cart call
+     * 
+     * @since 1.3.5
+     * @return array
+     */
+    private function get_cart_data() {
+        $cart = WC()->cart;
+        
+        if ( ! $cart ) {
+            return array(
+                'total' => 0,
+                'items' => array(),
+                'subtotal' => 0,
+                'tax' => 0,
+            );
+        }
+
+        return array(
+            'total' => $cart->get_cart_contents_total(),
+            'items' => $cart->get_cart(),
+            'subtotal' => $cart->get_subtotal(),
+            'tax' => $cart->get_taxes_total(),
+        );
+    }
+
+
+    /**
+     * Update cart post meta with standardized mapping
+     * 
+     * @since 1.3.5
+     * @param int $cart_id | Post ID
+     * @param array $data | New data
+     * @return void
+     */
+    private function update_cart_meta( $cart_id, $data ) {
+        $meta_map = array(
+            'first_name' => '_fcrc_first_name',
+            'last_name' => '_fcrc_last_name',
+            'full_name' => '_fcrc_full_name',
+            'phone' => '_fcrc_cart_phone',
+            'email' => '_fcrc_cart_email',
+            'cart_total' => '_fcrc_cart_total',
+            'user_id' => '_fcrc_user_id',
+            'cart_items' => '_fcrc_cart_items',
+        );
+
+        foreach ( $meta_map as $data_key => $meta_key ) {
+            if ( isset( $data[ $data_key ] ) ) {
+                update_post_meta( $cart_id, $meta_key, $data[ $data_key ] );
+            }
         }
     }
 
@@ -68,25 +260,34 @@ class Ajax {
      * Save options in AJAX
      * 
      * @since 1.0.0
-     * @version 1.3.0
+     * @version 1.3.5
      * @return void
      */
     public function admin_save_options_callback() {
-        if ( isset( $_POST['action'] ) && $_POST['action'] === 'fc_recovery_carts_save_options' ) {
+        try {
+            // Validate request
+            $this->validate_ajax_request( array( 'form_data' ) );
+
+            if ( ! current_user_can( 'manage_options' ) ) {
+                wp_send_json_error( array(
+                    'message' => esc_html__( 'Permissão negada.', 'fc-recovery-carts' )
+                ));
+            }
+
             $raw = wp_unslash( $_POST['form_data'] );
 
-            // convert form data for associative array
+            // Convert form data to associative array
             parse_str( $raw, $form_data );
 
-            // get current options 
-            $options = get_option( 'flexify_checkout_recovery_carts_settings', array() );
-    
-            // get default options
+            // Get current options 
+            $options = $this->get_settings();
+
+            // Get default options
             $default_options = ( new Default_Options() )->set_default_options();
 
-            // update all fields except arrays like toggle_switchs and follow_up_events
+            // Update all fields except arrays like toggle_switchs and follow_up_events
             foreach ( $default_options as $key => $value ) {
-                if ( ! is_array( $value ) && isset( $form_data[$key] ) ) {
+                if ( ! is_array( $value ) && isset( $form_data[ $key ] ) ) {
                     if ( strpos( $key, 'message' ) !== false ) {
                         $options[ $key ] = sanitize_textarea_field( $form_data[ $key ] );
                     } else {
@@ -94,17 +295,18 @@ class Ajax {
                     }
                 }
             }
-    
-            // update dynamic arrays
+
+            // Update dynamic arrays
             foreach ( $default_options as $key => $value ) {
                 if ( is_array( $value ) && isset( $form_data[ $key ] ) ) {
                     $options[ $key ] = Helpers::recursive_merge( $value, Helpers::sanitize_array( $form_data[ $key ] ) );
                 }
             }
-        
-            $saved_options = update_option( 'flexify_checkout_recovery_carts_settings', $options );
-    
-            // check if saved options
+
+            // Save options
+            $saved_options = $this->update_settings( $options );
+
+            // Prepare response
             if ( $saved_options ) {
                 $response = array(
                     'status' => 'success',
@@ -119,7 +321,8 @@ class Ajax {
                 );
             }
 
-            if ( FC_RECOVERY_CARTS_DEBUG_MODE ) {
+            // Add debug info if in debug mode
+            if ( self::$debug_mode ) {
                 $response['debug'] = array(
                     'options' => $options,
                     'update_options' => $saved_options,
@@ -127,6 +330,9 @@ class Ajax {
             }
 
             wp_send_json( $response );
+
+        } catch ( \Exception $e ) {
+            $this->handle_ajax_exception( __FUNCTION__, $e );
         }
     }
 
@@ -135,29 +341,39 @@ class Ajax {
      * Add new follow up event in AJAX
      * 
      * @since 1.0.0
-     * @version 1.3.0
+     * @version 1.3.5
      * @return void
      */
     public function fcrc_add_new_follow_up_callback() {
-        if ( isset( $_POST['action'] ) && $_POST['action'] === 'fcrc_add_new_follow_up' ) {
-            $title = isset( $_POST['title'] ) ? sanitize_text_field( $_POST['title'] ) : '';
-            $event_key = strtolower( str_replace( ' ', '_', $title ) );
+        try {
+            // Validate request
+            $this->validate_ajax_request( array( 'title' ) );
+
+            if ( ! current_user_can( 'manage_options' ) ) {
+                wp_send_json_error( array(
+                    'message' => esc_html__( 'Permissão negada.', 'fc-recovery-carts' )
+                ) );
+            }
+
+            // Sanitize and prepare data
+            $title = sanitize_text_field( $_POST['title'] );
+            $event_key = $this->generate_event_key( $title );
             $message = isset( $_POST['message'] ) ? sanitize_textarea_field( $_POST['message'] ) : '';
             $delay_time = isset( $_POST['delay_time'] ) ? sanitize_text_field( $_POST['delay_time'] ) : '';
             $delay_type = isset( $_POST['delay_type'] ) ? sanitize_text_field( $_POST['delay_type'] ) : '';
             $whatsapp = isset( $_POST['whatsapp'] ) ? sanitize_text_field( $_POST['whatsapp'] ) : '';
-            $coupon = isset( $_POST['coupon'] ) ? json_decode( stripslashes( $_POST['coupon'] ), true ) : array();
+            $coupon = $this->safe_json_decode( $_POST['coupon'] ?? '' );
 
-            // get current settings
-            $settings = get_option( 'flexify_checkout_recovery_carts_settings', array() );
+            // Get current settings
+            $settings = $this->get_settings();
 
-            // check if follow up events exists
+            // Initialize follow up events array if not exists
             if ( ! isset( $settings['follow_up_events'] ) || ! is_array( $settings['follow_up_events'] ) ) {
                 $settings['follow_up_events'] = array();
             }
 
-            // add new follow up event on array
-            $settings['follow_up_events'][$event_key] = array(
+            // Add new follow up event
+            $settings['follow_up_events'][ $event_key ] = array(
                 'enabled' => 'yes',
                 'title' => $title,
                 'message' => $message,
@@ -167,13 +383,13 @@ class Ajax {
                     'whatsapp' => $whatsapp,
                 ),
                 'coupon' => array(
-                    'enabled' => $coupon['enabled'],
-                    'generate_coupon' => $coupon['generate_coupon'],
+                    'enabled' => $coupon['enabled'] ?? 'no',
+                    'generate_coupon' => $coupon['generate_coupon'] ?? 'no',
                     'coupon_prefix' => $coupon['coupon_prefix'] ?? '',
                     'coupon_code' => $coupon['coupon_code'] ?? '',
                     'discount_type' => $coupon['discount_type'] ?? '',
                     'discount_value' => $coupon['discount_value'] ?? '',
-                    'allow_free_shipping' => $coupon['allow_free_shipping'],
+                    'allow_free_shipping' => $coupon['allow_free_shipping'] ?? 'no',
                     'expiration_time' => $coupon['expiration_time'] ?? '',
                     'expiration_time_unit' => $coupon['expiration_time_unit'] ?? '',
                     'limit_usages' => $coupon['limit_usages'] ?? '',
@@ -181,9 +397,10 @@ class Ajax {
                 ),
             );
 
-            // update options
-            $saved_options = update_option( 'flexify_checkout_recovery_carts_settings', $settings );
+            // Save settings
+            $saved_options = $this->update_settings( $settings );
 
+            // Prepare response
             if ( $saved_options ) {
                 $response = array(
                     'status' => 'success',
@@ -199,7 +416,9 @@ class Ajax {
                 );
             }
 
-            wp_send_json( $response ); // Send JSON response
+            wp_send_json( $response );
+        } catch ( \Exception $e ) {
+            $this->handle_ajax_exception( __FUNCTION__, $e );
         }
     }
 
@@ -208,122 +427,144 @@ class Ajax {
      * Delete follow up event in AJAX
      * 
      * @since 1.0.0
+     * @version 1.3.5
      * @return void
      */
     public function fcrc_delete_follow_up_callback() {
-        if ( isset( $_POST['action'] ) && $_POST['action'] === 'fcrc_delete_follow_up' ) {
-            $event_key = isset( $_POST['event_key'] ) ? sanitize_text_field( $_POST['event_key'] ) : '';
+        try {
+            // Validate request
+            $this->validate_ajax_request( array( 'event_key' ) );
 
-            // get current settings
-            $settings = get_option( 'flexify_checkout_recovery_carts_settings', array() );
+            if ( ! current_user_can( 'manage_options' ) ) {
+                wp_send_json_error( array(
+                    'message' => esc_html__( 'Permissão negada.', 'fc-recovery-carts' )
+                ) );
+            }
 
-            // check if follow up events exists
-            if ( isset( $settings['follow_up_events'] ) && is_array( $settings['follow_up_events'] ) ) {
-                // check if follow up event exists
-                if ( isset( $settings['follow_up_events'][$event_key] ) ) {
-                    // delete follow up event
-                    unset( $settings['follow_up_events'][$event_key] );
+            $event_key = sanitize_text_field( $_POST['event_key'] );
 
-                    // update options
-                    $saved_options = update_option( 'flexify_checkout_recovery_carts_settings', $settings );
+            if ( empty( $event_key ) ) {
+                wp_send_json_error( array(
+                    'message' => esc_html__( 'Chave do evento não especificada.', 'fc-recovery-carts' )
+                ) );
+            }
 
-                    if ( $saved_options ) {
-                        $response = array(
-                            'status' => 'success',
-                            'toast_header_title' => esc_html__( 'Salvo com sucesso', 'fc-recovery-carts' ),
-                            'toast_body_title' => esc_html__( 'O evento foi removido com sucesso!', 'fc-recovery-carts' ),
-                            'follow_up_list' => Admin_Components::follow_up_list(),
-                        );
-                    } else {
-                        $response = array(
-                            'status' => 'error',
-                            'toast_header_title' => esc_html__( 'Ops! Ocorreu um erro', 'fc-recovery-carts' ),
-                            'toast_body_title' => esc_html__( 'Não foi possível remover o evento.', 'fc-recovery-carts' ),
-                        );
-                    }
+            // Get current settings
+            $settings = $this->get_settings();
+
+            // Check if follow up event exists
+            if ( isset( $settings['follow_up_events'][ $event_key ] ) ) {
+                // Delete follow up event
+                unset( $settings['follow_up_events'][ $event_key ] );
+
+                // Save settings
+                $saved_options = $this->update_settings( $settings );
+
+                if ( $saved_options ) {
+                    $response = array(
+                        'status' => 'success',
+                        'toast_header_title' => esc_html__( 'Salvo com sucesso', 'fc-recovery-carts' ),
+                        'toast_body_title' => esc_html__( 'O evento foi removido com sucesso!', 'fc-recovery-carts' ),
+                        'follow_up_list' => Admin_Components::follow_up_list(),
+                    );
+                } else {
+                    $response = array(
+                        'status' => 'error',
+                        'toast_header_title' => esc_html__( 'Ops! Ocorreu um erro', 'fc-recovery-carts' ),
+                        'toast_body_title' => esc_html__( 'Não foi possível remover o evento.', 'fc-recovery-carts' ),
+                    );
                 }
             } else {
                 $response = array(
                     'status' => 'error',
                     'toast_header_title' => esc_html__( 'Ops! Ocorreu um erro', 'fc-recovery-carts' ),
-                    'toast_body_title' => esc_html__( 'Não foi possível remover o evento.', 'fc-recovery-carts' ),
+                    'toast_body_title' => esc_html__( 'Evento não encontrado.', 'fc-recovery-carts' ),
                 );
             }
-            
-            wp_send_json( $response ); // Send JSON response
+
+            wp_send_json( $response );
+        } catch ( \Exception $e ) {
+            $this->handle_ajax_exception( __FUNCTION__, $e );
         }
     }
+
 
     /**
      * Get lead collected
      * 
      * @since 1.0.0
-     * @version 1.3.0
+     * @version 1.3.5
      * @return void
      */
     public function fcrc_lead_collected_callback() {
-        if ( isset( $_POST['action'] ) && $_POST['action'] === 'fcrc_lead_collected' ) {
-            $first_name = isset( $_POST['first_name'] ) ? sanitize_text_field( $_POST['first_name'] ) : '';
-            $last_name = isset( $_POST['last_name'] ) ? sanitize_text_field( $_POST['last_name'] ) : '';
-            $phone = isset( $_POST['phone'] ) ? sanitize_text_field( $_POST['phone'] ) : '';
-            $email = isset( $_POST['email'] ) ? sanitize_email( $_POST['email'] ) : '';
-            $country_data = isset( $_POST['country_data'] ) ? json_decode( stripslashes( $_POST['country_data'] ), true ) : array();
+        try {
+            // Validate request
+            $this->validate_ajax_request( array( 'first_name', 'last_name', 'phone', 'email' ) );
+
+            // Sanitize input data
+            $first_name = sanitize_text_field( $_POST['first_name'] );
+            $last_name = sanitize_text_field( $_POST['last_name'] );
+            $phone = sanitize_text_field( $_POST['phone'] );
+            $email = sanitize_email( $_POST['email'] );
+            $country_data = $this->safe_json_decode( $_POST['country_data'] ?? '' );
+            $get_cart_id = sanitize_text_field( $_POST['cart_id'] ?? '' );
+
+            // Process country data
             $country_code = $country_data['iso2'] ?? '';
             $country_dial_code = $country_data['dialCode'] ?? '';
             $format_phone = $country_dial_code . $phone;
             $phone = preg_replace( '/\D/', '', $format_phone );
-            $get_cart_id = isset( $_POST['cart_id'] ) ? sanitize_text_field( $_POST['cart_id'] ) : '';
 
-            // get full name
+            // Get full name
             $full_name = sprintf( '%s %s', $first_name, $last_name );
 
-            // get cart total
-            $cart_total = WC()->cart ? WC()->cart->get_cart_contents_total() : 0;
+            // Get cart data
+            $cart_data = $this->get_cart_data();
 
-            // check if user exists
+            // Check if user exists
             $user = get_user_by( 'email', $email );
+            $user_id = $user ? $user->ID : 0;
+
+            // Prepare cart meta data
+            $cart_meta_data = array(
+                'first_name' => $first_name,
+                'last_name' => $last_name,
+                'full_name' => $full_name,
+                'phone' => $phone,
+                'email' => $email,
+                'cart_total' => $cart_data['total'],
+                'cart_items' => $cart_data['items'],
+                'user_id' => $user_id,
+            );
 
             if ( ! $get_cart_id || empty( $get_cart_id ) ) {
-                // create a new post of type 'fc-recovery-carts'
+                // Create a new post of type 'fc-recovery-carts'
                 $cart_id = wp_insert_post( array(
                     'post_type' => 'fc-recovery-carts',
                     'post_status' => 'lead',
                     'post_title' => 'Lead: ' . $full_name,
                     'post_content' => '',
-                    'meta_input' => array(
-                        '_fcrc_first_name' => $first_name,
-                        '_fcrc_last_name' => $last_name,
-                        '_fcrc_full_name' => $full_name,
-                        '_fcrc_cart_phone' => $phone,
-                        '_fcrc_cart_email' => $email,
-                        '_fcrc_cart_total' => $cart_total,
-                        '_fcrc_cart_items' => WC()->cart ? WC()->cart->get_cart() : array(),
-                        '_fcrc_user_id' => $user ? $user->ID : 0,
-                    ),
                 ));
-            } else {
-                $cart_id = $get_cart_id;
 
-                update_post_meta( $cart_id, '_fcrc_first_name', $first_name );
-                update_post_meta( $cart_id, '_fcrc_last_name', $last_name );
-                update_post_meta( $cart_id, '_fcrc_full_name', $full_name );
-                update_post_meta( $cart_id, '_fcrc_cart_phone', $phone );
-                update_post_meta( $cart_id, '_fcrc_cart_email', $email );
+                if ( $cart_id && ! is_wp_error( $cart_id ) ) {
+                    $this->update_cart_meta( $cart_id, $cart_meta_data );
+                }
+            } else {
+                $cart_id = intval( $get_cart_id );
+                $this->update_cart_meta( $cart_id, $cart_meta_data );
             }
 
-            // storage cart id (post id) in session
-            if ( $cart_id ) {
+            // Store cart id in session if available
+            if ( $cart_id && ! is_wp_error( $cart_id ) && WC()->session ) {
                 WC()->session->set( 'fcrc_cart_id', $cart_id );
             }
 
-            // get cached location data
-            $location = isset( $_COOKIE['fcrc_location'] ) ? json_decode( stripslashes( $_COOKIE['fcrc_location'] ), true ) : array();
+            // Get cached location data
+            $location = $this->safe_json_decode( $_COOKIE['fcrc_location'] ?? '' );
 
-            // get IP address
+            // Get IP address and map user
             $ip = $location['ip'] ?? '';
-
-            // map user by IP
-            if ( $ip ) {
+            if ( $ip && $cart_id && ! is_wp_error( $cart_id ) ) {
                 $map = get_option( 'fcrc_ip_user_map', array() );
 
                 $map[ $ip ] = array(
@@ -333,10 +574,9 @@ class Ajax {
                     'phone' => $phone,
                     'email' => $email,
                     'cart_id' => $cart_id,
-                    'collected_at' => strtotime( current_time('mysql') ),
+                    'collected_at' => strtotime( current_time( 'mysql' ) ),
                 );
 
-                // save user mapped
                 update_option( 'fcrc_ip_user_map', $map );
             }
 
@@ -344,22 +584,21 @@ class Ajax {
              * Hook fired on lead collected
              * 
              * @since 1.0.0
-             * @param int $cart_id | Cart ID | Post ID
-             * @param array $data | Lead data
+             * @param int $cart_id Cart ID | Post ID
+             * @param array $data Lead data
              */
-            do_action( 'Flexify_Checkout/Recovery_Carts/Lead_Collected', $cart_id, array(
-                'first_name' => $first_name,
-                'last_name' => $last_name,
-                'full_name' => $full_name,
-                'phone' => $phone,
-                'email' => $email,
-                'country' => $country_code,
-                'cart_total' => $cart_total,
-                'user_id' => $user ? $user->ID : 0,
-            ));
+            if ( $cart_id && ! is_wp_error( $cart_id ) ) {
+                do_action( 'Flexify_Checkout/Recovery_Carts/Lead_Collected', $cart_id, array(
+                    'first_name' => $first_name,
+                    'last_name' => $last_name,
+                    'full_name' => $full_name,
+                    'phone' => $phone,
+                    'email' => $email,
+                    'country' => $country_code,
+                    'cart_total' => $cart_data['total'],
+                    'user_id' => $user_id,
+                ));
 
-            // check if post was created
-            if ( $cart_id ) {
                 $response = array(
                     'status' => 'success',
                     'cart_id' => $cart_id,
@@ -367,11 +606,13 @@ class Ajax {
             } else {
                 $response = array(
                     'status' => 'error',
+                    'message' => is_wp_error( $cart_id ) ? $cart_id->get_error_message() : esc_html__( 'Falha ao criar carrinho.', 'fc-recovery-carts' ),
                 );
             }
 
-            // send response
             wp_send_json( $response );
+        } catch ( \Exception $e ) {
+            $this->handle_ajax_exception( __FUNCTION__, $e );
         }
     }
 
@@ -380,37 +621,42 @@ class Ajax {
      * Get checkout lead data
      * 
      * @since 1.0.0
-     * @version 1.3.0
+     * @version 1.3.5
      * @return void
      */
     public function fcrc_save_checkout_lead_callback() {
-        if ( isset( $_POST['action'] ) && $_POST['action'] === 'fcrc_save_checkout_lead' ) {
-            $cart_id = intval( $_POST['cart_id'] ); // get cart id from cookie inserted by update_cart_post()
-            $first_name = isset( $_POST['first_name'] ) ? sanitize_text_field( $_POST['first_name'] ) : '';
-            $last_name = isset( $_POST['last_name'] ) ? sanitize_text_field( $_POST['last_name'] ) : '';
-            $phone = isset( $_POST['phone'] ) ? sanitize_text_field( $_POST['phone'] ) : '';
-            $email = isset( $_POST['email'] ) ? sanitize_email( $_POST['email'] ) : '';
+        try {
+            // Validate request
+            $this->validate_ajax_request( array( 'cart_id', 'first_name', 'last_name', 'phone', 'email' ) );
+
+            $cart_id = intval( $_POST['cart_id'] );
+            $first_name = sanitize_text_field( $_POST['first_name'] );
+            $last_name = sanitize_text_field( $_POST['last_name'] );
+            $phone = sanitize_text_field( $_POST['phone'] );
+            $email = sanitize_email( $_POST['email'] );
             $full_name = sprintf( '%s %s', $first_name, $last_name );
 
-            // check if user exists
+            // Check if user exists
             $user = get_user_by( 'email', $email );
             $user_id = $user ? $user->ID : 0;
 
             if ( $cart_id ) {
-                update_post_meta( $cart_id, '_fcrc_first_name', $first_name );
-                update_post_meta( $cart_id, '_fcrc_last_name', $last_name );
-                update_post_meta( $cart_id, '_fcrc_full_name', $full_name );
-                update_post_meta( $cart_id, '_fcrc_cart_phone', $phone );
-                update_post_meta( $cart_id, '_fcrc_cart_email', $email );
-                update_post_meta( $cart_id, '_fcrc_user_id', $user_id );
+                // Update cart meta
+                $this->update_cart_meta( $cart_id, array(
+                    'first_name' => $first_name,
+                    'last_name' => $last_name,
+                    'full_name' => $full_name,
+                    'phone' => $phone,
+                    'email' => $email,
+                    'user_id' => $user_id,
+                ));
 
-                // get cached location data
-                $location = isset( $_COOKIE['fcrc_location'] ) ? json_decode( stripslashes( $_COOKIE['fcrc_location'] ), true ) : array();
+                // Get cached location data
+                $location = $this->safe_json_decode( $_COOKIE['fcrc_location'] ?? '' );
 
-                // get IP address
+                // Get IP address and map user
                 $ip = $location['ip'] ?? '';
 
-                // map user by IP
                 if ( $ip ) {
                     $map = get_option( 'fcrc_ip_user_map', array() );
 
@@ -421,10 +667,9 @@ class Ajax {
                         'phone' => $phone,
                         'email' => $email,
                         'cart_id' => $cart_id,
-                        'collected_at' => strtotime( current_time('mysql') ),
+                        'collected_at' => strtotime( current_time( 'mysql' ) ),
                     );
 
-                    // save user mapped
                     update_option( 'fcrc_ip_user_map', $map );
                 }
 
@@ -432,8 +677,8 @@ class Ajax {
                  * Hook fired on lead collected on checkout
                  * 
                  * @since 1.0.0
-                 * @param int $cart_id | Cart ID | Post ID
-                 * @param array $data | Lead data
+                 * @param int $cart_id Cart ID | Post ID
+                 * @param array $data Lead data
                  */
                 do_action( 'Flexify_Checkout/Recovery_Carts/Checkout_Lead_Collected', $cart_id, array(
                     'first_name' => $first_name,
@@ -444,13 +689,20 @@ class Ajax {
                 ));
 
                 if ( self::$debug_mode ) {
-                    error_log('New checkout lead collected from cart ID: ' . $cart_id);
+                    error_log( 'New checkout lead collected from cart ID: ' . $cart_id );
                 }
-                
+
                 wp_send_json( array(
                     'status' => 'success',
                 ));
+            } else {
+                wp_send_json_error( array(
+                    'message' => esc_html__( 'ID do carrinho inválido.', 'fc-recovery-carts' )
+                ));
             }
+
+        } catch ( \Exception $e ) {
+            $this->handle_ajax_exception( __FUNCTION__, $e );
         }
     }
 
@@ -459,82 +711,101 @@ class Ajax {
      * Get location data from IP address
      * 
      * @since 1.0.1
+     * @version 1.3.5
      * @return void
      */
     public function fcrc_update_location_callback() {
-        if ( ! isset( $_POST['cart_id'], $_POST['country_data'] ) ) {
-            wp_send_json_error( array( 'message' => 'Missing parameters.' ) );
-        }
-    
-        $cart_id = intval( $_POST['cart_id'] );
-        $country_data = json_decode( stripslashes( $_POST['country_data'] ), true );
+        try {
+            // Validate request
+            $this->validate_ajax_request( array( 'cart_id', 'country_data' ) );
 
-        if ( self::$debug_mode ) {
-            error_log( 'Location data received: ' . print_r( $country_data, true ) );
+            $cart_id = intval( $_POST['cart_id'] );
+            $country_data = $this->safe_json_decode( $_POST['country_data'] );
+
+            if ( self::$debug_mode ) {
+                error_log( 'Location data received: ' . print_r( $country_data, true ) );
+            }
+
+            if ( empty( $cart_id ) || empty( $country_data ) ) {
+                wp_send_json_error( array(
+                    'message' => esc_html__( 'Dados inválidos.', 'fc-recovery-carts' )
+                ));
+            }
+
+            // Update location meta
+            update_post_meta( $cart_id, '_fcrc_location_country_code', sanitize_text_field( $country_data['country_code'] ?? '' ) );
+            update_post_meta( $cart_id, '_fcrc_location_country_name', sanitize_text_field( $country_data['country_name'] ?? '' ) );
+            update_post_meta( $cart_id, '_fcrc_location_state', sanitize_text_field( $country_data['region'] ?? '' ) );
+            update_post_meta( $cart_id, '_fcrc_location_city', sanitize_text_field( $country_data['city'] ?? '' ) );
+            update_post_meta( $cart_id, '_fcrc_location_ip', sanitize_text_field( $country_data['ip'] ?? '' ) );
+
+            wp_send_json_success( array(
+                'message' => esc_html__( 'Dados de localização atualizados com sucesso.', 'fc-recovery-carts' )
+            ));
+        } catch ( \Exception $e ) {
+            $this->handle_ajax_exception( __FUNCTION__, $e );
         }
-    
-        if ( empty( $cart_id ) || empty( $country_data ) ) {
-            wp_send_json_error( array( 'message' => 'Invalid data.' ) );
-        }
-    
-        update_post_meta( $cart_id, '_fcrc_location_country_code', sanitize_text_field( $country_data['country_code'] ) );
-        update_post_meta( $cart_id, '_fcrc_location_country_name', sanitize_text_field( $country_data['country_name'] ) );
-        update_post_meta( $cart_id, '_fcrc_location_state', sanitize_text_field( $country_data['region'] ) );
-        update_post_meta( $cart_id, '_fcrc_location_city', sanitize_text_field( $country_data['city'] ) );
-        update_post_meta( $cart_id, '_fcrc_location_ip', sanitize_text_field( $country_data['ip'] ) );
-    
-        wp_send_json_success( array( 'message' => 'Location data updated successfully.' ) );
     }
 
-
+    
     /**
      * Get analytics data for analytics dashboard
      *
      * @since 1.3.0
+     * @version 1.3.5
      * @return void
      */
     public function get_analytics_data_callback() {
-        if ( ! current_user_can( 'manage_options' ) ) {
-            wp_send_json_error( array( 'message' => 'Unauthorized' ) );
+        try {
+            // Validate request
+            $this->validate_ajax_request();
+
+            if ( ! current_user_can( 'manage_options' ) ) {
+                wp_send_json_error( array(
+                    'message' => esc_html__( 'Não autorizado.', 'fc-recovery-carts' )
+                ) );
+            }
+
+            $period = isset( $_POST['period'] ) ? intval( $_POST['period'] ) : 7;
+            $valid_periods = array();
+            $period_filter = Admin_Components::period_filter();
+
+            // Set valid periods
+            foreach ( $period_filter as $key => $value ) {
+                $valid_periods[] = $key;
+            }
+
+            if ( ! in_array( $period, $valid_periods, true ) ) {
+                $period = 7;
+            }
+
+            // Query status
+            $statuses = array(
+                'lead', 'shopping', 'abandoned', 'order_abandoned', 'recovered', 'lost', 'purchased'
+            );
+
+            $carts_count = array();
+
+            foreach ( $statuses as $status ) {
+                $carts_count[ $status ] = fcrc_get_carts_count_by_status( $status, $period );
+            }
+
+            $recovered_chart_data = fcrc_get_daily_recovered_totals( $period );
+            $recovered_total = array_sum( $recovered_chart_data['series'] );
+
+            wp_send_json_success( array(
+                'status' => 'success',
+                'period' => $period,
+                'counts' => $carts_count,
+                'recovered_total' => $recovered_total,
+                'recovered_chart' => $recovered_chart_data,
+                'total_recovered_widget' => Admin_Components::get_total_recovered( $recovered_total, $period ),
+                'cart_statuses_widget' => Admin_Components::get_cart_status( $period ),
+                'notifications_chart' => fcrc_get_notifications_chart_data( $period ),
+                'notifications_chart_widget' => Admin_Components::render_sent_notifications( $period ),
+            ));
+        } catch ( \Exception $e ) {
+            $this->handle_ajax_exception( __FUNCTION__, $e );
         }
-
-        $period = isset( $_POST['period'] ) ? intval( $_POST['period'] ) : 7;
-        $valid_periods = array();
-        $period_filter = Admin_Components::period_filter();
-
-        // set valid periods
-        foreach ( $period_filter as $key => $value ) {
-            $valid_periods[] = $key;
-        }
-
-        if ( ! in_array( $period, $valid_periods, true ) ) {
-            $period = 7;
-        }
-
-        // query status
-        $statuses = array(
-            'lead', 'shopping', 'abandoned', 'order_abandoned', 'recovered', 'lost', 'purchased'
-        );
-
-        $carts_count = array();
-
-        foreach ( $statuses as $status ) {
-            $carts_count[ $status ] = fcrc_get_carts_count_by_status( $status, $period );
-        }
-
-        $recovered_chart_data = fcrc_get_daily_recovered_totals( $period );
-        $recovered_total = array_sum( $recovered_chart_data['series'] );
-
-        wp_send_json_success( array(
-            'status' => 'success',
-            'period' => $period,
-            'counts' => $carts_count,
-            'recovered_total' => $recovered_total,
-            'recovered_chart' => $recovered_chart_data,
-            'total_recovered_widget' => Admin_Components::get_total_recovered( $recovered_total, $period ),
-            'cart_statuses_widget' => Admin_Components::get_cart_status( $period ),
-            'notifications_chart' => fcrc_get_notifications_chart_data( $period ),
-            'notifications_chart_widget' => Admin_Components::render_sent_notifications( $period ),
-        ));
     }
 }
