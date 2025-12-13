@@ -33,6 +33,9 @@ class Queue_Table extends WP_List_Table {
             'plural' => __( 'Cron Events', 'fc-recovery-carts' ),
             'ajax' => false,
         ));
+        
+        // Process single actions in constructor to handle before output
+        $this->process_single_action();
     }
 
 
@@ -55,7 +58,7 @@ class Queue_Table extends WP_List_Table {
         echo '<div class="wrap"><h1 class="wp-heading-inline">' . __( 'Gerenciar fila de processamentos', 'fc-recovery-carts' ) . '</h1>';
     
         echo '<form method="post">';
-            wp_nonce_field( 'bulk-' . $this->_args['plural'] );
+            wp_nonce_field( 'bulk-' . $this->_args['plural'], '_wpnonce' );
             echo '<input type="hidden" name="page" value="' . esc_attr( $_REQUEST['page'] ?? '' ) . '" />';
             echo '<input type="hidden" name="post_status" value="' . esc_attr( $_REQUEST['post_status'] ?? '' ) . '" />';
 
@@ -369,59 +372,67 @@ class Queue_Table extends WP_List_Table {
      * @return void
      */
     public function process_bulk_action() {
-        if ( ! isset( $_POST['_wpnonce'] ) || ! wp_verify_nonce( $_POST['_wpnonce'], 'bulk-' . $this->_args['plural'] ) ) {
-            return;
-        }
-
-        $action = $this->current_action();
-        
-        if ( ! $action ) {
-            return;
-        }
-
-        if ( isset( $_POST['event_ids'] ) && is_array( $_POST['event_ids'] ) ) {
+        if ( $this->current_action() && isset( $_POST['event_ids'] ) && is_array( $_POST['event_ids'] ) ) {
+            // check nonce for bulk actions
+            if ( ! isset( $_POST['_wpnonce'] ) || ! wp_verify_nonce( $_POST['_wpnonce'], 'bulk-' . $this->_args['plural'] ) ) {
+                wp_die( __( 'Não autorizado.', 'fc-recovery-carts' ) );
+            }
+            
+            $action = $this->current_action();
             $event_ids = array_map( 'intval', $_POST['event_ids'] );
+            $count = count( $event_ids );
+            $message = '';
 
             switch ( $action ) {
                 case 'run_now':
                     foreach ( $event_ids as $event_id ) {
                         $this->run_event_now( $event_id );
                     }
+
+                    $message = sprintf( 
+                        _n( '%d evento disparado com sucesso.', '%d eventos disparados com sucesso.', $count, 'fc-recovery-carts' ), 
+                        $count 
+                    );
+
                     break;
 
                 case 'cancel':
                     foreach ( $event_ids as $event_id ) {
                         $this->cancel_event( $event_id );
                     }
+
+                    $message = sprintf( 
+                        _n( '%d evento cancelado com sucesso.', '%d eventos cancelados com sucesso.', $count, 'fc-recovery-carts' ), 
+                        $count 
+                    );
+
                     break;
 
                 case 'delete':
                     foreach ( $event_ids as $event_id ) {
                         wp_delete_post( $event_id, true );
                     }
-                    break;
-            }
 
-            // Add admin notice
-            $count = count( $event_ids );
-            $message = '';
-            
-            switch ( $action ) {
-                case 'run_now':
-                    $message = sprintf( _n( '%d evento disparado com sucesso.', '%d eventos disparados com sucesso.', $count, 'fc-recovery-carts' ), $count );
-                    break;
-                    
-                case 'cancel':
-                    $message = sprintf( _n( '%d evento cancelado com sucesso.', '%d eventos cancelados com sucesso.', $count, 'fc-recovery-carts' ), $count );
-                    break;
-                    
-                case 'delete':
-                    $message = sprintf( _n( '%d evento excluído com sucesso.', '%d eventos excluídos com sucesso.', $count, 'fc-recovery-carts' ), $count );
+                    $message = sprintf( 
+                        _n( '%d evento excluído com sucesso.', '%d eventos excluídos com sucesso.', $count, 'fc-recovery-carts' ), 
+                        $count 
+                    );
+
                     break;
             }
             
             if ( $message ) {
-                echo '<div class="notice notice-success is-dismissible"><p>' . esc_html( $message ) . '</p></div>';
+                // redirect with message
+                $redirect_url = add_query_arg( 
+                    array( 
+                        'page' => $_REQUEST['page'] ?? '',
+                        'message' => urlencode( $message ),
+                    ), 
+                    admin_url('admin.php') 
+                );
+
+                wp_redirect( $redirect_url );
+                exit;
             }
         }
     }
@@ -504,53 +515,55 @@ class Queue_Table extends WP_List_Table {
      * @return void
      */
     public function process_single_action() {
-        if ( ! isset( $_GET['action'] ) || ! isset( $_GET['event_id'] ) ) {
+        if ( ! isset( $_GET['action'] ) || ! isset( $_GET['event_id'] ) || ! isset( $_GET['_wpnonce'] ) ) {
             return;
         }
         
         $action = sanitize_text_field( $_GET['action'] );
         $event_id = intval( $_GET['event_id'] );
-        $nonce_action = '';
+        $nonce = sanitize_text_field( $_GET['_wpnonce'] );
         
+        // check nonce based on action
         switch ( $action ) {
             case 'run_now':
-                $nonce_action = 'run_event_' . $event_id;
+                if ( ! wp_verify_nonce( $nonce, 'run_event_' . $event_id ) ) {
+                    wp_die( __( 'Não autorizado.', 'fc-recovery-carts' ) );
+                }
+
+                $this->run_event_now( $event_id );
+                $message = __( 'Evento disparado com sucesso.', 'fc-recovery-carts' );
+
                 break;
+                
             case 'cancel':
-                $nonce_action = 'cancel_event_' . $event_id;
+                if ( ! wp_verify_nonce( $nonce, 'cancel_event_' . $event_id ) ) {
+                    wp_die( __( 'Não autorizado.', 'fc-recovery-carts' ) );
+                }
+
+                $this->cancel_event( $event_id );
+                $message = __( 'Evento cancelado com sucesso.', 'fc-recovery-carts' );
+
                 break;
+                
             case 'delete':
-                $nonce_action = 'delete_event_' . $event_id;
+                if ( ! wp_verify_nonce( $nonce, 'delete_event_' . $event_id ) ) {
+                    wp_die( __( 'Não autorizado.', 'fc-recovery-carts' ) );
+                }
+
+                wp_delete_post( $event_id, true );
+                $message = __( 'Evento excluído com sucesso.', 'fc-recovery-carts' );
+
                 break;
+                
             default:
                 return;
         }
         
-        if ( ! isset( $_GET['_wpnonce'] ) || ! wp_verify_nonce( $_GET['_wpnonce'], $nonce_action ) ) {
-            wp_die( __( 'Não autorizado.', 'fc-recovery-carts' ) );
-        }
-        
-        switch ( $action ) {
-            case 'run_now':
-                $this->run_event_now( $event_id );
-                $message = __( 'Evento disparado com sucesso.', 'fc-recovery-carts' );
-                break;
-                
-            case 'cancel':
-                $this->cancel_event( $event_id );
-                $message = __( 'Evento cancelado com sucesso.', 'fc-recovery-carts' );
-                break;
-                
-            case 'delete':
-                wp_delete_post( $event_id, true );
-                $message = __( 'Evento excluído com sucesso.', 'fc-recovery-carts' );
-                break;
-        }
-        
+        // redirect with message
         $redirect_url = remove_query_arg( array( 'action', 'event_id', '_wpnonce' ) );
         $redirect_url = add_query_arg( 'message', urlencode( $message ), $redirect_url );
         
-        wp_redirect( $redirect_url );
+        wp_safe_redirect( $redirect_url );
         exit;
     }
 }

@@ -7,7 +7,7 @@ use MeuMouse\Flexify_Checkout\Recovery_Carts\Admin\Components as Admin_Component
  * Tab file for follow up on settings page
  * 
  * @since 1.0.0
- * @version 1.1.0
+ * @version 1.3.5
  * @package MeuMouse.com
  */
 
