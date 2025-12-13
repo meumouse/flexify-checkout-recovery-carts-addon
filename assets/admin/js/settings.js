@@ -303,6 +303,9 @@
 				let follow_up_delay_time = $('#fcrc_add_new_follow_up_delay_time');
 				let follow_up_delay_type = $('#fcrc_add_new_follow_up_delay_type');
 				let whatsapp_channel = $('#fcrc_add_new_follow_up_channels_whatsapp');
+				let follow_up_start_time = $('#fcrc_add_new_follow_up_start_time');
+				let follow_up_end_time = $('#fcrc_add_new_follow_up_end_time');
+
 				var set_coupon = {
 					enabled: container.find('.enable-send-coupon').prop('checked') ? 'yes' : 'no',
 					generate_coupon: container.find('.enable-generate-coupon').prop('checked') ? 'yes' : 'no',
@@ -331,6 +334,8 @@
 						whatsapp: whatsapp_channel.prop('checked') ? 'yes' : 'no',
 						email: '',
 						coupon: JSON.stringify( set_coupon ),
+						start_time: follow_up_start_time.val() || '',
+						end_time: follow_up_end_time.val() || '',
 					},
 					beforeSend: function() {
 						btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm"></span>');
@@ -350,6 +355,8 @@
 								follow_up_delay_time.val('');
 								follow_up_delay_type.val('');
 								whatsapp_channel.prop('checked', false);
+								follow_up_start_time.val('');
+								follow_up_end_time.val('');
 							} else {
 								Settings.displayToast('error', response.toast_header_title, response.toast_body_title);
 							}

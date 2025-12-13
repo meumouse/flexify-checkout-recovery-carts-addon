@@ -16,7 +16,7 @@ defined('ABSPATH') || exit;
  * Handle Cron jobs
  * 
  * @since 1.0.0
- * @version 1.3.0
+ * @version 1.3.5
  * @package MeuMouse.com
  */
 class Recovery_Handler {
@@ -202,7 +202,7 @@ class Recovery_Handler {
      * Sends a follow-up message based on the event
      *
      * @since 1.0.0
-     * @version 1.3.2
+     * @version 1.3.5
      * @param int $cart_id | The abandoned cart ID
      * @param string $event_key | The follow-up event key
      * @param int $cron_post_id | The cron post ID
@@ -233,6 +233,26 @@ class Recovery_Handler {
         }
 
         $event = $settings[ $event_key ];
+        $current_timestamp = current_time( 'timestamp' );
+        $send_window_time  = $this->get_next_available_window_time( $event, $current_timestamp );
+
+        if ( ! empty( $send_window_time['next_window'] ) && $send_window_time['next_window'] > $current_timestamp ) {
+            Scheduler_Manager::schedule_single_event(
+                $send_window_time['next_window'],
+                'fcrc_send_follow_up_message',
+                array(
+                    'cart_id' => $cart_id,
+                    'event_key' => $event_key,
+                ),
+                array(
+                    '_fcrc_cart_id' => $cart_id,
+                    '_fcrc_follow_up_event_key' => $event_key,
+                )
+            );
+
+            return;
+        }
+
         $cart_data = get_post_meta( $cart_id );
         $phone = $cart_data['_fcrc_cart_phone'][0] ?? '';
 
@@ -290,6 +310,68 @@ class Recovery_Handler {
 
         if ( $cron_post_id ) {
             wp_delete_post( intval( $cron_post_id ), true );
+        }
+    }
+
+
+    /**
+     * Get the next available window time for sending a follow-up message.
+     *
+     * @since 1.3.5
+     * @param array $event | The follow-up event settings.
+     * @param int   $current_timestamp | Current timestamp in the site's timezone.
+     * @return array{
+     *     next_window: int|null,
+     * }
+     */
+    private function get_next_available_window_time( $event, $current_timestamp ) {
+        $window_settings = $event['send_window'] ?? array();
+        $start_time = $window_settings['start_time'] ?? '';
+        $end_time = $window_settings['end_time'] ?? '';
+
+        if ( empty( $start_time ) || empty( $end_time ) ) {
+            return array( 'next_window' => null );
+        }
+
+        try {
+            $timezone = wp_timezone();
+            $now_datetime = new \DateTime( '@' . $current_timestamp );
+            $now_datetime->setTimezone( $timezone );
+
+            $start_parts = explode( ':', $start_time );
+            $end_parts   = explode( ':', $end_time );
+
+            if ( count( $start_parts ) < 2 || count( $end_parts ) < 2 ) {
+                return array( 'next_window' => null );
+            }
+
+            list( $start_hour, $start_minute ) = array_map( 'intval', array_slice( $start_parts, 0, 2 ) );
+            list( $end_hour, $end_minute ) = array_map( 'intval', array_slice( $end_parts, 0, 2 ) );
+
+            $start_datetime = ( clone $now_datetime )->setTime( $start_hour, $start_minute, 0 );
+            $end_datetime = ( clone $now_datetime )->setTime( $end_hour, $end_minute, 0 );
+
+            if ( $end_datetime <= $start_datetime ) {
+                $end_datetime->modify( '+1 day' );
+
+                if ( $now_datetime < $start_datetime ) {
+                    $start_datetime->modify( '-1 day' );
+                }
+            }
+
+            if ( $now_datetime < $start_datetime ) {
+                return array( 'next_window' => $start_datetime->getTimestamp() );
+            }
+
+            if ( $now_datetime > $end_datetime ) {
+                $start_datetime->modify( '+1 day' );
+                
+                return array( 'next_window' => $start_datetime->getTimestamp() );
+            }
+
+            return array( 'next_window' => null );
+        } catch ( \Exception $e ) {
+            return array( 'next_window' => null );
         }
     }
 

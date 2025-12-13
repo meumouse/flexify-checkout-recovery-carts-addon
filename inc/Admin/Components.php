@@ -124,6 +124,22 @@ class Components {
                                                 </div>
 
                                                 <div class="mb-5">
+                                                    <label class="form-label text-left mb-3"><?php esc_html_e( 'Intervalo de envio (horário):', 'fc-recovery-carts' ); ?></label>
+
+                                                    <div class="row">
+                                                        <div class="col">
+                                                            <label class="form-label text-left"><?php esc_html_e( 'Início', 'fc-recovery-carts' ); ?></label>
+                                                            <input type="time" class="form-control" name="follow_up_events[<?php esc_attr_e( $key ) ?>][send_window][start_time]" value="<?php esc_attr_e( $follow_up['send_window']['start_time'] ?? '' ); ?>" placeholder="<?php esc_attr_e( '08:00', 'fc-recovery-carts' ); ?>">
+                                                        </div>
+
+                                                        <div class="col">
+                                                            <label class="form-label text-left"><?php esc_html_e( 'Fim', 'fc-recovery-carts' ); ?></label>
+                                                            <input type="time" class="form-control" name="follow_up_events[<?php esc_attr_e( $key ) ?>][send_window][end_time]" value="<?php esc_attr_e( $follow_up['send_window']['end_time'] ?? '' ); ?>" placeholder="<?php esc_attr_e( '20:00', 'fc-recovery-carts' ); ?>">
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                <div class="mb-5">
                                                     <label class="form-label text-left mb-3"><?php esc_html_e( 'Atraso: *', 'fc-recovery-carts' ); ?></label>
 
                                                     <div class="input-group get-delay-info">

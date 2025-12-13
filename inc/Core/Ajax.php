@@ -370,6 +370,8 @@ class Ajax {
             $delay_type = isset( $_POST['delay_type'] ) ? sanitize_text_field( $_POST['delay_type'] ) : '';
             $whatsapp = isset( $_POST['whatsapp'] ) ? sanitize_text_field( $_POST['whatsapp'] ) : '';
             $coupon = $this->safe_json_decode( $_POST['coupon'] ?? '' );
+            $start_time = isset( $_POST['start_time'] ) ? sanitize_text_field( $_POST['start_time'] ) : '';
+            $end_time = isset( $_POST['end_time'] ) ? sanitize_text_field( $_POST['end_time'] ) : '';
 
             // Get current settings
             $settings = $this->get_settings();
@@ -388,6 +390,10 @@ class Ajax {
                 'delay_type' => $delay_type,
                 'channels' => array(
                     'whatsapp' => $whatsapp,
+                ),
+                'send_window' => array(
+                    'start_time' => $start_time,
+                    'end_time' => $end_time,
                 ),
                 'coupon' => array(
                     'enabled' => $coupon['enabled'] ?? 'no',
