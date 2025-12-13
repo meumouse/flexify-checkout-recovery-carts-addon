@@ -7,7 +7,7 @@
  * Requires Plugins: 		flexify-checkout-for-woocommerce, woocommerce
  * Author:                  MeuMouse.com
  * Author URI:              https://meumouse.com/
- * Version:                 1.3.4
+ * Version:                 1.3.5
  * Requires PHP:            7.4
  * Tested up to:            6.9
  * WC requires at least:    6.0.0
@@ -52,22 +52,27 @@ if ( ! class_exists('Flexify_Checkout_Recovery_Carts') ) {
          * @var string
          * @since 1.0.0
          */
-        public static $version = '1.3.4';
+        public static $version = '1.3.5';
 
 
         /**
          * Constructor function
          *
          * @since 1.0.0
-         * @version 1.3.0
+         * @version 1.3.5
          * @return void
          */
         public function __construct() {
             // hook before init plugin
             do_action('before_fc_recovery_carts_init');
 
-            // initialize the plugin after woocommerce has loaded
-            add_action( 'woocommerce_loaded', array( $this, 'init' ), 99 );
+            if ( defined('FLEXIFY_CHECKOUT_VERSION') && version_compare( FLEXIFY_CHECKOUT_VERSION, '5.4.1', '>=' ) ) {
+                // initialize the plugin after Flexify Checkout initialized
+                add_action( 'Flexify_Checkout/Init', array( $this, 'init' ) );
+            } else {
+                // initialize the plugin after WooCommerce loaded
+                add_action( 'woocommerce_loaded', array( $this, 'init' ), 99 );
+            }
         }
 
 
@@ -135,7 +140,7 @@ if ( ! class_exists('Flexify_Checkout_Recovery_Carts') ) {
 				'FC_RECOVERY_CARTS_VERSION' => self::$version,
 				'FC_RECOVERY_CARTS_ADMIN_EMAIL' => get_option('admin_email'),
 				'FC_RECOVERY_CARTS_DOCS_URL' => 'https://ajuda.meumouse.com/docs/fc-recovery-carts/overview',
-				'FC_RECOVERY_CARTS_DEBUG_MODE' => false,
+				'FC_RECOVERY_CARTS_DEBUG_MODE' => true,
 			);
 
 			// iterate for each constant item
