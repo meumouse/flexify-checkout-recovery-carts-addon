@@ -16,7 +16,7 @@ defined('ABSPATH') || exit;
  * Joinotify integration class
  * 
  * @since 1.0.0
- * @version 1.3.0
+ * @version 1.3.5
  * @package MeuMouse.com
  */
 class Joinotify extends Integrations_Base {
@@ -39,11 +39,26 @@ class Joinotify extends Integrations_Base {
      * Display Joinotify settings
      * 
      * @since 1.0.0
-     * @version 1.1.0
+     * @version 1.3.5
      * @return void
      */
     public function joinotify_settings() {
-        ?>
+        // get current sender registered
+        $current_sender = Admin::get_setting('joinotify_sender_phone');
+        $current_senders = get_option('joinotify_get_phones_senders');
+        $selected_value = $current_sender ?? '';
+        
+        // if empty sender, use first registered on Joinotify
+        if ( empty( $selected_value ) || $selected_value === 'none' ) :
+            if ( is_array( $current_senders ) && ! empty( $current_senders ) && function_exists('joinotify_get_first_sender') ) {
+                $first_sender = joinotify_get_first_sender();
+
+                if ( $first_sender ) {
+                    $selected_value = $first_sender;
+                }
+            }
+        endif; ?>
+
         <button id="fcrc_joinotify_settings_trigger" class="btn btn-outline-primary mb-5"><?php esc_html_e( 'Configurar', 'fc-recovery-carts' ) ?></button>
 
         <div id="fcrc_joinotify_settings_container" class="fcrc-popup-container">
@@ -63,13 +78,12 @@ class Joinotify extends Integrations_Base {
                                 </th>
                                 <td class="w-50">
                                     <select class="form-select" id="joinotify_sender_phone" name="joinotify_sender_phone">
-                                        <option value="none" <?php selected( Admin::get_setting('joinotify_sender_phone') ?? '', 'none', true ) ?>><?php esc_html_e( 'Selecione um remetente', 'fc-recovery-carts' ) ?></option>
+                                        <option value="none" <?php selected( $selected_value, 'none', true ) ?>><?php esc_html_e( 'Selecione um remetente', 'fc-recovery-carts' ) ?></option>
                                         
-                                        <?php $current_senders = get_option('joinotify_get_phones_senders');
-                                        
+                                        <?php
                                         if ( is_array( $current_senders ) ) :
                                             foreach ( $current_senders as $sender ) : ?>
-                                                <option value="<?php esc_attr_e( $sender ) ?>" <?php selected( Admin::get_setting('joinotify_sender_phone') ?? '', $sender, true ) ?> class="get-sender-number"><?php echo class_exists('MeuMouse\Joinotify\Core\Helpers') ? esc_html( Joinotify_Helpers::validate_and_format_phone( $sender ) ) : esc_html( $sender ); ?></option>
+                                                <option value="<?php esc_attr_e( $sender ) ?>" <?php selected( $selected_value, $sender, true ) ?> class="get-sender-number"><?php echo class_exists('MeuMouse\Joinotify\Core\Helpers') ? esc_html( Joinotify_Helpers::validate_and_format_phone( $sender ) ) : esc_html( $sender ); ?></option>
                                             <?php endforeach;
                                         endif; ?>
                                     </select>
