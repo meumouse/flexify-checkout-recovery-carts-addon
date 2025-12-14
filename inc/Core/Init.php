@@ -4,48 +4,72 @@ namespace MeuMouse\Flexify_Checkout\Recovery_Carts\Core;
 
 use Automattic\WooCommerce\Utilities\FeaturesUtil;
 
+use Exception;
+use ReflectionClass;
+
 // Exit if accessed directly.
 defined('ABSPATH') || exit;
 
 /**
- * Class for initialize classes
+ * Main plugin initialization class
+ * 
+ * Handles all initialization logic previously in the main plugin file
  * 
  * @since 1.0.0
- * @version 1.3.4
- * @package MeuMouse.com
+ * @version 1.3.5
+ * @package MeuMouse\Flexify_Checkout\Recovery_Carts
+ * @author MeuMouse.com
  */
 class Init {
 
     /**
-     * Get plugin basename
+     * Plugin version
+     * 
+     * @since 1.0.0
+     * @version 1.3.5
+     * @return string
+     */
+    private static $version = '1.3.5';
+
+    /**
+     * Plugin basename
      * 
      * @since 1.3.0
      * @return string
      */
-    public $basename = FC_RECOVERY_CARTS_BASENAME;
+    public $basename;
 
     /**
-     * Plugin instance.
+     * Plugin instance
      * 
      * @since 1.3.3
-     * @var Init
+     * @return object Init
      */
     private static $instance = null;
 
     /**
-     * Array of instanced classes to prevent multiple instances.
+     * Array of instanced classes to prevent multiple instances
      * 
      * @since 1.3.4
-     * @var array
+     * @return array
      */
     private static $instanced_classes = array();
 
+    /**
+     * Plugin constants defined
+     * 
+     * @since 1.3.5
+     * @return bool
+     */
+    private static $constants_defined = false;
+
 
     /**
-     * Get plugin instance
+     * Get plugin instance (Singleton pattern)
      * 
      * @since 1.3.3
-     * @return Init
+     * @version 1.3.5
+     * @return object Init
      */
     public static function get_instance() {
         if ( null === self::$instance ) {
@@ -57,100 +81,188 @@ class Init {
 
 
     /**
-     * Construct function
+     * Constructor
      * 
      * @since 1.0.0
-     * @version 1.3.4
+     * @version 1.3.5
      * @return void
      */
     public function __construct() {
-        // load WordPress plugin class if function is_plugin_active() is not defined
-        if ( ! function_exists('is_plugin_active') ) {
-            include_once( ABSPATH . 'wp-admin/includes/plugin.php' );
-        }
-
-        // check if flexify checkout is active
-        if ( ! is_plugin_active('flexify-checkout-for-woocommerce/flexify-checkout-for-woocommerce.php') ) {
-            add_action( 'admin_notices', array( $this, 'plugin_dependency_notice' ) );
-            return;
-        }
-
-        // include plugin functions
-        include_once( FC_RECOVERY_CARTS_INC . 'Core/Functions.php' );
-
-        // load text domain
-        load_plugin_textdomain( 'fc-recovery-carts', false, dirname( $this->basename ) . '/languages/' );
-
-        // add link to plugin settings
-        add_filter( 'plugin_action_links_' . $this->basename, array( $this, 'add_action_plugin_links' ), 10, 4 );
+        // Hook before initialization
+        do_action('before_fc_recovery_carts_init');
         
-        // add helper links
-        add_filter( 'plugin_row_meta', array( $this, 'add_row_meta_links' ), 10, 4 );
+        // Setup plugin constants
+        $this->setup_constants();
 
-        // set compatibility with WooCommerce HPOS (High-Performance Order Storage)
-        add_action( 'before_woocommerce_init', array( $this, 'setup_hpos_compatibility' ) );
-
-        // instance classes after WordPress plugins is loaded
-        add_action( 'plugins_loaded', array( $this, 'instance_classes' ), 99 );
-
-        // hook after init plugin
-        do_action('fc_recovery_carts_init');
+        if ( defined('FLEXIFY_CHECKOUT_VERSION') && version_compare( FLEXIFY_CHECKOUT_VERSION, '5.4.1', '>=' ) ) {
+            // initialize the plugin after Flexify Checkout initialized
+            add_action( 'Flexify_Checkout/Init', array( $this, 'init' ) );
+        } else {
+            // initialize the plugin after WooCommerce loaded
+            add_action( 'woocommerce_loaded', array( $this, 'init' ), 99 );
+        }
+        
+        // Set plugin basename
+        $this->basename = plugin_basename( FC_RECOVERY_CARTS_FILE );
     }
 
 
     /**
-     * Flexify Checkout requires notice
+     * Initialize the plugin
+     * 
+     * @since 1.3.5
+     * @return void
+     * @throws Exception If plugin requirements are not met
+     */
+    public function init() {
+        try {
+            // Check PHP version requirement
+            $this->check_php_version();
+            
+            // Check plugin dependencies
+            $this->check_dependencies();
+
+            // add plugin functions
+            $this->include_functions();
+            
+            // Load text domain
+            load_plugin_textdomain( 'fc-recovery-carts', false, dirname( $this->basename ) . '/languages/' );
+            
+            // Add plugin action links
+            add_filter( 'plugin_action_links_' . $this->basename, array( $this, 'add_action_plugin_links' ), 10, 4 );
+            
+            // Add plugin row meta links
+            add_filter( 'plugin_row_meta', array( $this, 'add_row_meta_links' ), 10, 4 );
+            
+            // Setup HPOS compatibility
+            add_action( 'before_woocommerce_init', array( $this, 'setup_hpos_compatibility' ) );
+            
+            // Instance classes after plugins are loaded
+            add_action( 'plugins_loaded', array( $this, 'instance_classes' ), 99 );
+
+            // Hook after successful initialization
+            do_action('fc_recovery_carts_init');
+        } catch ( Exception $e ) {
+            // Rethrow exception for main file to handle
+            throw $e;
+        }
+    }
+
+
+    /**
+     * Check PHP version requirement
+     * 
+     * @since 1.3.5
+     * @return void
+     * @throws Exception If PHP version is insufficient
+     */
+    private function check_php_version() {
+        if ( version_compare( PHP_VERSION, '7.4', '<' ) ) {
+            throw new Exception(
+                sprintf(
+                    /* translators: %s: Required PHP version */
+                    esc_html__(
+                        'Requer PHP %s ou superior.',
+                        'fc-recovery-carts'
+                    ),
+                    '7.4'
+                )
+            );
+        }
+    }
+
+
+    /**
+     * Check plugin dependencies
+     * 
+     * @since 1.3.5
+     * @return void
+     * @throws Exception If dependencies are not met
+     */
+    private function check_dependencies() {
+        // Load WordPress plugin functions if needed
+        if ( ! function_exists('is_plugin_active') ) {
+            include_once ABSPATH . 'wp-admin/includes/plugin.php';
+        }
+        
+        // Check if WooCommerce is active
+        if ( ! is_plugin_active('woocommerce/woocommerce.php') ) {
+            throw new Exception(
+                esc_html__( 'Requer WooCommerce para funcionar.', 'fc-recovery-carts' )
+            );
+        }
+        
+        // Check if Flexify Checkout is active and meets version requirement
+        if ( ! is_plugin_active('flexify-checkout-for-woocommerce/flexify-checkout-for-woocommerce.php') ) {
+            throw new Exception(
+                esc_html__( 'Requer o plugin Flexify Checkout para WooCommerce.', 'fc-recovery-carts' )
+            );
+        }
+        
+        // Check Flexify Checkout version if constant is defined
+        if ( defined('FLEXIFY_CHECKOUT_VERSION') && version_compare( FLEXIFY_CHECKOUT_VERSION, '5.4.1', '<' ) ) {
+            throw new Exception(
+                sprintf(
+                    /* translators: %s: Required Flexify Checkout version */
+                    esc_html__( 'Requer Flexify Checkout versão %s ou superior.', 'fc-recovery-carts' ), '5.4.1'
+                )
+            );
+        }
+    }
+
+
+    /**
+     * Setup plugin constants
      * 
      * @since 1.0.0
-     * @version 1.3.0
+     * @version 1.3.5
      * @return void
      */
-    public function plugin_dependency_notice() {
-        $class = 'notice notice-error is-dismissible';
-        $message = __( '<strong>Flexify Checkout - Recuperação de carrinhos abandonados</strong> requer o plugin Flexify Checkout para WooCommerce.', 'fc-recovery-carts' );
-
-        printf( '<div class="%1$s"><p>%2$s</p></div>', esc_attr( $class ), $message );
-    }
-
-
-    /**
-     * Plugin action links
-     *
-     * @since 1.0.0
-     * @version 1.3.0
-     * @param array $action_links | Default plugin action links
-     * @return array
-     */
-    public function add_action_plugin_links( $action_links ) {
-        $plugin_links = array(
-            '<a href="'. admin_url('admin.php?page=fc-recovery-carts-settings') .'">'. esc_html__( 'Configurações', 'fc-recovery-carts' ) .'</a>',
-        );
-
-        return array_merge( $plugin_links, $action_links );
-    }
-
-
-    /**
-     * Add meta links on plugin
-     *
-     * @since 1.0.0
-     * @version 1.3.0
-     * @param array $plugin_meta | Plugin metadata
-     * @param string $plugin_file | Plugin file path
-     * @param array $plugin_data | Plugin data
-     * @param string $status | Plugin status
-     * @return array
-     */
-    public function add_row_meta_links( $plugin_meta, $plugin_file, $plugin_data, $status ) {
-        if ( strpos( $plugin_file, $this->basename ) !== false ) {
-            $new_links = array(
-                'docs' => '<a href="'. esc_attr( FC_RECOVERY_CARTS_DOCS_URL ) .'" target="_blank">'. esc_html__( 'Documentação', 'fc-recovery-carts' ) .'</a>',
-            );
-
-            $plugin_meta = array_merge( $plugin_meta, $new_links );
+    private function setup_constants() {
+        if ( self::$constants_defined ) {
+            return;
         }
+        
+        $base_file = __FILE__;
+        $base_dir = plugin_dir_path( $base_file );
+        $base_url = plugin_dir_url( $base_file );
+        
+        $constants = array(
+            'FC_RECOVERY_CARTS_BASENAME'    => plugin_basename( $base_file ),
+            'FC_RECOVERY_CARTS_FILE'        => $base_file,
+            'FC_RECOVERY_CARTS_DIR'         => $base_dir,
+            'FC_RECOVERY_CARTS_INC'         => $base_dir . 'inc/',
+            'FC_RECOVERY_CARTS_URL'         => $base_url,
+            'FC_RECOVERY_CARTS_ASSETS'      => $base_url . 'assets/',
+            'FC_RECOVERY_CARTS_ABSPATH'     => dirname( $base_file ) . '/',
+            'FC_RECOVERY_CARTS_SLUG'        => 'flexify-checkout-recovery-carts-addon',
+            'FC_RECOVERY_CARTS_VERSION'     => self::$version,
+            'FC_RECOVERY_CARTS_ADMIN_EMAIL' => get_option( 'admin_email' ),
+            'FC_RECOVERY_CARTS_DOCS_URL'    => 'https://ajuda.meumouse.com/docs/fc-recovery-carts/overview',
+            'FC_RECOVERY_CARTS_DEBUG_MODE'  => false,
+        );
+        
+        foreach ( $constants as $key => $value ) {
+            if ( ! defined( $key ) ) {
+                define( $key, $value );
+            }
+        }
+        
+        self::$constants_defined = true;
+    }
 
-        return $plugin_meta;
+
+    /**
+     * Include plugin functions
+     * 
+     * @since 1.3.5
+     * @return void
+     */
+    private function include_functions() {
+        // Include core functions
+        if ( file_exists( FC_RECOVERY_CARTS_INC . 'Core/Functions.php' ) ) {
+            include_once FC_RECOVERY_CARTS_INC . 'Core/Functions.php';
+        }
     }
 
 
@@ -158,7 +270,7 @@ class Init {
      * Instance classes after load Composer
      * 
      * @since 1.0.0
-     * @version 1.3.4
+     * @version 1.3.5
      * @return void
      */
     public function instance_classes() {
@@ -166,10 +278,10 @@ class Init {
         if ( ! class_exists('WooCommerce') ) {
             return;
         }
-
+        
         // Legacy instance for compatibility
         $legacy_classes = apply_filters( 'Flexify_Checkout/Recovery_Carts/Instance_Classes', array() );
-
+        
         foreach ( $legacy_classes as $class ) {
             if ( class_exists( $class ) && ! isset( self::$instanced_classes[ $class ] ) ) {
                 $instance = new $class();
@@ -181,9 +293,9 @@ class Init {
                 }
             }
         }
-
+        
         // Auto instance classes from Composer
-        add_action( 'init', array( $this, 'auto_instance_classes' ) );
+        $this->auto_instance_classes();
     }
 
 
@@ -195,18 +307,18 @@ class Init {
      */
     public function auto_instance_classes() {
         $classmap_file = FC_RECOVERY_CARTS_DIR . 'vendor/composer/autoload_classmap.php';
-
+        
         if ( ! file_exists( $classmap_file ) ) {
             return;
         }
-
+        
         $classmap = include_once $classmap_file;
-
+        
         // Ensure classmap is an array
         if ( ! is_array( $classmap ) ) {
             $classmap = array();
         }
-
+        
         // Filter and instance classes
         $this->instance_filtered_classes( $classmap );
     }
@@ -225,7 +337,7 @@ class Init {
             if ( strpos( $class, 'MeuMouse\\Flexify_Checkout\\Recovery_Carts\\' ) !== 0 ) {
                 return false;
             }
-
+            
             // Skip abstract classes
             if ( strpos( $class, 'Abstract' ) !== false ) {
                 return false;
@@ -245,17 +357,17 @@ class Init {
             if ( $class === 'MeuMouse\\Flexify_Checkout\\Recovery_Carts\\Core\\Init' ) {
                 return false;
             }
-
+            
             // Check if class already instanced
             if ( isset( self::$instanced_classes[ $class ] ) ) {
                 return false;
             }
-
+            
             // Check if class exists
             if ( ! class_exists( $class ) ) {
                 return false;
             }
-
+            
             // Special handling for Views classes (WP_List_Table)
             if ( strpos( $class, 'MeuMouse\\Flexify_Checkout\\Recovery_Carts\\Views\\' ) !== false ) {
                 // Only load these classes in admin context and when we're on our plugin pages
@@ -269,9 +381,8 @@ class Init {
             }
             
             return true;
-            
         }, ARRAY_FILTER_USE_BOTH );
-
+        
         foreach ( array_keys( $filtered_classes ) as $class ) {
             $this->safe_instance_class( $class );
         }
@@ -290,21 +401,21 @@ class Init {
         if ( isset( self::$instanced_classes[ $class ] ) ) {
             return;
         }
-
+        
         try {
-            $reflection = new \ReflectionClass( $class );
+            $reflection = new ReflectionClass( $class );
             
             if ( ! $reflection->isInstantiable() ) {
                 return;
             }
-
+            
             $constructor = $reflection->getConstructor();
             
             // Only instance classes without required constructor parameters
             if ( $constructor && $constructor->getNumberOfRequiredParameters() > 0 ) {
                 return;
             }
-
+            
             $instance = new $class();
             
             // Store instance to prevent multiple instances
@@ -314,80 +425,59 @@ class Init {
             if ( method_exists( $instance, 'init' ) ) {
                 $instance->init();
             }
+        } catch ( Exception $e ) {
+            if ( defined('FC_RECOVERY_CARTS_DEBUG_MODE') && FC_RECOVERY_CARTS_DEBUG_MODE ) {
+                error_log(
+                    sprintf( 'Flexify Checkout Recovery Carts: Error instancing class %s - %s', $class, $e->getMessage() )
+                );
+            }
+        }
+    }
+
+
+    /**
+     * Plugin action links
+     *
+     * @since 1.0.0
+     * @version 1.3.5
+     * @param array $action_links Default plugin action links
+     * @return array
+     */
+    public function add_action_plugin_links( $action_links ) {
+        $plugin_links = array(
+            '<a href="' . admin_url( 'admin.php?page=fc-recovery-carts-settings' ) . '">' . esc_html__( 'Configurações', 'fc-recovery-carts' ) . '</a>',
+        );
+        
+        return array_merge( $plugin_links, $action_links );
+    }
+
+
+    /**
+     * Add meta links on plugin
+     *
+     * @since 1.0.0
+     * @version 1.3.5
+     * @param array  $plugin_meta Plugin metadata
+     * @param string $plugin_file Plugin file path
+     * @param array  $plugin_data Plugin data
+     * @param string $status      Plugin status
+     * @return array
+     */
+    public function add_row_meta_links( $plugin_meta, $plugin_file, $plugin_data, $status ) {
+        if ( strpos( $plugin_file, $this->basename ) !== false ) {
+            $new_links = array(
+                'docs' => '<a href="' . esc_attr( FC_RECOVERY_CARTS_DOCS_URL ) . '" target="_blank">' . esc_html__( 'Documentação', 'fc-recovery-carts' ) . '</a>',
+            );
             
-        } catch ( \Exception $e ) {
-            if ( defined('WP_DEBUG') && WP_DEBUG ) {
-                error_log( 'Flexify Checkout Recovery Carts: Error instancing class ' . $class . ' - ' . $e->getMessage() );
-            }
-        }
-    }
-
-
-    /**
-     * Instance Views classes on demand
-     * 
-     * @since 1.3.4
-     * @param string $class_name
-     * @return mixed|null
-     */
-    public static function instance_view_class( $class_name ) {
-        // Only instance view classes in admin context
-        if ( ! is_admin() ) {
-            return null;
-        }
-
-        // Check if class already instanced
-        if ( isset( self::$instanced_classes[ $class_name ] ) ) {
-            return self::$instanced_classes[ $class_name ];
-        }
-
-        if ( class_exists( $class_name ) ) {
-            try {
-                $instance = new $class_name();
-                self::$instanced_classes[ $class_name ] = $instance;
-                return $instance;
-            } catch ( \Exception $e ) {
-                if ( defined('WP_DEBUG') && WP_DEBUG ) {
-                    error_log( 'Flexify Checkout Recovery Carts: Error instancing view class ' . $class_name . ' - ' . $e->getMessage() );
-                }
-                return null;
-            }
+            $plugin_meta = array_merge( $plugin_meta, $new_links );
         }
         
-        return null;
+        return $plugin_meta;
     }
 
 
     /**
-     * Get instance of a specific class
-     * 
-     * @since 1.3.4
-     * @param string $class_name
-     * @return mixed|null
-     */
-    public static function get_class_instance( $class_name ) {
-        if ( isset( self::$instanced_classes[ $class_name ] ) ) {
-            return self::$instanced_classes[ $class_name ];
-        }
-        
-        return null;
-    }
-
-
-    /**
-     * Check if a class has been instanced
-     * 
-     * @since 1.3.4
-     * @param string $class_name
-     * @return bool
-     */
-    public static function is_class_instanced( $class_name ) {
-        return isset( self::$instanced_classes[ $class_name ] );
-    }
-
-
-    /**
-     * Setup HPOS compatibility.
+     * Setup HPOS compatibility
      *
      * @since 1.3.4
      * @return void
@@ -417,6 +507,6 @@ class Init {
      * @return void
      */
     public function __wakeup() {
-        _doing_it_wrong( __FUNCTION__, esc_html__( 'Trapaceando?', 'fc-recovery-carts' ), '1.3.3' );
+        _doing_it_wrong(  __FUNCTION__, esc_html__( 'Trapaceando?', 'fc-recovery-carts' ), '1.3.3' );
     }
 }

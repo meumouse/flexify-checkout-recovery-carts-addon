@@ -6,8 +6,7 @@ $vendorDir = dirname(__DIR__);
 $baseDir = dirname($vendorDir);
 
 return array(
-    'Webmozart\\Assert\\' => array($vendorDir . '/webmozart/assert/src'),
-    'MeuMouse\\Flexify_Checkout_Recovery_Carts\\' => array($baseDir . '/inc'),
+    'MeuMouse\\Flexify_Checkout\\Recovery_Carts\\' => array($baseDir . '/inc'),
     'GO\\' => array($vendorDir . '/peppeocchi/php-cron-scheduler/src/GO'),
     'Cron\\' => array($vendorDir . '/dragonmantank/cron-expression/src/Cron'),
     'Composer\\Installers\\' => array($vendorDir . '/composer/installers/src/Composer/Installers'),

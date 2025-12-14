@@ -189,13 +189,13 @@ class Recovery_Handler {
      * Schedules follow-up messages based on admin settings
      *
      * @since 1.0.0
-     * @version 1.3.2
+     * @version 1.3.5
      * @param int $cart_id | The abandoned cart ID
      * @return void
      */
     public function init_follow_up_events( $cart_id ) {
         $follow_up_events = Admin::get_setting('follow_up_events');
-    
+
         // check if has follow up events
         if ( ! $follow_up_events || ! is_array( $follow_up_events ) ) {
             return;
@@ -208,7 +208,9 @@ class Recovery_Handler {
         if ( empty( $user_phone ) || empty( $user_email ) ) {
             return;
         }
-    
+
+        $current_time = current_time( 'timestamp', true );
+
         // iterate for each follow up event
         foreach ( $follow_up_events as $event_key => $event_data ) {
             // check if follow up event is enabled
@@ -218,12 +220,23 @@ class Recovery_Handler {
 
             // get delay time for event
             $delay = Helpers::convert_to_seconds( $event_data['delay_time'], $event_data['delay_type'] );
-    
+
             if ( $delay ) {
-                $event_delay = current_time('timestamp', true) + $delay;
+                $event_timestamp = $current_time + $delay;
+
+                // Check if the event has a send window configured
+                if ( ! empty( $event_data['send_window'] ) && ! empty( $event_data['send_window']['start_time'] ) && ! empty( $event_data['send_window']['end_time'] ) ) {
+                    // Calculate the next available window time
+                    $window_time = $this->get_next_available_window_time( $event_data, $event_timestamp );
+                    
+                    if ( $window_time['next_window'] !== null ) {
+                        // Reschedule to the next available window
+                        $event_timestamp = $window_time['next_window'];
+                    }
+                }
 
                 Scheduler_Manager::schedule_single_event(
-                    $event_delay,
+                    $event_timestamp,
                     'fcrc_send_follow_up_message',
                     array(
                         'cart_id'    => intval( $cart_id ),
@@ -275,7 +288,7 @@ class Recovery_Handler {
 
         $event = $settings[ $event_key ];
         $current_timestamp = current_time( 'timestamp' );
-        $send_window_time  = $this->get_next_available_window_time( $event, $current_timestamp );
+        $send_window_time = $this->get_next_available_window_time( $event, $current_timestamp );
 
         if ( ! empty( $send_window_time['next_window'] ) && $send_window_time['next_window'] > $current_timestamp ) {
             Scheduler_Manager::schedule_single_event(
@@ -290,6 +303,10 @@ class Recovery_Handler {
                     '_fcrc_follow_up_event_key' => $event_key,
                 )
             );
+
+            if ( self::$debug_mode ) {
+                error_log( '[Recovery_Handler] Evento reagendado para janela permitida. Horário atual fora da janela.' );
+            }
 
             return;
         }

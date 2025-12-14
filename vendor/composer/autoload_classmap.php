@@ -48,7 +48,4 @@ return array(
     'MeuMouse\\Flexify_Checkout\\Recovery_Carts\\Integrations\\Joinotify' => $baseDir . '/inc/Integrations/Joinotify.php',
     'MeuMouse\\Flexify_Checkout\\Recovery_Carts\\Views\\Carts_Table' => $baseDir . '/inc/Views/Carts_Table.php',
     'MeuMouse\\Flexify_Checkout\\Recovery_Carts\\Views\\Queue_Table' => $baseDir . '/inc/Views/Queue_Table.php',
-    'Webmozart\\Assert\\Assert' => $vendorDir . '/webmozart/assert/src/Assert.php',
-    'Webmozart\\Assert\\InvalidArgumentException' => $vendorDir . '/webmozart/assert/src/InvalidArgumentException.php',
-    'Webmozart\\Assert\\Mixin' => $vendorDir . '/webmozart/assert/src/Mixin.php',
 );
