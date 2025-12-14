@@ -16,7 +16,7 @@ defined('ABSPATH') || exit;
  * Handle Cron jobs
  * 
  * @since 1.0.0
- * @version 1.3.0
+ * @version 1.3.5
  * @package MeuMouse.com
  */
 class Recovery_Handler {
@@ -33,15 +33,15 @@ class Recovery_Handler {
      * Construct function
      *
      * @since 1.0.0
-     * @version 1.3.2
+     * @version 1.3.5
      * @return void
      */
     public function __construct() {
         // check for abandoned carts
-        add_action( 'init', array( $this, 'check_abandoned_carts' ) );
+        add_action( 'wp_loaded', array( $this, 'check_abandoned_carts' ) );
 
         if ( Scheduler_Manager::is_php_cron_enabled() ) {
-            add_action( 'init', array( __CLASS__, 'maybe_run_queue' ), 1 );
+            add_action( 'wp_loaded', array( __CLASS__, 'maybe_run_queue' ), 1 );
         }
 
         // start recovery carts
@@ -78,13 +78,24 @@ class Recovery_Handler {
      * Checks for abandoned carts by verifying last ping time
      *
      * @since 1.0.0
-     * @version 1.3.2
+     * @version 1.3.5
      * @return void
      */
     public function check_abandoned_carts() {
+        if ( self::$debug_mode ) {
+            error_log( '[Recovery_Handler] check_abandoned_carts() called at ' . current_time('Y-m-d H:i:s') );
+        }
+
         $time_limit_seconds = Helpers::get_abandonment_time_seconds();
         $current_time = current_time( 'timestamp', true );
         $time_threshold = $current_time - ( $time_limit_seconds + 30 ); // add 30 seconds to account for any time differences
+
+        if ( self::$debug_mode ) {
+            error_log( '[Recovery_Handler] Time limit seconds: ' . $time_limit_seconds );
+            error_log( '[Recovery_Handler] Current timestamp: ' . $current_time );
+            error_log( '[Recovery_Handler] Time threshold: ' . $time_threshold );
+            error_log( '[Recovery_Handler] Looking for carts older than: ' . date('Y-m-d H:i:s', $time_threshold) );
+        }
 
         $query = new \WP_Query( array(
             'post_type' => 'fc-recovery-carts',
@@ -100,19 +111,36 @@ class Recovery_Handler {
             ),
         ));
 
+        if ( self::$debug_mode ) {
+            error_log( '[Recovery_Handler] Found ' . $query->found_posts . ' shopping carts to check' );
+        }
+
         if ( $query->have_posts() ) {
             while ( $query->have_posts() ) {
                 $query->the_post();
                 $cart_id = get_the_ID();
                 $current_status = get_post_status( $cart_id );
 
+                if ( self::$debug_mode ) {
+                    error_log( '[Recovery_Handler] Checking cart ID: ' . $cart_id . ' with status: ' . $current_status );
+                }
+
                 if ( $current_status !== 'shopping' ) {
+                    if ( self::$debug_mode ) {
+                        error_log( '[Recovery_Handler] Cart ID ' . $cart_id . ' status is not shopping (' . $current_status . '). Skipping.' );
+                    }
+
                     continue;
                 }
 
                 // Get the last ping time
                 $last_ping = get_post_meta( $cart_id, '_fcrc_cart_updated_time', true );
                 $last_ping = intval( $last_ping );
+
+                if ( self::$debug_mode ) {
+                    error_log( '[Recovery_Handler] Cart ID ' . $cart_id . ' last ping: ' . $last_ping . ' (' . date('Y-m-d H:i:s', $last_ping) . ')' );
+                    error_log( '[Recovery_Handler] Comparing: ' . $last_ping . ' < ' . $time_threshold . ' ?' );
+                }
 
                 // Check if cart should be marked as abandoned
                 if ( empty( $last_ping ) || $last_ping < $time_threshold ) {
@@ -126,7 +154,8 @@ class Recovery_Handler {
                     ));
 
                     if ( self::$debug_mode ) {
-                        error_log( 'Abandoned cart: ' . $cart_id . ' | Last ping: ' . $last_ping );
+                        error_log( '[Recovery_Handler] Cart marked as abandoned: ' . $cart_id . ' | Last ping: ' . $last_ping . ' (' . date('Y-m-d H:i:s', $last_ping) . ')' );
+                        error_log( '[Recovery_Handler] Abandonment time threshold: ' . date('Y-m-d H:i:s', $time_threshold) );
                     }
 
                     /**
@@ -136,11 +165,23 @@ class Recovery_Handler {
                      * @param int $cart_id
                      */
                     do_action( 'Flexify_Checkout/Recovery_Carts/Cart_Abandoned', $cart_id );
+                } else {
+                    if ( self::$debug_mode ) {
+                        error_log( '[Recovery_Handler] Cart ID ' . $cart_id . ' still active. Last ping is within threshold.' );
+                    }
                 }
+            }
+        } else {
+            if ( self::$debug_mode ) {
+                error_log( '[Recovery_Handler] No shopping carts found to check for abandonment.' );
             }
         }
 
         wp_reset_postdata();
+        
+        if ( self::$debug_mode ) {
+            error_log( '[Recovery_Handler] check_abandoned_carts() completed.' );
+        }
     }
 
 
@@ -148,13 +189,13 @@ class Recovery_Handler {
      * Schedules follow-up messages based on admin settings
      *
      * @since 1.0.0
-     * @version 1.3.2
+     * @version 1.3.5
      * @param int $cart_id | The abandoned cart ID
      * @return void
      */
     public function init_follow_up_events( $cart_id ) {
         $follow_up_events = Admin::get_setting('follow_up_events');
-    
+
         // check if has follow up events
         if ( ! $follow_up_events || ! is_array( $follow_up_events ) ) {
             return;
@@ -167,7 +208,9 @@ class Recovery_Handler {
         if ( empty( $user_phone ) || empty( $user_email ) ) {
             return;
         }
-    
+
+        $current_time = current_time( 'timestamp', true );
+
         // iterate for each follow up event
         foreach ( $follow_up_events as $event_key => $event_data ) {
             // check if follow up event is enabled
@@ -177,12 +220,23 @@ class Recovery_Handler {
 
             // get delay time for event
             $delay = Helpers::convert_to_seconds( $event_data['delay_time'], $event_data['delay_type'] );
-    
+
             if ( $delay ) {
-                $event_delay = current_time('timestamp', true) + $delay;
+                $event_timestamp = $current_time + $delay;
+
+                // Check if the event has a send window configured
+                if ( ! empty( $event_data['send_window'] ) && ! empty( $event_data['send_window']['start_time'] ) && ! empty( $event_data['send_window']['end_time'] ) ) {
+                    // Calculate the next available window time
+                    $window_time = $this->get_next_available_window_time( $event_data, $event_timestamp );
+                    
+                    if ( $window_time['next_window'] !== null ) {
+                        // Reschedule to the next available window
+                        $event_timestamp = $window_time['next_window'];
+                    }
+                }
 
                 Scheduler_Manager::schedule_single_event(
-                    $event_delay,
+                    $event_timestamp,
                     'fcrc_send_follow_up_message',
                     array(
                         'cart_id'    => intval( $cart_id ),
@@ -202,7 +256,7 @@ class Recovery_Handler {
      * Sends a follow-up message based on the event
      *
      * @since 1.0.0
-     * @version 1.3.2
+     * @version 1.3.5
      * @param int $cart_id | The abandoned cart ID
      * @param string $event_key | The follow-up event key
      * @param int $cron_post_id | The cron post ID
@@ -233,6 +287,30 @@ class Recovery_Handler {
         }
 
         $event = $settings[ $event_key ];
+        $current_timestamp = current_time( 'timestamp' );
+        $send_window_time = $this->get_next_available_window_time( $event, $current_timestamp );
+
+        if ( ! empty( $send_window_time['next_window'] ) && $send_window_time['next_window'] > $current_timestamp ) {
+            Scheduler_Manager::schedule_single_event(
+                $send_window_time['next_window'],
+                'fcrc_send_follow_up_message',
+                array(
+                    'cart_id' => $cart_id,
+                    'event_key' => $event_key,
+                ),
+                array(
+                    '_fcrc_cart_id' => $cart_id,
+                    '_fcrc_follow_up_event_key' => $event_key,
+                )
+            );
+
+            if ( self::$debug_mode ) {
+                error_log( '[Recovery_Handler] Evento reagendado para janela permitida. Horário atual fora da janela.' );
+            }
+
+            return;
+        }
+
         $cart_data = get_post_meta( $cart_id );
         $phone = $cart_data['_fcrc_cart_phone'][0] ?? '';
 
@@ -290,6 +368,68 @@ class Recovery_Handler {
 
         if ( $cron_post_id ) {
             wp_delete_post( intval( $cron_post_id ), true );
+        }
+    }
+
+
+    /**
+     * Get the next available window time for sending a follow-up message.
+     *
+     * @since 1.3.5
+     * @param array $event | The follow-up event settings.
+     * @param int   $current_timestamp | Current timestamp in the site's timezone.
+     * @return array{
+     *     next_window: int|null,
+     * }
+     */
+    private function get_next_available_window_time( $event, $current_timestamp ) {
+        $window_settings = $event['send_window'] ?? array();
+        $start_time = $window_settings['start_time'] ?? '';
+        $end_time = $window_settings['end_time'] ?? '';
+
+        if ( empty( $start_time ) || empty( $end_time ) ) {
+            return array( 'next_window' => null );
+        }
+
+        try {
+            $timezone = wp_timezone();
+            $now_datetime = new \DateTime( '@' . $current_timestamp );
+            $now_datetime->setTimezone( $timezone );
+
+            $start_parts = explode( ':', $start_time );
+            $end_parts   = explode( ':', $end_time );
+
+            if ( count( $start_parts ) < 2 || count( $end_parts ) < 2 ) {
+                return array( 'next_window' => null );
+            }
+
+            list( $start_hour, $start_minute ) = array_map( 'intval', array_slice( $start_parts, 0, 2 ) );
+            list( $end_hour, $end_minute ) = array_map( 'intval', array_slice( $end_parts, 0, 2 ) );
+
+            $start_datetime = ( clone $now_datetime )->setTime( $start_hour, $start_minute, 0 );
+            $end_datetime = ( clone $now_datetime )->setTime( $end_hour, $end_minute, 0 );
+
+            if ( $end_datetime <= $start_datetime ) {
+                $end_datetime->modify( '+1 day' );
+
+                if ( $now_datetime < $start_datetime ) {
+                    $start_datetime->modify( '-1 day' );
+                }
+            }
+
+            if ( $now_datetime < $start_datetime ) {
+                return array( 'next_window' => $start_datetime->getTimestamp() );
+            }
+
+            if ( $now_datetime > $end_datetime ) {
+                $start_datetime->modify( '+1 day' );
+                
+                return array( 'next_window' => $start_datetime->getTimestamp() );
+            }
+
+            return array( 'next_window' => null );
+        } catch ( \Exception $e ) {
+            return array( 'next_window' => null );
         }
     }
 

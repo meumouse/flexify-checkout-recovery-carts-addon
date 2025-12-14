@@ -1,3 +1,10 @@
+Versão 1.3.5 (14/12/2025)
+* Correção de bugs
+    - Prevenir restauração do carrinho após ciclo ter finalizado (Recuperado, Comprou, Concluído, Pedido abandonado, Perdido)
+    - Link da aba de navegação da tabela "Todos os carrinhos"
+* Otimizações
+* Recurso adicionado: Intervalo de envio de mensagens para follow ups
+
 Versão 1.3.4 (12/12/2025)
 * Correção de bugs
     - Exclusão de itens de follow up

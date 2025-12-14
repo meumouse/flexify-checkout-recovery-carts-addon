@@ -18,7 +18,7 @@ if ( ! class_exists('WP_List_Table') ) {
  * Carts table class
  * 
  * @since 1.0.0
- * @version 1.3.4
+ * @version 1.3.5
  * @package MeuMouse.com
  */
 class Carts_Table extends WP_List_Table {
@@ -61,6 +61,7 @@ class Carts_Table extends WP_List_Table {
      * Display navigation tabs for filtering carts by status
      * 
      * @since 1.1.0
+     * @version 1.3.5
      * @return void
      */
     public function display_navigation_tabs() {
@@ -97,7 +98,7 @@ class Carts_Table extends WP_List_Table {
         $links = array();
 
         foreach ( $statuses as $status => $label ) {
-            $url = add_query_arg( 'post_status', $status, admin_url('admin.php?page=fc-recovery-carts') );
+            $url = add_query_arg( 'post_status', $status, admin_url('admin.php?page=fc-recovery-carts-list') );
             $class = ( $status === $current_status ) ? 'current' : '';
     
             $links[] = sprintf( '<li><a href="%s" class="%s">%s <span class="count">(%d)</span></a></li>', esc_url( $url ), esc_attr( $class ), esc_html( $label ), intval( $counts[$status] ?? 0 ) );

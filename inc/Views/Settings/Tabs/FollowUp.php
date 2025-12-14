@@ -7,7 +7,7 @@ use MeuMouse\Flexify_Checkout\Recovery_Carts\Admin\Components as Admin_Component
  * Tab file for follow up on settings page
  * 
  * @since 1.0.0
- * @version 1.1.0
+ * @version 1.3.5
  * @package MeuMouse.com
  */
 
@@ -58,6 +58,22 @@ defined('ABSPATH') || exit; ?>
 
                     <div class="mb-5">
                         <?php echo Admin_Components::render_coupon_form('new_follow_up_event'); ?>
+                    </div>
+
+                    <div class="mb-5">
+                        <label class="form-label text-left mb-3"><?php esc_html_e( 'Intervalo de envio (horário):', 'fc-recovery-carts' ); ?></label>
+
+                        <div class="row">
+                            <div class="col">
+                                <label class="form-label text-left"><?php esc_html_e( 'Início', 'fc-recovery-carts' ); ?></label>
+                                <input id="fcrc_add_new_follow_up_start_time" type="time" class="form-control" placeholder="<?php esc_attr_e( '08:00', 'fc-recovery-carts' ); ?>">
+                            </div>
+
+                            <div class="col">
+                                <label class="form-label text-left"><?php esc_html_e( 'Fim', 'fc-recovery-carts' ); ?></label>
+                                <input id="fcrc_add_new_follow_up_end_time" type="time" class="form-control" placeholder="<?php esc_attr_e( '20:00', 'fc-recovery-carts' ); ?>">
+                            </div>
+                        </div>
                     </div>
 
                     <div class="mb-5">

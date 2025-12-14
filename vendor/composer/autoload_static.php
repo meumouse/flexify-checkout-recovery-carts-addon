@@ -7,13 +7,9 @@ namespace Composer\Autoload;
 class ComposerStaticInit2d0d8e5718943d4e0f4f7aa59d79d9d9
 {
     public static $prefixLengthsPsr4 = array (
-        'W' => 
-        array (
-            'Webmozart\\Assert\\' => 17,
-        ),
         'M' => 
         array (
-            'MeuMouse\\Flexify_Checkout_Recovery_Carts\\' => 41,
+            'MeuMouse\\Flexify_Checkout\\Recovery_Carts\\' => 41,
         ),
         'G' => 
         array (
@@ -27,11 +23,7 @@ class ComposerStaticInit2d0d8e5718943d4e0f4f7aa59d79d9d9
     );
 
     public static $prefixDirsPsr4 = array (
-        'Webmozart\\Assert\\' => 
-        array (
-            0 => __DIR__ . '/..' . '/webmozart/assert/src',
-        ),
-        'MeuMouse\\Flexify_Checkout_Recovery_Carts\\' => 
+        'MeuMouse\\Flexify_Checkout\\Recovery_Carts\\' => 
         array (
             0 => __DIR__ . '/../..' . '/inc',
         ),
@@ -92,9 +84,6 @@ class ComposerStaticInit2d0d8e5718943d4e0f4f7aa59d79d9d9
         'MeuMouse\\Flexify_Checkout\\Recovery_Carts\\Integrations\\Joinotify' => __DIR__ . '/../..' . '/inc/Integrations/Joinotify.php',
         'MeuMouse\\Flexify_Checkout\\Recovery_Carts\\Views\\Carts_Table' => __DIR__ . '/../..' . '/inc/Views/Carts_Table.php',
         'MeuMouse\\Flexify_Checkout\\Recovery_Carts\\Views\\Queue_Table' => __DIR__ . '/../..' . '/inc/Views/Queue_Table.php',
-        'Webmozart\\Assert\\Assert' => __DIR__ . '/..' . '/webmozart/assert/src/Assert.php',
-        'Webmozart\\Assert\\InvalidArgumentException' => __DIR__ . '/..' . '/webmozart/assert/src/InvalidArgumentException.php',
-        'Webmozart\\Assert\\Mixin' => __DIR__ . '/..' . '/webmozart/assert/src/Mixin.php',
     );
 
     public static function getInitializer(ClassLoader $loader)

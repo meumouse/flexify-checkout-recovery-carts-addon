@@ -3,6 +3,7 @@
 namespace MeuMouse\Flexify_Checkout\Recovery_Carts\Views;
 
 use WP_List_Table;
+use WP_Query;
 
 // Exit if accessed directly.
 defined('ABSPATH') || exit;
@@ -12,10 +13,10 @@ if ( ! class_exists('WP_List_Table') ) {
 }
 
 /**
- * Queue Cron vvents table class
+ * Queue Cron events table class
  *
  * @since 1.3.0
- * @version 1.3.2
+ * @version 1.3.5
  * @package MeuMouse.com
  */
 class Queue_Table extends WP_List_Table {
@@ -32,6 +33,9 @@ class Queue_Table extends WP_List_Table {
             'plural' => __( 'Cron Events', 'fc-recovery-carts' ),
             'ajax' => false,
         ));
+        
+        // Process single actions in constructor to handle before output
+        $this->process_single_action();
     }
 
 
@@ -39,12 +43,22 @@ class Queue_Table extends WP_List_Table {
      * Display the table page
      * 
      * @since 1.3.0
+     * @version 1.3.5
      * @return void
      */
     public function display_page() {
+        // Process single actions first
+        $this->process_single_action();
+        
+        // Show messages
+        if ( isset( $_GET['message'] ) ) {
+            echo '<div class="notice notice-success is-dismissible"><p>' . esc_html( urldecode( $_GET['message'] ) ) . '</p></div>';
+        }
+        
         echo '<div class="wrap"><h1 class="wp-heading-inline">' . __( 'Gerenciar fila de processamentos', 'fc-recovery-carts' ) . '</h1>';
-       
+    
         echo '<form method="post">';
+            wp_nonce_field( 'bulk-' . $this->_args['plural'], '_wpnonce' );
             echo '<input type="hidden" name="page" value="' . esc_attr( $_REQUEST['page'] ?? '' ) . '" />';
             echo '<input type="hidden" name="post_status" value="' . esc_attr( $_REQUEST['post_status'] ?? '' ) . '" />';
 
@@ -86,11 +100,25 @@ class Queue_Table extends WP_List_Table {
      * Render checkbox column
      * 
      * @since 1.3.0
+     * @version 1.3.5
      * @param object $item | Cron event data
      * @return string
      */
     public function column_cb( $item ) {
-        return sprintf( '<input type="checkbox" name="event_ids[]" value="%d" />', absint( $item->ID ) );
+        $cart_id = get_post_meta( $item->ID, '_fcrc_cart_id', true );
+        $event_key = get_post_meta( $item->ID, '_fcrc_cron_event_key', true );
+        
+        $title = sprintf(
+            __( 'Carrinho #%d - Evento: %s', 'fc-recovery-carts' ),
+            $cart_id,
+            $this->column_event_name( $item )
+        );
+        
+        return sprintf(
+            '<input type="checkbox" name="event_ids[]" value="%d" title="%s" />',
+            absint( $item->ID ),
+            esc_attr( $title )
+        );
     }
 
 
@@ -102,7 +130,12 @@ class Queue_Table extends WP_List_Table {
      * @return string
      */
     public function column_id( $item ) {
-        return sprintf( '#%d', absint( get_post_meta( $item->ID, '_fcrc_cart_id', true ) ) );
+        $actions = $this->get_row_actions( $item );
+        
+        return sprintf( '#%d %s', 
+            absint( get_post_meta( $item->ID, '_fcrc_cart_id', true ) ),
+            $this->row_actions( $actions )
+        );
     }
 
 
@@ -111,7 +144,7 @@ class Queue_Table extends WP_List_Table {
      * 
      * @since 1.3.0
      * @param object $item | Cart data
-     * @return void
+     * @return string
      */
     public function column_contact( $item ) {
         $cart_id = get_post_meta( $item->ID, '_fcrc_cart_id', true );
@@ -240,7 +273,7 @@ class Queue_Table extends WP_List_Table {
             'post_status' => 'publish',
         );
 
-        $query = new \WP_Query( $args );
+        $query = new WP_Query( $args );
 
         $this->items = $query->posts;
         $this->_column_headers = array( $this->get_columns(), array(), array() );
@@ -257,12 +290,77 @@ class Queue_Table extends WP_List_Table {
      * Define bulk actions available in the table
      * 
      * @since 1.3.0
+     * @version 1.3.5
      * @return array
      */
     public function get_bulk_actions() {
         return array(
+            'run_now' => __('Disparar agora', 'fc-recovery-carts'),
+            'cancel'  => __('Cancelar', 'fc-recovery-carts'),
             'delete' => __('Excluir', 'fc-recovery-carts'),
         );
+    }
+
+
+    /**
+     * Get row actions for a specific item
+     * 
+     * @since 1.3.5
+     * @param object $item | The event item
+     * @return array
+     */
+    private function get_row_actions( $item ) {
+        $actions = array();
+        
+        $run_url = wp_nonce_url(
+            add_query_arg( array(
+                'action' => 'run_now',
+                'event_id' => $item->ID,
+                'page' => $_REQUEST['page'] ?? '',
+            ), admin_url('admin.php') ),
+            'run_event_' . $item->ID
+        );
+        
+        $cancel_url = wp_nonce_url(
+            add_query_arg( array(
+                'action' => 'cancel',
+                'event_id' => $item->ID,
+                'page' => $_REQUEST['page'] ?? '',
+            ), admin_url('admin.php') ),
+            'cancel_event_' . $item->ID
+        );
+        
+        $delete_url = wp_nonce_url(
+            add_query_arg( array(
+                'action' => 'delete',
+                'event_id' => $item->ID,
+                'page' => $_REQUEST['page'] ?? '',
+            ), admin_url('admin.php') ),
+            'delete_event_' . $item->ID
+        );
+        
+        $actions['run_now'] = sprintf(
+            '<a href="%s" onclick="return confirm(\'%s\');">%s</a>',
+            esc_url( $run_url ),
+            esc_js( __( 'Tem certeza que deseja disparar este evento agora?', 'fc-recovery-carts' ) ),
+            __( 'Disparar agora', 'fc-recovery-carts' )
+        );
+        
+        $actions['cancel'] = sprintf(
+            '<a href="%s" onclick="return confirm(\'%s\');">%s</a>',
+            esc_url( $cancel_url ),
+            esc_js( __( 'Tem certeza que deseja cancelar este evento?', 'fc-recovery-carts' ) ),
+            __( 'Cancelar', 'fc-recovery-carts' )
+        );
+        
+        $actions['delete'] = sprintf(
+            '<a href="%s" onclick="return confirm(\'%s\');">%s</a>',
+            esc_url( $delete_url ),
+            esc_js( __( 'Tem certeza que deseja excluir este evento? Esta ação não pode ser desfeita.', 'fc-recovery-carts' ) ),
+            __( 'Excluir', 'fc-recovery-carts' )
+        );
+        
+        return $actions;
     }
 
 
@@ -270,72 +368,202 @@ class Queue_Table extends WP_List_Table {
      * Process bulk actions
      * 
      * @since 1.3.0
+     * @version 1.3.5
      * @return void
      */
     public function process_bulk_action() {
-        if ( isset( $_POST['cart_ids'] ) && is_array( $_POST['cart_ids'] ) ) {
-            $cart_ids = array_map( 'intval', $_POST['cart_ids'] );
+        if ( $this->current_action() && isset( $_POST['event_ids'] ) && is_array( $_POST['event_ids'] ) ) {
+            // check nonce for bulk actions
+            if ( ! isset( $_POST['_wpnonce'] ) || ! wp_verify_nonce( $_POST['_wpnonce'], 'bulk-' . $this->_args['plural'] ) ) {
+                wp_die( __( 'Não autorizado.', 'fc-recovery-carts' ) );
+            }
+            
+            $action = $this->current_action();
+            $event_ids = array_map( 'intval', $_POST['event_ids'] );
+            $count = count( $event_ids );
+            $message = '';
 
-            // check current bulk action
-            switch ( $this->current_action() ) {
+            switch ( $action ) {
+                case 'run_now':
+                    foreach ( $event_ids as $event_id ) {
+                        $this->run_event_now( $event_id );
+                    }
+
+                    $message = sprintf( 
+                        _n( '%d evento disparado com sucesso.', '%d eventos disparados com sucesso.', $count, 'fc-recovery-carts' ), 
+                        $count 
+                    );
+
+                    break;
+
+                case 'cancel':
+                    foreach ( $event_ids as $event_id ) {
+                        $this->cancel_event( $event_id );
+                    }
+
+                    $message = sprintf( 
+                        _n( '%d evento cancelado com sucesso.', '%d eventos cancelados com sucesso.', $count, 'fc-recovery-carts' ), 
+                        $count 
+                    );
+
+                    break;
+
                 case 'delete':
-                    foreach ( $cart_ids as $cart_id ) {
-                        wp_delete_post( $cart_id, true );
+                    foreach ( $event_ids as $event_id ) {
+                        wp_delete_post( $event_id, true );
                     }
 
-                    break;
-                case 'mark_lost':
-                    foreach ( $cart_ids as $cart_id ) {
-                        wp_update_post( array(
-                            'ID' => $cart_id,
-                            'post_status' => 'lost',
-                        ));
+                    $message = sprintf( 
+                        _n( '%d evento excluído com sucesso.', '%d eventos excluídos com sucesso.', $count, 'fc-recovery-carts' ), 
+                        $count 
+                    );
 
-                        /**
-                         * Fire a hook when an order is considered lost manually
-                         *
-                         * @since 1.1.0
-                         * @param int $cart_id | The abandoned cart ID
-                         */
-                        do_action( 'Flexify_Checkout/Recovery_Carts/Cart_Lost_Manually', $cart_id );
-                    }
-
-                    break;
-                case 'mark_abandoned':
-                    foreach ( $cart_ids as $cart_id ) {
-                        wp_update_post( array(
-                            'ID' => $cart_id,
-                            'post_status' => 'abandoned',
-                        ));
-
-                        /**
-                         * Fire hook when cart is abandoned manually
-                         * 
-                         * @since 1.1.0
-                         * @param int $cart_id | Cart ID | Post ID
-                         */
-                        do_action( 'Flexify_Checkout/Recovery_Carts/Cart_Abandoned_Manually', $cart_id );
-                    }
-
-                    break;
-                case 'mark_recovered':
-                    foreach ( $cart_ids as $cart_id ) {
-                        wp_update_post( array(
-                            'ID' => $cart_id,
-                            'post_status' => 'recovered',
-                        ));
-
-                        /**
-                         * Fire a hook when a cart is recovered manually
-                         *
-                         * @since 1.0.0
-                         * @param int $cart_id | The cart ID
-                         */
-                        do_action( 'Flexify_Checkout/Recovery_Carts/Cart_Recovered_Manually', $cart_id );
-                    }
-                    
                     break;
             }
+            
+            if ( $message ) {
+                // redirect with message
+                $redirect_url = add_query_arg( 
+                    array( 
+                        'page' => $_REQUEST['page'] ?? '',
+                        'message' => urlencode( $message ),
+                    ), 
+                    admin_url('admin.php') 
+                );
+
+                wp_redirect( $redirect_url );
+                exit;
+            }
         }
+    }
+
+
+    /**
+     * Run a cron event immediately
+     * 
+     * @since 1.3.5
+     * @param int $event_id | The cron event post ID
+     * @return bool
+     */
+    private function run_event_now( $event_id ) {
+        $hook = get_post_meta( $event_id, '_fcrc_cron_event_key', true );
+        
+        if ( ! $hook ) {
+            return false;
+        }
+        
+        $cart_id = get_post_meta( $event_id, '_fcrc_cart_id', true );
+        $args = get_post_meta( $event_id, '_fcrc_cron_args', true );
+        
+        if ( ! is_array( $args ) ) {
+            $args = array();
+        }
+        
+        $args['cron_post_id'] = $event_id;
+        
+        // Execute the hook immediately
+        do_action_ref_array( $hook, array_values( $args ) );
+        
+        // Delete the event if it wasn't already deleted by the hook
+        if ( get_post_status( $event_id ) === 'publish' ) {
+            wp_delete_post( $event_id, true );
+        }
+        
+        // Log the action
+        if ( $cart_id ) {
+            $log_message = sprintf( 
+                __( 'Evento %s disparado manualmente pelo admin.', 'fc-recovery-carts' ),
+                $hook
+            );
+        }
+        
+        return true;
+    }
+
+
+    /**
+     * Cancel a cron event
+     * 
+     * @since 1.3.5
+     * @param int $event_id | The cron event post ID
+     * @return bool
+     */
+    private function cancel_event( $event_id ) {
+        $cart_id = get_post_meta( $event_id, '_fcrc_cart_id', true );
+        
+        // Move to trash or delete permanently
+        $result = wp_delete_post( $event_id, true );
+        
+        // Log the action
+        if ( $cart_id && $result ) {
+            $hook = get_post_meta( $event_id, '_fcrc_cron_event_key', true );
+
+            $log_message = sprintf( 
+                __( 'Evento %s cancelado manualmente pelo admin.', 'fc-recovery-carts' ),
+                $hook
+            );
+        }
+        
+        return (bool) $result;
+    }
+
+
+    /**
+     * Process individual actions (single row actions)
+     * 
+     * @since 1.3.5
+     * @return void
+     */
+    public function process_single_action() {
+        if ( ! isset( $_GET['action'] ) || ! isset( $_GET['event_id'] ) || ! isset( $_GET['_wpnonce'] ) ) {
+            return;
+        }
+        
+        $action = sanitize_text_field( $_GET['action'] );
+        $event_id = intval( $_GET['event_id'] );
+        $nonce = sanitize_text_field( $_GET['_wpnonce'] );
+        
+        // check nonce based on action
+        switch ( $action ) {
+            case 'run_now':
+                if ( ! wp_verify_nonce( $nonce, 'run_event_' . $event_id ) ) {
+                    wp_die( __( 'Não autorizado.', 'fc-recovery-carts' ) );
+                }
+
+                $this->run_event_now( $event_id );
+                $message = __( 'Evento disparado com sucesso.', 'fc-recovery-carts' );
+
+                break;
+                
+            case 'cancel':
+                if ( ! wp_verify_nonce( $nonce, 'cancel_event_' . $event_id ) ) {
+                    wp_die( __( 'Não autorizado.', 'fc-recovery-carts' ) );
+                }
+
+                $this->cancel_event( $event_id );
+                $message = __( 'Evento cancelado com sucesso.', 'fc-recovery-carts' );
+
+                break;
+                
+            case 'delete':
+                if ( ! wp_verify_nonce( $nonce, 'delete_event_' . $event_id ) ) {
+                    wp_die( __( 'Não autorizado.', 'fc-recovery-carts' ) );
+                }
+
+                wp_delete_post( $event_id, true );
+                $message = __( 'Evento excluído com sucesso.', 'fc-recovery-carts' );
+
+                break;
+                
+            default:
+                return;
+        }
+        
+        // redirect with message
+        $redirect_url = remove_query_arg( array( 'action', 'event_id', '_wpnonce' ) );
+        $redirect_url = add_query_arg( 'message', urlencode( $message ), $redirect_url );
+        
+        wp_safe_redirect( $redirect_url );
+        exit;
     }
 }

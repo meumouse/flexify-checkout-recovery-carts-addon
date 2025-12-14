@@ -11,7 +11,7 @@ defined('ABSPATH') || exit;
  * Helpers class
  * 
  * @since 1.0.0
- * @version 1.3.2
+ * @version 1.3.5
  * @package MeuMouse.com
  */
 class Helpers {
@@ -150,6 +150,7 @@ class Helpers {
      * Restores the cart from the recovery link
      *
      * @since 1.0.0
+     * @version 1.3.5
      * @return void
      */
     public static function maybe_restore_cart() {
@@ -165,6 +166,17 @@ class Helpers {
             }
 
             return;
+        }
+
+        // Do not restore carts that already completed the recovery cycle
+        if ( self::is_cart_cycle_finished( $cart_id ) ) {
+            if ( self::$debug_mode ) {
+                error_log( "Cart ID {$cart_id} already completed. Skipping restore." );
+            }
+
+            wp_safe_redirect( wc_get_checkout_url() );
+
+            exit;
         }
 
         // get products from cart
@@ -234,6 +246,7 @@ class Helpers {
      * Checks if the cart cycle is finished
      * 
      * @since 1.1.0
+     * @version 1.3.5
      * @param int $cart_id | The cart ID to check
      * @return bool
      */
@@ -241,14 +254,32 @@ class Helpers {
         if ( ! $cart_id ) {
             $cart_id = self::get_current_cart_id();
         }
-    
-        if ( ! $cart_id ) {
+        
+        if ( self::$debug_mode ) {
+            error_log( '[Helpers] is_cart_cycle_finished called. cart_id: ' . ($cart_id ? $cart_id : 'null') );
+        }
+        
+        if ( ! $cart_id || empty( $cart_id ) ) {
+            if ( self::$debug_mode ) {
+                error_log( '[Helpers] No cart ID or empty. Returning false.' );
+            }
+
             return false;
         }
-    
+        
         $status = get_post_status( $cart_id );
-    
-        return in_array( $status, array( 'recovered', 'purchased', 'completed', 'order_abandoned', 'lost' ), true );
+        
+        if ( self::$debug_mode ) {
+            error_log( '[Helpers] Cart status for ID ' . $cart_id . ': ' . ($status ? $status : 'not found') );
+        }
+        
+        $finished = in_array( $status, array( 'recovered', 'purchased', 'completed', 'order_abandoned', 'lost' ), true );
+        
+        if ( self::$debug_mode ) {
+            error_log( '[Helpers] is_cart_cycle_finished result: ' . ($finished ? 'true' : 'false') );
+        }
+        
+        return $finished;
     }
 
 
@@ -587,5 +618,44 @@ class Helpers {
         $disabled = array_map( 'trim', explode( ',', (string) ini_get('disable_functions') ) );
 
         return ! in_array( $function, $disabled, true );
+    }
+
+
+    /**
+     * Clean up old lost carts for the current IP
+     * 
+     * @since 1.3.5
+     * @param string $client_ip
+     * @return void
+     */
+    public static function cleanup_old_lost_carts( $client_ip ) {
+        if ( ! $client_ip ) {
+            return;
+        }
+        
+        $lost_carts = get_posts( array(
+            'post_type'      => 'fc-recovery-carts',
+            'post_status'    => array( 'lost' ),
+            'meta_key'       => '_fcrc_location_ip',
+            'meta_value'     => $client_ip,
+            'posts_per_page' => -1,
+            'fields'         => 'ids',
+            'meta_query'     => array(
+                array(
+                    'key'     => '_fcrc_cart_updated_time',
+                    'value'   => current_time('timestamp', true) - (24 * 60 * 60), // Últimas 24 horas
+                    'compare' => '<',
+                    'type'    => 'NUMERIC',
+                ),
+            ),
+        ));
+        
+        foreach ( $lost_carts as $cart_id ) {
+            wp_delete_post( $cart_id, true );
+            
+            if ( self::$debug_mode ) {
+                error_log( '[Cart_Events] Cleaned up old lost cart ID: ' . $cart_id . ' for IP: ' . $client_ip );
+            }
+        }
     }
 }

@@ -52,13 +52,13 @@ class Cart_Events {
      * Updates the cart post when a product is added
      *
      * @since 1.0.0
-     * @version 1.1.0
-     * @param string $cart_id | The cart item key
-     * @param integer $product_id | The ID of the product added to the cart
-     * @param integer $request_quantity | The quantity of the item added to the cart
-     * @param integer $variation_id | The variation ID (if applicable)
-     * @param array $variation | The variation data
-     * @param array $cart_item_data | Additional cart item data
+     * @version 1.3.5
+     * @param string    $cart_id | The cart item key
+     * @param integer   $product_id | The ID of the product added to the cart
+     * @param integer   $request_quantity | The quantity of the item added to the cart
+     * @param integer   $variation_id | The variation ID (if applicable)
+     * @param array     $variation | The variation data
+     * @param array     $cart_item_data | Additional cart item data
      *
      * @return void
      */
@@ -66,26 +66,47 @@ class Cart_Events {
         // Check if we're in recovery mode
         if ( function_exists('WC') && WC()->session instanceof WC_Session && WC()->session->get('fcrc_cart_recovery_mode') ) {
             WC()->session->__unset('fcrc_cart_recovery_mode'); // Clear recovery mode flag
+
+            if ( self::$debug_mode ) {
+                error_log( '[Cart_Events] Recovery mode detected. Skipping cart update.' );
+            }
             
             return;
         }
 
         $cart_id = Helpers::get_current_cart_id();
 
+        if ( self::$debug_mode ) {
+            error_log( '[Cart_Events] update_cart_post called. Current cart ID: ' . $cart_id );
+            error_log( '[Cart_Events] Product added: ' . $product_id . ', Quantity: ' . $request_quantity );
+        }
+
         // check if cycle has already finished
         if ( $cart_id && Helpers::is_cart_cycle_finished( $cart_id ) ) {
             if ( self::$debug_mode ) {
-                error_log( 'Cart already finished. Skipping cart update. ID: ' . $cart_id );
+                error_log( '[Cart_Events] Cart already finished. Skipping cart update. ID: ' . $cart_id );
             }
 
             return;
         }
 
         if ( ! $cart_id ) {
+            if ( self::$debug_mode ) {
+                error_log( '[Cart_Events] No cart ID found. Calling create_cart_post()' );
+            }
+
             $create_cart_id = self::create_cart_post();
+
+            if ( self::$debug_mode ) {
+                error_log( '[Cart_Events] create_cart_post() returned: ' . ($create_cart_id ? $create_cart_id : 'null') );
+            }
         }
 
         $get_cart_id = isset( $create_cart_id ) ? $create_cart_id : $cart_id;
+
+        if ( self::$debug_mode ) {
+            error_log( '[Cart_Events] Final cart ID for sync: ' . $get_cart_id );
+        }
 
         self::sync_cart_with_post( $get_cart_id );
     }
@@ -95,49 +116,150 @@ class Cart_Events {
      * Creates a new cart post if none exists
      * 
      * @since 1.1.0
-     * @version 1.3.2
+     * @version 1.3.5
      * @return int $cart_id | The cart ID
      */
     public static function create_cart_post() {
-        // stop processing if the cart already exists, admin requests or if cart is empty
-        if ( is_admin() || Helpers::is_cart_cycle_finished() || WC()->cart->is_empty() ) {
-            return;
+        if ( self::$debug_mode ) {
+            error_log( '[Cart_Events] create_cart_post() called' );
         }
         
-        // check if cart already exists
-        if ( function_exists('WC') && WC()->session instanceof \WC_Session && WC()->session->get('fcrc_active_cart') ) {
+        // stop processing if the cart already exists, admin requests or if cart is empty
+        if ( is_admin() ) {
             if ( self::$debug_mode ) {
-                error_log('Cart already exists. Skipping cart creation. ' . 'Current cart ID: ' . Helpers::get_current_cart_id() );
+                error_log( '[Cart_Events] Admin area detected. Skipping.' );
             }
 
             return;
+        }
+        
+        if ( Helpers::is_cart_cycle_finished() ) {
+            if ( self::$debug_mode ) {
+                error_log( '[Cart_Events] Cart cycle finished detected. Skipping.' );
+            }
+
+            return;
+        }
+        
+        if ( WC()->cart->is_empty() ) {
+            if ( self::$debug_mode ) {
+                error_log( '[Cart_Events] Cart is empty. Skipping.' );
+            }
+
+            return;
+        }
+        
+        // Check if cart already exists in session
+        if ( function_exists('WC') && WC()->session instanceof \WC_Session ) {
+            $session_cart_id = WC()->session->get('fcrc_cart_id');
+            
+            if ( self::$debug_mode ) {
+                error_log( '[Cart_Events] Session cart ID check: ' . ($session_cart_id ? $session_cart_id : 'null') );
+            }
+            
+            if ( $session_cart_id ) {
+                $session_cart_status = get_post_status( $session_cart_id );
+                
+                if ( self::$debug_mode ) {
+                    error_log( '[Cart_Events] Session cart status: ' . ($session_cart_status ? $session_cart_status : 'not found') );
+                }
+                
+                // If session cart is still active, use it
+                if ( in_array( $session_cart_status, array( 'shopping', 'abandoned' ), true ) ) {
+                    if ( self::$debug_mode ) {
+                        error_log('[Cart_Events] Cart already exists in session. Skipping cart creation. ID: ' . $session_cart_id );
+                    }
+
+                    return null;
+                } else {
+                    if ( self::$debug_mode ) {
+                        error_log( '[Cart_Events] Session cart exists but status is not active: ' . $session_cart_status );
+                    }
+                }
+            }
         }
 
         // Determine client IP (cookie fallback → REMOTE_ADDR)
         $client_ip = Helpers::get_client_ip();
 
+        if ( self::$debug_mode ) {
+            error_log( '[Cart_Events] Client IP: ' . $client_ip );
+        }
+
+        // Clean up old lost carts for this IP
+        Helpers::cleanup_old_lost_carts( $client_ip );
+
         // If IP has an existing cart in lost/recovered/purchased state, skip
         if ( $client_ip ) {
+            if ( self::$debug_mode ) {
+                error_log( '[Cart_Events] Checking for ACTIVE carts for IP: ' . $client_ip );
+            }
+            
             $existing = get_posts( array(
                 'post_type'      => 'fc-recovery-carts',
-                'post_status'    => array( 'lead', 'shopping', 'abandoned', 'order_abandoned', ),
+                'post_status'    => array( 'shopping', 'abandoned' ),
                 'meta_key'       => '_fcrc_location_ip',
                 'meta_value'     => $client_ip,
                 'posts_per_page' => 1,
                 'fields'         => 'ids',
-            ) );
+                'meta_query'     => array(
+                    array(
+                        'key'     => '_fcrc_cart_updated_time',
+                        'value'   => current_time('timestamp', true) - (7 * 24 * 60 * 60), // last 7 days
+                        'compare' => '>',
+                        'type'    => 'NUMERIC',
+                    ),
+                ),
+            ));
 
             if ( ! empty( $existing ) ) {
+                $existing_id = $existing[0];
+                $existing_status = get_post_status( $existing_id );
+                $existing_time = get_post_meta( $existing_id, '_fcrc_cart_updated_time', true );
+                
                 if ( self::$debug_mode ) {
-                    error_log( 'Active recovery cart exists for IP ' . $client_ip . '. Skipping creation.' );
+                    error_log( '[Cart_Events] ACTIVE cart found for IP ' . $client_ip . 
+                            '. ID: ' . $existing_id . 
+                            ', Status: ' . $existing_status . 
+                            ', Last updated: ' . date('Y-m-d H:i:s', $existing_time) .
+                            '. Skipping creation.' );
                 }
 
                 return null;
+            } else {
+                if ( self::$debug_mode ) {
+                    error_log( '[Cart_Events] No ACTIVE carts found for IP: ' . $client_ip );
+                    
+                    $finished_carts = get_posts( array(
+                        'post_type'      => 'fc-recovery-carts',
+                        'post_status'    => array( 'lost', 'recovered', 'purchased', 'completed', 'order_abandoned' ),
+                        'meta_key'       => '_fcrc_location_ip',
+                        'meta_value'     => $client_ip,
+                        'posts_per_page' => 1,
+                        'fields'         => 'ids',
+                    ));
+                    
+                    if ( ! empty( $finished_carts ) ) {
+                        $finished_id = $finished_carts[0];
+                        $finished_status = get_post_status( $finished_id );
+                        
+                        error_log( '[Cart_Events] Found FINISHED cart for same IP: ID=' . $finished_id . ', Status=' . $finished_status . ' - This will NOT block new cart creation.' );
+                    }
+                }
+            }
+        } else {
+            if ( self::$debug_mode ) {
+                error_log( '[Cart_Events] No client IP found' );
             }
         }
 
         // Build cart items array and total
         $cart_items_data = WC()->cart->get_cart();
+        
+        if ( self::$debug_mode ) {
+            error_log( '[Cart_Events] Cart items count: ' . count($cart_items_data) );
+        }
+        
         $cart_items = array();
         $cart_total = 0;
 
@@ -169,6 +291,11 @@ class Cart_Events {
         $contact = Helpers::get_cart_contact_data();
         $current_time = current_time( 'timestamp', true );
 
+        if ( self::$debug_mode ) {
+            error_log( '[Cart_Events] Location data: ' . print_r($location, true) );
+            error_log( '[Cart_Events] Contact data: ' . print_r($contact, true) );
+        }
+
         // Create new cart post
         $cart_id = wp_insert_post( array(
             'post_type' => 'fc-recovery-carts',
@@ -191,6 +318,14 @@ class Cart_Events {
             ),
         ));
 
+        if ( is_wp_error( $cart_id ) ) {
+            if ( self::$debug_mode ) {
+                error_log( '[Cart_Events] Error creating cart post: ' . $cart_id->get_error_message() );
+            }
+
+            return null;
+        }
+
         // Store cart ID in session
         WC()->session->set( 'fcrc_cart_id', $cart_id );
 
@@ -209,7 +344,7 @@ class Cart_Events {
         do_action( 'Flexify_Checkout/Recovery_Carts/New_Cart_Created', $cart_id );
 
         if ( self::$debug_mode ) {
-            error_log( "New cart created: " . $cart_id );
+            error_log( "[Cart_Events] New cart created: " . $cart_id );
         }
 
         return $cart_id;

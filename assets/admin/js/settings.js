@@ -187,6 +187,7 @@
 		 * Save options in AJAX
 		 * 
 		 * @since 1.0.0
+		 * @version 1.3.5
 		 */
 		saveOptions: function() {
 			let settings_form = $('form[name="fc-recovery-carts-options-form"]');
@@ -208,6 +209,7 @@
 					type: 'POST',
 					data: {
 						action: 'fc_recovery_carts_save_options',
+						nonce: params.ajax_nonce,
 						form_data: settings_form.serialize(),
 					},
 					beforeSend: function() {
@@ -282,7 +284,7 @@
 		 * Add new follow up item
 		 * 
 		 * @since 1.0.0
-		 * @version 1.2.0
+		 * @version 1.3.5
 		 */
 		addNewFollowUp: function() {
 			var container = $('#fcrc_add_new_follow_up_container');
@@ -301,6 +303,9 @@
 				let follow_up_delay_time = $('#fcrc_add_new_follow_up_delay_time');
 				let follow_up_delay_type = $('#fcrc_add_new_follow_up_delay_type');
 				let whatsapp_channel = $('#fcrc_add_new_follow_up_channels_whatsapp');
+				let follow_up_start_time = $('#fcrc_add_new_follow_up_start_time');
+				let follow_up_end_time = $('#fcrc_add_new_follow_up_end_time');
+
 				var set_coupon = {
 					enabled: container.find('.enable-send-coupon').prop('checked') ? 'yes' : 'no',
 					generate_coupon: container.find('.enable-generate-coupon').prop('checked') ? 'yes' : 'no',
@@ -321,6 +326,7 @@
 					type: 'POST',
 					data: {
 						action: 'fcrc_add_new_follow_up',
+						nonce: params.ajax_nonce,
 						title: follow_up_title.val() || '',
 						message: follow_up_message.val() || '',
 						delay_time: follow_up_delay_time.val() || '',
@@ -328,6 +334,8 @@
 						whatsapp: whatsapp_channel.prop('checked') ? 'yes' : 'no',
 						email: '',
 						coupon: JSON.stringify( set_coupon ),
+						start_time: follow_up_start_time.val() || '',
+						end_time: follow_up_end_time.val() || '',
 					},
 					beforeSend: function() {
 						btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm"></span>');
@@ -347,6 +355,8 @@
 								follow_up_delay_time.val('');
 								follow_up_delay_type.val('');
 								whatsapp_channel.prop('checked', false);
+								follow_up_start_time.val('');
+								follow_up_end_time.val('');
 							} else {
 								Settings.displayToast('error', response.toast_header_title, response.toast_body_title);
 							}
@@ -407,6 +417,7 @@
 		 * Delete follow up item
 		 * 
 		 * @since 1.0.0
+		 * @version 1.3.5
 		 */
 		deleteFollowUp: function() {
 			// delete follow up item on click delete button
@@ -427,6 +438,7 @@
 					type: 'POST',
 					data: {
 						action: 'fcrc_delete_follow_up',
+						nonce: params.ajax_nonce,
 						event_key: get_item,
 					},
 					beforeSend: function() {
