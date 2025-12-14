@@ -90,8 +90,8 @@ class Init {
         // set compatibility with WooCommerce HPOS (High-Performance Order Storage)
         add_action( 'before_woocommerce_init', array( $this, 'setup_hpos_compatibility' ) );
 
-        // instance classes after WordPress is fully loaded
-        add_action( 'plugins_loaded', array( $this, 'instance_classes' ) );
+        // instance classes after WordPress plugins is loaded
+        add_action( 'plugins_loaded', array( $this, 'instance_classes' ), 99 );
 
         // hook after init plugin
         do_action('fc_recovery_carts_init');

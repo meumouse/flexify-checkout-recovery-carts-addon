@@ -33,15 +33,15 @@ class Recovery_Handler {
      * Construct function
      *
      * @since 1.0.0
-     * @version 1.3.2
+     * @version 1.3.5
      * @return void
      */
     public function __construct() {
         // check for abandoned carts
-        add_action( 'init', array( $this, 'check_abandoned_carts' ) );
+        add_action( 'wp_loaded', array( $this, 'check_abandoned_carts' ) );
 
         if ( Scheduler_Manager::is_php_cron_enabled() ) {
-            add_action( 'init', array( __CLASS__, 'maybe_run_queue' ), 1 );
+            add_action( 'wp_loaded', array( __CLASS__, 'maybe_run_queue' ), 1 );
         }
 
         // start recovery carts
@@ -78,13 +78,24 @@ class Recovery_Handler {
      * Checks for abandoned carts by verifying last ping time
      *
      * @since 1.0.0
-     * @version 1.3.2
+     * @version 1.3.5
      * @return void
      */
     public function check_abandoned_carts() {
+        if ( self::$debug_mode ) {
+            error_log( '[Recovery_Handler] check_abandoned_carts() called at ' . current_time('Y-m-d H:i:s') );
+        }
+
         $time_limit_seconds = Helpers::get_abandonment_time_seconds();
         $current_time = current_time( 'timestamp', true );
         $time_threshold = $current_time - ( $time_limit_seconds + 30 ); // add 30 seconds to account for any time differences
+
+        if ( self::$debug_mode ) {
+            error_log( '[Recovery_Handler] Time limit seconds: ' . $time_limit_seconds );
+            error_log( '[Recovery_Handler] Current timestamp: ' . $current_time );
+            error_log( '[Recovery_Handler] Time threshold: ' . $time_threshold );
+            error_log( '[Recovery_Handler] Looking for carts older than: ' . date('Y-m-d H:i:s', $time_threshold) );
+        }
 
         $query = new \WP_Query( array(
             'post_type' => 'fc-recovery-carts',
@@ -100,19 +111,36 @@ class Recovery_Handler {
             ),
         ));
 
+        if ( self::$debug_mode ) {
+            error_log( '[Recovery_Handler] Found ' . $query->found_posts . ' shopping carts to check' );
+        }
+
         if ( $query->have_posts() ) {
             while ( $query->have_posts() ) {
                 $query->the_post();
                 $cart_id = get_the_ID();
                 $current_status = get_post_status( $cart_id );
 
+                if ( self::$debug_mode ) {
+                    error_log( '[Recovery_Handler] Checking cart ID: ' . $cart_id . ' with status: ' . $current_status );
+                }
+
                 if ( $current_status !== 'shopping' ) {
+                    if ( self::$debug_mode ) {
+                        error_log( '[Recovery_Handler] Cart ID ' . $cart_id . ' status is not shopping (' . $current_status . '). Skipping.' );
+                    }
+
                     continue;
                 }
 
                 // Get the last ping time
                 $last_ping = get_post_meta( $cart_id, '_fcrc_cart_updated_time', true );
                 $last_ping = intval( $last_ping );
+
+                if ( self::$debug_mode ) {
+                    error_log( '[Recovery_Handler] Cart ID ' . $cart_id . ' last ping: ' . $last_ping . ' (' . date('Y-m-d H:i:s', $last_ping) . ')' );
+                    error_log( '[Recovery_Handler] Comparing: ' . $last_ping . ' < ' . $time_threshold . ' ?' );
+                }
 
                 // Check if cart should be marked as abandoned
                 if ( empty( $last_ping ) || $last_ping < $time_threshold ) {
@@ -126,7 +154,8 @@ class Recovery_Handler {
                     ));
 
                     if ( self::$debug_mode ) {
-                        error_log( 'Abandoned cart: ' . $cart_id . ' | Last ping: ' . $last_ping );
+                        error_log( '[Recovery_Handler] Cart marked as abandoned: ' . $cart_id . ' | Last ping: ' . $last_ping . ' (' . date('Y-m-d H:i:s', $last_ping) . ')' );
+                        error_log( '[Recovery_Handler] Abandonment time threshold: ' . date('Y-m-d H:i:s', $time_threshold) );
                     }
 
                     /**
@@ -136,11 +165,23 @@ class Recovery_Handler {
                      * @param int $cart_id
                      */
                     do_action( 'Flexify_Checkout/Recovery_Carts/Cart_Abandoned', $cart_id );
+                } else {
+                    if ( self::$debug_mode ) {
+                        error_log( '[Recovery_Handler] Cart ID ' . $cart_id . ' still active. Last ping is within threshold.' );
+                    }
                 }
+            }
+        } else {
+            if ( self::$debug_mode ) {
+                error_log( '[Recovery_Handler] No shopping carts found to check for abandonment.' );
             }
         }
 
         wp_reset_postdata();
+        
+        if ( self::$debug_mode ) {
+            error_log( '[Recovery_Handler] check_abandoned_carts() completed.' );
+        }
     }
 
 
