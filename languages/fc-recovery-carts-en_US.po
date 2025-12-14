@@ -3,7 +3,7 @@ msgstr ""
 "Project-Id-Version: Flexify Checkout - Recuperação de carrinhos abandonados\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2025-03-06 19:32+0000\n"
-"PO-Revision-Date: 2025-07-09 02:46+0000\n"
+"PO-Revision-Date: 2025-12-14 23:25+0000\n"
 "Last-Translator: \n"
 "Language-Team: English (United States)\n"
 "Language: en_US\n"
@@ -15,12 +15,41 @@ msgstr ""
 "X-Loco-Version: 2.7.1; wp-6.7.2\n"
 "X-Domain: fc-recovery-carts"
 
-#: inc/Views/Carts_Table.php:191
+#: inc/Views/Queue_Table.php:405
+msgid "%d evento cancelado com sucesso."
+msgid_plural "%d eventos cancelados com sucesso."
+msgstr[0] ""
+msgstr[1] ""
+
+#: inc/Views/Queue_Table.php:393
+msgid "%d evento disparado com sucesso."
+msgid_plural "%d eventos disparados com sucesso."
+msgstr[0] ""
+msgstr[1] ""
+
+#: inc/Views/Queue_Table.php:417
+msgid "%d evento excluído com sucesso."
+msgid_plural "%d eventos excluídos com sucesso."
+msgstr[0] ""
+msgstr[1] ""
+
+#: inc/Views/Settings/Tabs/Webhooks.php:39
+#: inc/Views/Settings/Tabs/Webhooks.php:52
+msgid "%d webhook configurado"
+msgid_plural "%d webhooks configurados"
+msgstr[0] ""
+msgstr[1] ""
+
+#: inc/Views/Settings/Tabs/Webhooks.php:52
+msgid "%d webhooks configurados"
+msgstr ""
+
+#: inc/Views/Carts_Table.php:211
 #, php-format
 msgid "%s - %s"
 msgstr ""
 
-#: inc/Views/Carts_Table.php:395
+#: inc/Views/Carts_Table.php:418
 #, php-format
 msgid "%s - Qtd: %d"
 msgstr "%s - Qty: %d"
@@ -29,50 +58,42 @@ msgstr "%s - Qty: %d"
 msgid "+55 11 91234-5678"
 msgstr "+1 555 123-4567"
 
-#: inc/Admin/Components.php:124 inc/Views/Settings/Tabs/FollowUp.php:67
+#: inc/Admin/Components.php:132 inc/Views/Settings/Tabs/FollowUp.php:69
+msgid "08:00"
+msgstr ""
+
+#: inc/Admin/Components.php:146 inc/Views/Settings/Tabs/FollowUp.php:83
 msgid "1"
 msgstr "1"
 
-#: inc/Admin/Components.php:374
+#: inc/Admin/Components.php:396
 msgid "15 dias"
 msgstr ""
 
-#: inc/Admin/Components.php:375
+#: inc/Admin/Components.php:137 inc/Views/Settings/Tabs/FollowUp.php:74
+msgid "20:00"
+msgstr ""
+
+#: inc/Admin/Components.php:397
 msgid "30 dias"
 msgstr ""
 
-#: inc/Admin/Components.php:377
+#: inc/Admin/Components.php:399
 msgid "365 dias"
 msgstr ""
 
-#: inc/Admin/Components.php:373
+#: inc/Admin/Components.php:395
 msgid "7 dias"
 msgstr ""
 
-#: inc/Admin/Components.php:376
+#: inc/Admin/Components.php:398
 msgid "90 dias"
 msgstr ""
 
-#: inc/Views/Carts_Table.php:195
+#: inc/Views/Carts_Table.php:217
 #, php-format
 msgid "<li><strong>%s</strong> via %s: <small>%s</small></li>"
 msgstr ""
-
-#: inc/Core/Init.php:70
-msgid ""
-"<strong>Flexify Checkout - Recuperação de carrinhos abandonados</strong> "
-"requer o plugin Flexify Checkout para WooCommerce."
-msgstr ""
-"<strong>Flexify Checkout - Abandoned Cart Recovery</strong> requires the "
-"Flexify Checkout for WooCommerce plugin."
-
-#: flexify-checkout-recovery-carts-addon.php:161
-msgid ""
-"<strong>Flexify Checkout - Recuperação de Carrinhos</strong> requer PHP 7.4 "
-"ou superior. Atualize seu ambiente de hospedagem."
-msgstr ""
-"<strong>Flexify Checkout - Cart Recovery</strong> requires PHP 7.4 or higher."
-" Please update your hosting environment."
 
 #: inc/Core/Updater.php:253
 msgid ""
@@ -82,20 +103,36 @@ msgstr ""
 "The <strong>Flexify Checkout - Abandoned Cart Recovery</strong> plugin "
 "version is up to date."
 
-#: inc/Views/Carts_Table.php:72 inc/Views/Carts_Table.php:499
+#: inc/Views/Carts_Table.php:73 inc/Views/Carts_Table.php:532
 msgid "Abandonado"
 msgstr "Abandoned"
 
-#: inc/Admin/Admin.php:319
+#: inc/Core/Webhooks.php:64
+msgid ""
+"Acionado após o término dos follow ups quando o cliente não concluiu o "
+"pedido."
+msgstr ""
+
+#: inc/Core/Webhooks.php:76
+msgid ""
+"Acionado quando os dados de contato são coletados via modal ou checkout."
+msgstr ""
+
+#: inc/Admin/Admin.php:337
 msgctxt "add new on admin bar"
 msgid "Carrinho"
 msgstr "Cart"
 
-#: inc/Views/Settings/Tabs/FollowUp.php:79
+#: inc/Views/Settings/Tabs/FollowUp.php:95
 msgid "Adicionar"
 msgstr "Add"
 
-#: inc/Admin/Admin.php:321
+#: inc/Views/Settings/Tabs/Webhooks.php:151
+#: inc/Views/Settings/Tabs/Webhooks.php:197
+msgid "Adicionar cabeçalho"
+msgstr ""
+
+#: inc/Admin/Admin.php:339
 msgid "Adicionar novo carrinho"
 msgstr "Add new cart"
 
@@ -107,26 +144,34 @@ msgstr "Add new event"
 msgid "Adicionar novo follow up"
 msgstr "Add new follow up"
 
-#: inc/Admin/Admin.php:318
+#: inc/Views/Settings/Tabs/Webhooks.php:88
+msgid "Adicionar webhook"
+msgstr ""
+
+#: inc/Admin/Admin.php:336
 msgctxt "admin menu"
 msgid "Carrinhos"
 msgstr "Carts"
 
-#: inc/Views/Queue_Table.php:195
+#: inc/Views/Settings/Tabs/General.php:22
+msgid "Agendador de tarefas"
+msgstr ""
+
+#: inc/Views/Queue_Table.php:229
 msgid "Aguardando pagamento"
 msgstr ""
 
-#: inc/Core/Assets.php:98
+#: inc/Core/Assets.php:99
 msgid "Animais e Natureza"
 msgstr "Animals & Nature"
 
 #. parent page slug
 #. page title
-#: inc/Admin/Admin.php:74 inc/Admin/Admin.php:75
+#: inc/Admin/Admin.php:78 inc/Admin/Admin.php:79
 msgid "Análises"
 msgstr ""
 
-#: inc/Core/Ajax.php:112
+#: inc/Core/Ajax.php:321
 msgid "As configurações foram atualizadas!"
 msgstr "Settings have been updated!"
 
@@ -136,21 +181,26 @@ msgid ""
 "para lembrar o usuário de finalizar seu pedido."
 msgstr ""
 
-#: inc/Views/Settings/Tabs/General.php:123
+#: inc/Views/Settings/Tabs/General.php:137
 msgid "Ativar coleta de localização através do IP"
 msgstr "Enable location collection via IP"
 
-#: inc/Admin/Components.php:203
+#: inc/Admin/Components.php:225
 msgid "Ativar envio de cupom:"
 msgstr "Enable coupon sending:"
 
-#: inc/Views/Settings/Tabs/General.php:22
+#: inc/Views/Settings/Tabs/General.php:36
 msgid "Ativar modal de coleta de lead"
 msgstr "Enable lead capture modal"
 
-#: inc/Views/Settings/Tabs/General.php:62
+#: inc/Views/Settings/Tabs/General.php:76
 msgid "Ativar telefone internacional no modal"
 msgstr "Enable international phone in modal"
+
+#: inc/Views/Settings/Tabs/Webhooks.php:112
+#: inc/Views/Settings/Tabs/Webhooks.php:179
+msgid "Ativar webhook"
+msgstr ""
 
 #: inc/Views/Settings_Info.php:30
 msgid ""
@@ -159,18 +209,18 @@ msgid ""
 msgstr ""
 "Enable the Pro version of Flexify Checkout to unlock this plugin's settings"
 
-#: inc/Views/Settings/Tabs/General.php:124
+#: inc/Views/Settings/Tabs/General.php:138
 msgid "Ative essa opção coletar a localização do usuário através do seu IP."
 msgstr "Enable this option to collect user location via their IP."
 
-#: inc/Views/Settings/Tabs/General.php:73
+#: inc/Views/Settings/Tabs/General.php:87
 msgid ""
 "Ative essa opção para exibir o modal de coleta de leads apenas para usuários "
 "logados."
 msgstr ""
 "Enable this option to show the lead capture modal only for logged-in users."
 
-#: inc/Views/Settings/Tabs/General.php:23 inc/Views/Settings/Tabs/Styles.php:21
+#: inc/Views/Settings/Tabs/General.php:37 inc/Views/Settings/Tabs/Styles.php:21
 msgid ""
 "Ative essa opção para exibir o modal de coleta informações de contato quando "
 "o usuário adicionar um produto ao carrinho."
@@ -178,7 +228,7 @@ msgstr ""
 "Enable this option to show the contact information collection modal when a "
 "user adds a product to cart."
 
-#: inc/Views/Settings/Tabs/General.php:63
+#: inc/Views/Settings/Tabs/General.php:77
 msgid ""
 "Ative essa opção para exibir o seletor de lista de países dentro do modal de "
 "coleta de leads (Recomendado)."
@@ -186,15 +236,15 @@ msgstr ""
 "Enable this option to show the country list selector in the lead capture "
 "modal (Recommended)."
 
-#: inc/Core/Assets.php:100
+#: inc/Core/Assets.php:101
 msgid "Atividades"
 msgstr "Activities"
 
-#: inc/Admin/Components.php:121 inc/Views/Settings/Tabs/FollowUp.php:64
+#: inc/Admin/Components.php:143 inc/Views/Settings/Tabs/FollowUp.php:80
 msgid "Atraso: *"
 msgstr "Delay: *"
 
-#: inc/Core/Assets.php:104
+#: inc/Core/Assets.php:105
 msgid "Bandeiras"
 msgstr "Flags"
 
@@ -202,49 +252,70 @@ msgstr "Flags"
 msgid "Buscar carrinhos"
 msgstr "Search carts"
 
-#: inc/Views/Queue_Table.php:50
+#: inc/Views/Queue_Table.php:65
 msgid "Buscar eventos"
 msgstr ""
 
-#: inc/Admin/Components.php:108 inc/Views/Settings/Tabs/FollowUp.php:51
+#: inc/Admin/Components.php:114 inc/Views/Settings/Tabs/FollowUp.php:51
 msgid "Canal da notificação: *"
 msgstr "Notification channel: *"
+
+#: inc/Views/Queue_Table.php:299 inc/Views/Queue_Table.php:353
+msgid "Cancelar"
+msgstr ""
 
 #: inc/Views/Carts_Table.php:34
 msgid "Carrinho"
 msgstr "Cart"
 
-#: inc/Admin/Admin.php:320
+#: inc/Admin/Admin.php:338
 msgctxt "carrinho"
 msgid "Adicionar novo"
 msgstr "Add new"
 
-#: inc/Views/Carts_Table.php:448
+#: inc/Views/Queue_Table.php:112
+#, php-format
+msgid "Carrinho #%d - Evento: %s"
+msgstr ""
+
+#: inc/Core/Webhooks.php:55
+msgid "Carrinho abandonado"
+msgstr ""
+
+#: inc/Views/Carts_Table.php:471
 msgid "Carrinho ainda ativo"
 msgstr "Cart still active"
 
-#: inc/Admin/Admin.php:327
+#: inc/Admin/Admin.php:345
 msgid "Carrinho pai:"
 msgstr "Parent cart:"
+
+#: inc/Core/Webhooks.php:63
+msgid "Carrinho perdido"
+msgstr ""
+
+#: inc/Core/Webhooks.php:67
+msgid "Carrinho recuperado"
+msgstr ""
 
 #: inc/Views/Carts_Table.php:35
 msgid "Carrinhos"
 msgstr "Carts"
 
 #. label
-#: inc/Admin/Admin.php:59 inc/Admin/Components.php:407
+#: inc/Admin/Admin.php:63 inc/Admin/Components.php:429
 msgid "Carrinhos abandonados"
 msgstr "Abandoned carts"
 
-#: inc/Admin/Components.php:402
+#: inc/Admin/Components.php:424
 msgid "Carrinhos ativos"
 msgstr ""
 
-#: inc/Admin/Components.php:417
+#: inc/Admin/Components.php:439
 msgid "Carrinhos perdidos"
 msgstr ""
 
-#: inc/Admin/Components.php:412
+#: inc/Admin/Components.php:434
 msgid "Carrinhos recuperados"
 msgstr ""
 
@@ -252,31 +323,41 @@ msgstr ""
 msgid "Central de ajuda"
 msgstr "Help center"
 
-#: inc/Core/Assets.php:99
+#: inc/Views/Settings/Tabs/Webhooks.php:134
+#: inc/Views/Settings/Tabs/Webhooks.php:213
+msgid "Chave do cabeçalho"
+msgstr ""
+
+#: inc/Core/Ajax.php:461
+msgid "Chave do evento não especificada."
+msgstr ""
+
+#: inc/Core/Assets.php:100
 msgid "Comidas e Bebidas"
 msgstr "Food & Drink"
 
-#: inc/Views/Carts_Table.php:71 inc/Views/Carts_Table.php:498
+#: inc/Views/Carts_Table.php:72 inc/Views/Carts_Table.php:531
 msgid "Comprando"
 msgstr "Shopping"
 
-#: inc/Views/Carts_Table.php:501
+#: inc/Views/Carts_Table.php:534
 msgid "Comprou"
 msgstr "Purchased"
 
-#: inc/Integrations/Joinotify.php:47 inc/Views/Settings/Tabs/General.php:28
+#: inc/Integrations/Joinotify.php:62 inc/Views/Settings/Tabs/General.php:42
+#: inc/Views/Settings/Tabs/Webhooks.php:55
 msgid "Configurar"
 msgstr "Configure"
 
-#: inc/Views/Settings/Tabs/General.php:129
+#: inc/Views/Settings/Tabs/General.php:143
 msgid "Configurar API"
 msgstr ""
 
-#: inc/Views/Settings/Tabs/General.php:134
+#: inc/Views/Settings/Tabs/General.php:148
 msgid "Configurar API de coleta de IP"
 msgstr ""
 
-#: inc/Views/Settings/Tabs/General.php:33
+#: inc/Views/Settings/Tabs/General.php:47
 msgid "Configurar modal de coleta de leads"
 msgstr "Configure lead capture modal"
 
@@ -286,16 +367,16 @@ msgstr "Configure delay time for payment methods"
 
 #. parent page slug
 #. page title
-#: inc/Admin/Admin.php:104 inc/Admin/Admin.php:105 inc/Admin/Admin.php:113
-#: inc/Admin/Admin.php:114 inc/Core/Init.php:86
+#: inc/Admin/Admin.php:108 inc/Admin/Admin.php:109 inc/Admin/Admin.php:117
+#: inc/Admin/Admin.php:118 inc/Core/Init.php:448
 msgid "Configurações"
 msgstr "Settings"
 
-#: inc/Integrations/Joinotify.php:52
+#: inc/Integrations/Joinotify.php:67
 msgid "Configurações da integração: Joinotify"
 msgstr "Integration settings: Joinotify"
 
-#: inc/Views/Carts_Table.php:136 inc/Views/Queue_Table.php:77
+#: inc/Views/Carts_Table.php:137 inc/Views/Queue_Table.php:92
 msgid "Contato"
 msgstr "Contact"
 
@@ -303,19 +384,19 @@ msgstr "Contact"
 msgid "Cor primária"
 msgstr "Primary color"
 
-#: inc/Admin/Admin.php:378 inc/Admin/Admin.php:380 inc/Views/Queue_Table.php:30
+#: inc/Admin/Admin.php:396 inc/Admin/Admin.php:398 inc/Views/Queue_Table.php:32
 msgid "Cron Event"
 msgstr ""
 
-#: inc/Admin/Admin.php:377 inc/Admin/Admin.php:379 inc/Views/Queue_Table.php:31
+#: inc/Admin/Admin.php:395 inc/Admin/Admin.php:397 inc/Views/Queue_Table.php:33
 msgid "Cron Events"
 msgstr ""
 
-#: inc/Admin/Components.php:213
+#: inc/Admin/Components.php:235
 msgid "Cupom de desconto: *"
 msgstr "Discount coupon: *"
 
-#: inc/Admin/Components.php:234
+#: inc/Admin/Components.php:256
 msgid "CUPOM_"
 msgstr "COUPON_"
 
@@ -327,54 +408,82 @@ msgstr "Coupon code"
 msgid "da Silva"
 msgstr "Smith"
 
+#: inc/Core/Ajax.php:756
+msgid "Dados de localização atualizados com sucesso."
+msgstr ""
+
 #: inc/Core/Coupons.php:29
 msgid "Dados insuficientes para criar o cupom."
 msgstr "Insufficient data to create coupon."
 
-#: inc/Admin/Components.php:347 inc/Admin/Components.php:395
-#: inc/Admin/Components.php:450
+#: inc/Core/Ajax.php:744
+msgid "Dados inválidos."
+msgstr ""
+
+#: inc/Admin/Components.php:369 inc/Admin/Components.php:417
+#: inc/Admin/Components.php:472
 msgid "Dados relacionados aos últimos %d dias"
 msgstr ""
 
-#: inc/Views/Carts_Table.php:140
+#: inc/Views/Carts_Table.php:141
 msgid "Data do evento"
 msgstr "Event date"
 
-#: inc/Views/Queue_Table.php:79
+#: inc/Views/Queue_Table.php:94
 msgid "Data e horário do evento"
 msgstr ""
 
-#: inc/Admin/Admin.php:334
+#: inc/Views/Carts_Table.php:214
+msgid "Data inválida"
+msgstr ""
+
+#: inc/Admin/Admin.php:352
 msgid "Descrição."
 msgstr "Description."
 
-#: inc/Admin/Components.php:129 inc/Admin/Components.php:265
-#: inc/Admin/Components.php:304 inc/Views/Settings/Tabs/FollowUp.php:72
-#: inc/Views/Settings/Tabs/General.php:230
+#: inc/Admin/Components.php:151 inc/Admin/Components.php:287
+#: inc/Admin/Components.php:326 inc/Views/Settings/Tabs/FollowUp.php:88
+#: inc/Views/Settings/Tabs/General.php:244
 msgid "Dias"
 msgstr "Days"
 
-#: inc/Core/Assets.php:95
+#: inc/Core/Webhooks.php:56
+msgid "Disparado quando um carrinho é marcado como abandonado."
+msgstr ""
+
+#: inc/Core/Webhooks.php:72
+msgid "Disparado quando um pedido é concluído diretamente pelo cliente."
+msgstr ""
+
+#: inc/Core/Webhooks.php:80
+msgid "Disparado sempre que uma mensagem de follow up é enviada."
+msgstr ""
+
+#: inc/Views/Queue_Table.php:298 inc/Views/Queue_Table.php:346
+msgid "Disparar agora"
+msgstr ""
+
+#: inc/Core/Assets.php:96
 msgid "Diversidade"
 msgstr "Diversity"
 
-#: inc/Core/Init.php:107
+#: inc/Core/Init.php:469
 msgid "Documentação"
 msgstr "Documentation"
 
-#: inc/Core/Helpers.php:435 inc/Integrations/Integrations_Base.php:36
+#: inc/Core/Helpers.php:466 inc/Integrations/Integrations_Base.php:36
 msgid "E-mail"
 msgstr "Email"
 
-#: inc/Admin/Components.php:83
+#: inc/Admin/Components.php:89
 msgid "Editar"
 msgstr "Edit"
 
-#: inc/Admin/Admin.php:323
+#: inc/Admin/Admin.php:341
 msgid "Editar carrinho"
 msgstr "Edit cart"
 
-#: inc/Admin/Components.php:88
+#: inc/Admin/Components.php:94
 msgid "Editar evento de follow up"
 msgstr "Edit follow up event"
 
@@ -382,8 +491,18 @@ msgstr "Edit follow up event"
 msgid "Em breve..."
 msgstr "Coming soon..."
 
-#: inc/Views/Settings/Tabs/General.php:143
+#: inc/Views/Settings/Tabs/General.php:157
 msgid "Endereço da API"
+msgstr ""
+
+#: inc/Views/Settings/Tabs/Webhooks.php:26
+msgid ""
+"Envie dados dos eventos do plugin para serviços externos através de "
+"requisições HTTP com suporte a cabeçalhos personalizados."
+msgstr ""
+
+#: inc/Views/Settings/Tabs/General.php:23
+msgid "Escolha como as notificações serão agendadas e processadas."
 msgstr ""
 
 #: inc/Views/Settings/Tabs/Integrations.php:59
@@ -392,46 +511,112 @@ msgid ""
 msgstr ""
 "This plugin needs to be installed and active to enable this integration."
 
-#: inc/Admin/Components.php:54
+#: inc/Admin/Components.php:60
 msgid "Estilos"
 msgstr "Styles"
 
-#: inc/Views/Queue_Table.php:78
+#: inc/Views/Queue_Table.php:93
 msgid "Evento"
 msgstr ""
 
-#: inc/Views/Carts_Table.php:518 inc/Views/Queue_Table.php:256
+#: inc/Views/Queue_Table.php:502
+#, php-format
+msgid "Evento %s cancelado manualmente pelo admin."
+msgstr ""
+
+#: inc/Views/Queue_Table.php:475
+#, php-format
+msgid "Evento %s disparado manualmente pelo admin."
+msgstr ""
+
+#: inc/Views/Queue_Table.php:544
+msgid "Evento cancelado com sucesso."
+msgstr ""
+
+#: inc/Views/Queue_Table.php:534
+msgid "Evento disparado com sucesso."
+msgstr ""
+
+#: inc/Views/Queue_Table.php:554
+msgid "Evento excluído com sucesso."
+msgstr ""
+
+#: inc/Core/Ajax.php:494
+msgid "Evento não encontrado."
+msgstr ""
+
+#: inc/Views/Carts_Table.php:203 inc/Views/Carts_Table.php:207
+#, php-format
+msgid "Evento: %s"
+msgstr ""
+
+#: inc/Views/Settings/Tabs/Webhooks.php:135
+#: inc/Views/Settings/Tabs/Webhooks.php:214
+msgid "Ex: Authorization"
+msgstr ""
+
+#: inc/Views/Settings/Tabs/Webhooks.php:139
+#: inc/Views/Settings/Tabs/Webhooks.php:218
+msgid "Ex: Bearer 123456"
+msgstr ""
+
+#: inc/Views/Carts_Table.php:551 inc/Views/Queue_Table.php:300
+#: inc/Views/Queue_Table.php:360
 msgid "Excluir"
 msgstr "Delete"
 
-#: inc/Views/Settings/Tabs/General.php:210
+#: inc/Core/Webhooks.php:68
+msgid "Executado quando um carrinho abandonado gera um pedido concluído."
+msgstr ""
+
+#: inc/Core/Webhooks.php:60
+msgid ""
+"Executado quando um pedido permanece pendente e é marcado como abandonado."
+msgstr ""
+
+#: inc/Core/Ajax.php:622
+msgid "Falha ao criar carrinho."
+msgstr ""
+
+#: inc/Views/Settings/Tabs/General.php:224
 msgid "Fallback para nome do usuário"
 msgstr "Fallback for username"
 
-#: inc/Admin/Components.php:89 inc/Core/Assets.php:89 inc/Core/Assets.php:132
-#: inc/Frontend/Lead_Capture.php:61 inc/Integrations/Joinotify.php:53
+#: inc/Admin/Components.php:95 inc/Core/Assets.php:90 inc/Core/Assets.php:133
+#: inc/Frontend/Lead_Capture.php:61 inc/Integrations/Joinotify.php:68
 #: inc/Views/Settings/Tabs/FollowUp.php:32
-#: inc/Views/Settings/Tabs/General.php:34
-#: inc/Views/Settings/Tabs/General.php:135
+#: inc/Views/Settings/Tabs/General.php:48
+#: inc/Views/Settings/Tabs/General.php:149
+#: inc/Views/Settings/Tabs/Webhooks.php:76
 msgid "Fechar"
 msgstr "Close"
 
 #. parent page slug
 #. page title
-#: inc/Admin/Admin.php:94 inc/Admin/Admin.php:95
+#: inc/Admin/Admin.php:98 inc/Admin/Admin.php:99
 msgid "Fila de processamentos"
 msgstr ""
 
+#: inc/Admin/Components.php:136 inc/Views/Settings/Tabs/FollowUp.php:73
+msgid "Fim"
+msgstr ""
+
 #. Name of the plugin
-msgid "Flexify Checkout - Recuperação de carrinhos abandonados"
+#, fuzzy
+#| msgid "Flexify Checkout - Recuperação de carrinhos abandonados"
+msgid "Flexify Checkout: Recuperação de carrinhos abandonados"
 msgstr "Flexify Checkout - Abandoned Cart Recovery"
 
 #: inc/Admin/Components.php:36
 msgid "Follow Up"
 msgstr "Follow Up"
 
-#: inc/Views/Queue_Table.php:194
+#: inc/Views/Queue_Table.php:228
 msgid "Follow up"
+msgstr ""
+
+#: inc/Core/Webhooks.php:79
+msgid "Follow up enviado"
 msgstr ""
 
 #: inc/Admin/Components.php:42
@@ -442,7 +627,7 @@ msgstr ""
 msgid "Geral"
 msgstr "General"
 
-#: inc/Admin/Components.php:208
+#: inc/Admin/Components.php:230
 msgid "Gerar cupom automaticamente:"
 msgstr "Generate coupon automatically:"
 
@@ -450,15 +635,24 @@ msgstr "Generate coupon automatically:"
 msgid "Gerenciar carrinhos"
 msgstr "Manage carts"
 
-#: inc/Views/Queue_Table.php:44
+#: inc/Views/Queue_Table.php:58
 msgid "Gerenciar fila de processamentos"
 msgstr ""
 
-#: inc/Admin/Components.php:128 inc/Admin/Components.php:264
-#: inc/Admin/Components.php:303 inc/Views/Settings/Tabs/FollowUp.php:71
-#: inc/Views/Settings/Tabs/General.php:229
+#: inc/Views/Settings/Tabs/Webhooks.php:85
+msgid "Gerencie os webhooks cadastrados para este evento."
+msgstr ""
+
+#: inc/Admin/Components.php:150 inc/Admin/Components.php:286
+#: inc/Admin/Components.php:325 inc/Views/Settings/Tabs/FollowUp.php:87
+#: inc/Views/Settings/Tabs/General.php:243
 msgid "Horas"
 msgstr "Hours"
+
+#: inc/Views/Settings/Tabs/Webhooks.php:119
+#: inc/Views/Settings/Tabs/Webhooks.php:186
+msgid "https://exemplo.com/webhook"
+msgstr ""
 
 #. Author URI of the plugin
 msgid "https://meumouse.com/"
@@ -472,45 +666,54 @@ msgstr ""
 "https://meumouse.com/plugins/flexify-checkout-for-woocommerce/?"
 "utm_source=plugins_list&utm_medium=flexify_checkout_recovery_cart&utm_campaign=plugin_addon"
 
-#: inc/Views/Carts_Table.php:134
+#: inc/Views/Carts_Table.php:135
 msgid "ID"
 msgstr "ID"
 
-#: inc/Views/Queue_Table.php:76
+#: inc/Views/Queue_Table.php:91
 msgid "ID do carrinho"
 msgstr ""
 
-#: inc/Views/Settings/Tabs/General.php:144
+#: inc/Core/Ajax.php:713
+msgid "ID do carrinho inválido."
+msgstr ""
+
+#: inc/Views/Settings/Tabs/Webhooks.php:109
+#: inc/Views/Settings/Tabs/Webhooks.php:176
+msgid "Identificação opcional para o webhook"
+msgstr ""
+
+#: inc/Views/Settings/Tabs/General.php:158
 msgid ""
 "Informe o endereço da API à serem feitas as requisições, podendo ser "
 "utilizado a variável {ip_address} para referenciar o IP do usuário."
 msgstr ""
 
-#: inc/Views/Settings/Tabs/General.php:154
+#: inc/Views/Settings/Tabs/General.php:168
 msgid ""
 "Informe o retorno de código de país da API em formato de objeto JSON. Por "
 "exemplo: body.countryCode"
 msgstr ""
 
-#: inc/Views/Settings/Tabs/General.php:184
+#: inc/Views/Settings/Tabs/General.php:198
 msgid ""
 "Informe o retorno de nome de cidade da API em formato de objeto JSON. Por "
 "exemplo: body.city"
 msgstr ""
 
-#: inc/Views/Settings/Tabs/General.php:174
+#: inc/Views/Settings/Tabs/General.php:188
 msgid ""
 "Informe o retorno de nome de estado ou região da API em formato de objeto "
 "JSON. Por exemplo: body.regionName"
 msgstr ""
 
-#: inc/Views/Settings/Tabs/General.php:164
+#: inc/Views/Settings/Tabs/General.php:178
 msgid ""
 "Informe o retorno de nome de país da API em formato de objeto JSON. Por "
 "exemplo: body.country"
 msgstr ""
 
-#: inc/Views/Settings/Tabs/General.php:194
+#: inc/Views/Settings/Tabs/General.php:208
 msgid ""
 "Informe o retorno do IP do usuário da API em formato de objeto JSON. Por "
 "exemplo: body.query"
@@ -520,7 +723,15 @@ msgstr ""
 msgid "Integrações"
 msgstr "Integrations"
 
-#: inc/Admin/Admin.php:138
+#: inc/Admin/Components.php:127 inc/Views/Settings/Tabs/FollowUp.php:64
+msgid "Intervalo de envio (horário):"
+msgstr ""
+
+#: inc/Admin/Components.php:131 inc/Views/Settings/Tabs/FollowUp.php:68
+msgid "Início"
+msgstr ""
+
+#: inc/Admin/Admin.php:142
 msgid "Itens por página"
 msgstr "Items per page"
 
@@ -536,15 +747,19 @@ msgstr "Joinotify"
 msgid "João"
 msgstr "John"
 
-#: inc/Views/Carts_Table.php:75 inc/Views/Carts_Table.php:497
+#: inc/Views/Carts_Table.php:76 inc/Views/Carts_Table.php:530
 msgid "Lead"
 msgstr "Lead"
 
-#: inc/Admin/Components.php:279
+#: inc/Core/Webhooks.php:75
+msgid "Lead capturado"
+msgstr ""
+
+#: inc/Admin/Components.php:301
 msgid "Limite de uso por cliente:"
 msgstr "Usage limit per customer:"
 
-#: inc/Admin/Components.php:274
+#: inc/Admin/Components.php:296
 msgid "Limite de uso por cupom:"
 msgstr "Usage limit per coupon:"
 
@@ -556,55 +771,55 @@ msgstr "Cart recovery link"
 msgid "Lista de produtos no carrinho ou pedido, separados por vírgula"
 msgstr ""
 
-#: inc/Views/Carts_Table.php:137
+#: inc/Views/Carts_Table.php:138
 msgid "Localização"
 msgstr "Location"
 
-#: inc/Views/Settings/Tabs/General.php:193
+#: inc/Views/Settings/Tabs/General.php:207
 msgid "Mapeamento de IP do usuário"
 msgstr ""
 
-#: inc/Views/Settings/Tabs/General.php:183
+#: inc/Views/Settings/Tabs/General.php:197
 msgid "Mapeamento de nome de cidade"
 msgstr ""
 
-#: inc/Views/Settings/Tabs/General.php:173
+#: inc/Views/Settings/Tabs/General.php:187
 msgid "Mapeamento de nome de estado/região"
 msgstr ""
 
-#: inc/Views/Settings/Tabs/General.php:163
+#: inc/Views/Settings/Tabs/General.php:177
 msgid "Mapeamento de nome de país"
 msgstr ""
 
-#: inc/Views/Settings/Tabs/General.php:153
+#: inc/Views/Settings/Tabs/General.php:167
 msgid "Mapeamento do código do país"
 msgstr ""
 
-#: inc/Views/Carts_Table.php:520
+#: inc/Views/Carts_Table.php:553
 msgid "Marcar como abandonado"
 msgstr "Mark as abandoned"
 
-#: inc/Views/Carts_Table.php:519
+#: inc/Views/Carts_Table.php:552
 msgid "Marcar como perdido"
 msgstr "Mark as lost"
 
-#: inc/Views/Carts_Table.php:521
+#: inc/Views/Carts_Table.php:554
 msgid "Marcar como recuperado"
 msgstr "Mark as recovered"
 
-#: inc/Views/Settings/Tabs/General.php:98
+#: inc/Views/Settings/Tabs/General.php:112
 msgid "Mensagem a ser enviada"
 msgstr "Message to be sent"
 
-#: inc/Admin/Components.php:100 inc/Views/Settings/Tabs/FollowUp.php:43
+#: inc/Admin/Components.php:106 inc/Views/Settings/Tabs/FollowUp.php:43
 msgid "Mensagem que será enviada"
 msgstr "Message that will be sent"
 
-#: inc/Views/Settings/Tabs/General.php:99
+#: inc/Views/Settings/Tabs/General.php:113
 msgid "Mensagem que será enviada ao usuário ao enviar os dados do formulário."
 msgstr "Message that will be sent to the user when submitting the form data."
 
-#: inc/Admin/Components.php:99 inc/Views/Settings/Tabs/FollowUp.php:42
+#: inc/Admin/Components.php:105 inc/Views/Settings/Tabs/FollowUp.php:42
 msgid "Mensagem: *"
 msgstr "Message: *"
 
@@ -612,53 +827,67 @@ msgstr "Message: *"
 msgid "MeuMouse.com"
 msgstr "MeuMouse.com"
 
-#: inc/Admin/Components.php:127 inc/Admin/Components.php:263
-#: inc/Admin/Components.php:302 inc/Views/Settings/Tabs/FollowUp.php:70
-#: inc/Views/Settings/Tabs/General.php:228
+#: inc/Admin/Components.php:149 inc/Admin/Components.php:285
+#: inc/Admin/Components.php:324 inc/Views/Settings/Tabs/FollowUp.php:86
+#: inc/Views/Settings/Tabs/General.php:242
 msgid "Minutos"
 msgstr "Minutes"
 
-#: inc/Views/Settings/Tabs/General.php:72
+#: inc/Views/Settings/Tabs/General.php:86
 msgid "Mostrar modal apenas para usuários logados"
 msgstr "Show modal only for logged-in users"
 
-#: inc/Views/Carts_Table.php:431
+#: inc/Views/Carts_Table.php:454
 msgid "N/A"
 msgstr "N/A"
 
-#: inc/Admin/Admin.php:329
+#: inc/Views/Settings/Tabs/Webhooks.php:124
+#: inc/Views/Settings/Tabs/Webhooks.php:191
+msgid "Nenhum cabeçalho personalizado adicionado."
+msgstr ""
+
+#: inc/Admin/Admin.php:347
 msgid "Nenhum carrinho encontrado na lixeira."
 msgstr "No carts found in trash."
 
-#: inc/Admin/Admin.php:328
+#: inc/Admin/Admin.php:346
 msgid "Nenhum carrinho encontrado."
 msgstr "No carts found."
 
-#: inc/Admin/Components.php:149
+#: inc/Admin/Components.php:171
 msgid "Nenhum evento de follow up adicionado ainda."
 msgstr "No follow up events added yet."
 
-#: inc/Admin/Components.php:95 inc/Views/Settings/Tabs/FollowUp.php:38
+#: inc/Views/Settings/Tabs/Webhooks.php:93
+msgid "Nenhum webhook configurado para este evento ainda."
+msgstr ""
+
+#: inc/Admin/Components.php:101 inc/Views/Settings/Tabs/FollowUp.php:38
 msgid "Nome do evento"
 msgstr "Event name"
 
-#: inc/Admin/Components.php:94 inc/Views/Settings/Tabs/FollowUp.php:37
+#: inc/Admin/Components.php:100 inc/Views/Settings/Tabs/FollowUp.php:37
 msgid "Nome do evento: *"
 msgstr "Event name: *"
+
+#: inc/Views/Settings/Tabs/Webhooks.php:108
+#: inc/Views/Settings/Tabs/Webhooks.php:175
+msgid "Nome interno"
+msgstr ""
 
 #: inc/Frontend/Lead_Capture.php:84
 msgid "Nome: *"
 msgstr "Name: *"
 
-#: inc/Core/Assets.php:134
+#: inc/Core/Assets.php:135
 msgid "Notificações"
 msgstr ""
 
-#: inc/Admin/Components.php:449
+#: inc/Admin/Components.php:471
 msgid "Notificações de follow up enviadas"
 msgstr ""
 
-#: inc/Views/Carts_Table.php:135
+#: inc/Views/Carts_Table.php:136
 msgid "Notificações enviadas"
 msgstr ""
 
@@ -667,24 +896,30 @@ msgid ""
 "Notifique seus usuários e clientes com e-mails personalizados da sua marca."
 msgstr "Notify your users and customers with branded custom emails."
 
-#: inc/Admin/Admin.php:322
+#: inc/Admin/Admin.php:340
 msgid "Novo carrinho"
 msgstr "New cart"
 
-#: inc/Core/Cart_Events.php:176
+#: inc/Core/Cart_Events.php:303
 #, php-format
 msgid "Novo carrinho - %s"
 msgstr "New cart - %s"
 
-#: inc/Core/Ajax.php:198
+#: inc/Core/Ajax.php:778 inc/Views/Queue_Table.php:378
+#: inc/Views/Queue_Table.php:530 inc/Views/Queue_Table.php:540
+#: inc/Views/Queue_Table.php:550
+msgid "Não autorizado."
+msgstr ""
+
+#: inc/Core/Ajax.php:428
 msgid "Não foi possível adicionar o novo evento."
 msgstr "Could not add the new event."
 
-#: inc/Core/Ajax.php:241 inc/Core/Ajax.php:249
+#: inc/Core/Ajax.php:487
 msgid "Não foi possível remover o evento."
 msgstr "Could not remove the event."
 
-#: inc/Core/Ajax.php:118
+#: inc/Core/Ajax.php:327
 msgid "Não foi possível salvar as configurações."
 msgstr ""
 
@@ -700,31 +935,41 @@ msgstr ""
 msgid "O cupom já existe."
 msgstr "The coupon already exists."
 
-#: inc/Core/Ajax.php:191
+#: inc/Core/Ajax.php:421
 msgid "O evento foi adicionado com sucesso!"
 msgstr "The event was added successfully!"
 
-#: inc/Core/Ajax.php:234
+#: inc/Core/Ajax.php:480
 msgid "O evento foi removido com sucesso!"
 msgstr "The event was removed successfully!"
+
+#: inc/Admin/Admin.php:431
+msgid ""
+"O modo PHP-Cron requer o WP-CLI instalado no servidor. Instale o WP-CLI ou "
+"altere o agendador para WP-Cron."
+msgstr ""
 
 #: inc/Core/Coupons.php:38
 msgid "O valor do desconto deve ser maior que zero para gerar um cupom."
 msgstr ""
 
-#: inc/Core/Assets.php:102
+#: inc/Core/Assets.php:103
 msgid "Objetos"
 msgstr "Objects"
 
-#: inc/Core/Ajax.php:197 inc/Core/Ajax.php:240 inc/Core/Ajax.php:248
+#: inc/Core/Ajax.php:181
+msgid "Ocorreu um erro interno. Por favor, tente novamente."
+msgstr ""
+
+#: inc/Core/Ajax.php:427 inc/Core/Ajax.php:486 inc/Core/Ajax.php:493
 msgid "Ops! Ocorreu um erro"
 msgstr "Oops! An error occurred"
 
-#: inc/Core/Ajax.php:117
+#: inc/Core/Ajax.php:326
 msgid "Ops! Ocorreu um erro."
 msgstr ""
 
-#: inc/Views/Settings/Tabs/General.php:83
+#: inc/Views/Settings/Tabs/General.php:97
 msgid ""
 "Os seletores são os componentes HTML que ao passar o mouse sobre o elemento "
 "mostra o modal. Exemplo: button[name=\"add-to-cart\"]"
@@ -732,36 +977,49 @@ msgstr ""
 "Selectors are the HTML components that show the modal when hovering over the "
 "element. Example: button[name=\"add-to-cart\"]"
 
-#: inc/Views/Carts_Table.php:462
+#: inc/Core/Ajax.php:130
+#, php-format
+msgid "Parâmetro obrigatório ausente: %s"
+msgstr ""
+
+#: inc/Views/Carts_Table.php:485
 #, php-format
 msgid "Pedido #%s"
 msgstr "Order #%s"
 
-#: inc/Views/Carts_Table.php:73
+#: inc/Views/Carts_Table.php:74
 msgid "Pedido Abandonado"
 msgstr "Abandoned Order"
 
-#: inc/Views/Carts_Table.php:500
+#: inc/Core/Webhooks.php:59 inc/Views/Carts_Table.php:533
 msgid "Pedido abandonado"
 msgstr "Abandoned order"
 
-#: inc/Views/Carts_Table.php:470
+#: inc/Core/Webhooks.php:71
+msgid "Pedido concluído"
+msgstr ""
+
+#: inc/Views/Carts_Table.php:493
 msgid "Pedido realizado"
 msgstr "Order completed"
 
-#: inc/Admin/Components.php:427
+#: inc/Admin/Components.php:449
 msgid "Pedidos abandonados"
 msgstr ""
 
-#: inc/Admin/Components.php:242
+#: inc/Admin/Components.php:264
 msgid "Percentual (%)"
 msgstr "Percentage (%)"
 
-#: inc/Views/Carts_Table.php:76 inc/Views/Carts_Table.php:503
+#: inc/Views/Carts_Table.php:77 inc/Views/Carts_Table.php:536
 msgid "Perdido"
 msgstr "Lost"
 
-#: inc/Views/Settings/Tabs/General.php:221
+#: inc/Core/Ajax.php:273 inc/Core/Ajax.php:361 inc/Core/Ajax.php:453
+msgid "Permissão negada."
+msgstr ""
+
+#: inc/Views/Settings/Tabs/General.php:235
 msgid ""
 "Permite definir o tempo para que um carrinho seja considerado abandonado."
 msgstr ""
@@ -774,7 +1032,7 @@ msgstr ""
 "Allows setting the time for an order to be considered abandoned according to "
 "the payment method."
 
-#: inc/Admin/Components.php:252
+#: inc/Admin/Components.php:274
 msgid "Permitir frete grátis:"
 msgstr "Allow free shipping:"
 
@@ -782,25 +1040,29 @@ msgstr "Allow free shipping:"
 msgid "Personalizar lista de mensagens de acompanhamento (Follow up)"
 msgstr ""
 
-#: inc/Core/Assets.php:92 inc/Core/Assets.php:177
+#: inc/Core/Assets.php:93 inc/Core/Assets.php:178
 msgid "Pesquisar"
 msgstr "Search"
 
-#: inc/Admin/Admin.php:326
+#: inc/Admin/Admin.php:344
 msgid "Pesquisar carrinhos"
 msgstr "Search carts"
 
-#: inc/Admin/Admin.php:316
+#: inc/Views/Settings/Tabs/General.php:29
+msgid "PHP-Cron"
+msgstr ""
+
+#: inc/Admin/Admin.php:334
 msgctxt "post type general name"
 msgid "Carrinhos"
 msgstr "Carts"
 
-#: inc/Admin/Admin.php:317
+#: inc/Admin/Admin.php:335
 msgctxt "post type singular name"
 msgid "Carrinho"
 msgstr "Cart"
 
-#: inc/Admin/Components.php:233
+#: inc/Admin/Components.php:255
 msgid "Prefixo do cupom: *"
 msgstr "Coupon prefix: *"
 
@@ -808,23 +1070,23 @@ msgstr "Coupon prefix: *"
 msgid "Primeiro nome"
 msgstr "First name"
 
-#: inc/Views/Carts_Table.php:393
+#: inc/Views/Carts_Table.php:416
 msgid "Produto desconhecido"
 msgstr "Unknown product"
 
-#: inc/Views/Carts_Table.php:138
+#: inc/Views/Carts_Table.php:139
 msgid "Produtos"
 msgstr "Products"
 
-#: inc/Core/Assets.php:96
+#: inc/Core/Assets.php:97
 msgid "Recentes"
 msgstr "Recent"
 
-#: inc/Views/Carts_Table.php:74 inc/Views/Carts_Table.php:502
+#: inc/Views/Carts_Table.php:75 inc/Views/Carts_Table.php:535
 msgid "Recuperado"
 msgstr "Recovered"
 
-#: inc/Admin/Admin.php:58
+#: inc/Admin/Admin.php:62
 msgid "Recuperação de carrinhos abandonados"
 msgstr "Abandoned cart recovery"
 
@@ -848,11 +1110,45 @@ msgstr ""
 msgid "Redefinir para cor padrão"
 msgstr "Reset to default color"
 
-#: inc/Integrations/Joinotify.php:61
+#: inc/Integrations/Joinotify.php:76
 msgid "Remetente das notificações"
 msgstr "Notification sender"
 
-#: inc/Admin/Components.php:271
+#: inc/Views/Settings/Tabs/Webhooks.php:143
+#: inc/Views/Settings/Tabs/Webhooks.php:222
+msgid "Remover"
+msgstr ""
+
+#: inc/Views/Settings/Tabs/Webhooks.php:158
+#: inc/Views/Settings/Tabs/Webhooks.php:204
+msgid "Remover webhook"
+msgstr ""
+
+#. %s: Required Flexify Checkout version
+#: inc/Core/Init.php:207
+#, php-format
+msgid "Requer Flexify Checkout versão %s ou superior."
+msgstr ""
+
+#: inc/Core/Init.php:198
+msgid "Requer o plugin Flexify Checkout para WooCommerce."
+msgstr ""
+
+#. %s: Required PHP version
+#: inc/Core/Init.php:164
+#, php-format
+msgid "Requer PHP %s ou superior."
+msgstr ""
+
+#: inc/Core/Init.php:191
+msgid "Requer WooCommerce para funcionar."
+msgstr ""
+
+#: inc/Core/Ajax.php:122
+msgid "Requisição inválida ou expirada. Por favor, atualize a página."
+msgstr ""
+
+#: inc/Admin/Components.php:293
 msgid "Restrições:"
 msgstr "Restrictions:"
 
@@ -860,26 +1156,26 @@ msgstr "Restrictions:"
 msgid "Salvar alterações"
 msgstr "Save changes"
 
-#: inc/Core/Ajax.php:111 inc/Core/Ajax.php:190 inc/Core/Ajax.php:233
+#: inc/Core/Ajax.php:320 inc/Core/Ajax.php:420 inc/Core/Ajax.php:479
 msgid "Salvo com sucesso"
 msgstr "Successfully saved"
 
-#: inc/Admin/Components.php:222
+#: inc/Admin/Components.php:244
 msgid "Selecione um cupom de desconto"
 msgstr "Select a discount coupon"
 
-#: inc/Integrations/Joinotify.php:66
+#: inc/Integrations/Joinotify.php:81
 msgid "Selecione um remetente"
 msgstr "Select a sender"
 
-#: inc/Integrations/Joinotify.php:62
+#: inc/Integrations/Joinotify.php:77
 msgid ""
 "Selecione um remetente que fará o envio das notificações de recuperações de "
 "carrinhos e pedidos."
 msgstr ""
 "Select a sender that will send the cart and order recovery notifications."
 
-#: inc/Views/Settings/Tabs/General.php:82
+#: inc/Views/Settings/Tabs/General.php:96
 msgid "Seletores de acionamento do modal"
 msgstr "Modal trigger selectors"
 
@@ -895,19 +1191,19 @@ msgstr "Last name"
 msgid "Sobrenome: *"
 msgstr "Last name: *"
 
-#: inc/Core/Assets.php:97
+#: inc/Core/Assets.php:98
 msgid "Sorrisos e Pessoas"
 msgstr "Smileys & People"
 
-#: inc/Views/Carts_Table.php:141
+#: inc/Views/Carts_Table.php:142
 msgid "Status"
 msgstr "Status"
 
-#: inc/Admin/Components.php:394
+#: inc/Admin/Components.php:416
 msgid "Status de carrinhos e pedidos"
 msgstr ""
 
-#: inc/Core/Assets.php:103
+#: inc/Core/Assets.php:104
 msgid "Símbolos"
 msgstr "Symbols"
 
@@ -915,55 +1211,72 @@ msgstr "Symbols"
 msgid "Telefone / WhatsApp: *"
 msgstr "Phone / WhatsApp: *"
 
-#: inc/Core/Assets.php:90
+#: inc/Views/Queue_Table.php:352
+msgid "Tem certeza que deseja cancelar este evento?"
+msgstr ""
+
+#: inc/Views/Queue_Table.php:345
+msgid "Tem certeza que deseja disparar este evento agora?"
+msgstr ""
+
+#: inc/Core/Assets.php:91
 msgid "Tem certeza que deseja excluir este evento?"
 msgstr "Are you sure you want to delete this event?"
 
-#: inc/Admin/Components.php:257
+#: inc/Views/Queue_Table.php:359
+msgid ""
+"Tem certeza que deseja excluir este evento? Esta ação não pode ser desfeita."
+msgstr ""
+
+#: inc/Admin/Components.php:279
 msgid "Tempo de expiração do cupom: *"
 msgstr "Coupon expiration time: *"
 
-#: inc/Views/Settings/Tabs/General.php:220
+#: inc/Views/Settings/Tabs/General.php:234
 msgid "Tempo para um carrinho ser considerado abandonado"
 msgstr "Time for a cart to be considered abandoned"
 
-#: inc/Views/Settings/Tabs/General.php:211
+#: inc/Views/Settings/Tabs/General.php:225
 msgid ""
 "Texto alternativo para quando não for possível recuperar o nome do usuário."
 msgstr "Fallback text for when the username cannot be retrieved."
 
-#: inc/Admin/Components.php:238
+#: inc/Admin/Components.php:260
 msgid "Tipo do desconto: *"
 msgstr "Discount type: *"
 
-#: inc/Views/Carts_Table.php:70
+#: inc/Views/Carts_Table.php:71
 msgid "Todos"
 msgstr "All"
 
 #. parent page slug
 #. page title
-#: inc/Admin/Admin.php:84 inc/Admin/Admin.php:85 inc/Admin/Admin.php:325
+#: inc/Admin/Admin.php:88 inc/Admin/Admin.php:89 inc/Admin/Admin.php:343
 msgid "Todos os carrinhos"
 msgstr "All carts"
 
-#: inc/Admin/Components.php:346
+#: inc/Admin/Components.php:368
 #, php-format
 msgid "Total recuperado %s"
 msgstr ""
 
-#: inc/Views/Settings/Tabs/General.php:52
+#: inc/Core/Init.php:499 inc/Core/Init.php:510
+msgid "Trapaceando?"
+msgstr ""
+
+#: inc/Views/Settings/Tabs/General.php:66
 msgid "Título do botão de ação do modal"
 msgstr "Modal action button title"
 
-#: inc/Views/Settings/Tabs/General.php:42
+#: inc/Views/Settings/Tabs/General.php:56
 msgid "Título do modal de de coleta de leads"
 msgstr "Lead capture modal title"
 
-#: inc/Views/Settings/Tabs/General.php:43
+#: inc/Views/Settings/Tabs/General.php:57
 msgid "Título exibido dentro do modal de coleta de leads."
 msgstr "Title displayed inside the lead capture modal."
 
-#: inc/Views/Settings/Tabs/General.php:53
+#: inc/Views/Settings/Tabs/General.php:67
 msgid "Título exibido no botão dentro do modal de coleta de leads."
 msgstr "Title displayed on the button inside the lead capture modal."
 
@@ -985,7 +1298,12 @@ msgstr ""
 "A new version of <strong>Flexify Checkout - Abandoned Cart Recovery</strong> "
 "is available."
 
-#: inc/Core/Assets.php:93
+#: inc/Views/Settings/Tabs/Webhooks.php:118
+#: inc/Views/Settings/Tabs/Webhooks.php:185
+msgid "URL de entrega *"
+msgstr ""
+
+#: inc/Core/Assets.php:94
 msgid "Use a tecla TAB para inserir um emoji rapidamente"
 msgstr "Use the TAB key to quickly insert an emoji"
 
@@ -997,19 +1315,24 @@ msgstr ""
 "Use the best and most complete WhatsApp automation builder to notify your "
 "users."
 
-#: inc/Views/Carts_Table.php:139
+#: inc/Views/Settings/Tabs/Webhooks.php:138
+#: inc/Views/Settings/Tabs/Webhooks.php:217
+msgid "Valor do cabeçalho"
+msgstr ""
+
+#: inc/Views/Carts_Table.php:140
 msgid "Valor do carrinho"
 msgstr "Cart value"
 
-#: inc/Admin/Components.php:247
+#: inc/Admin/Components.php:269
 msgid "Valor do cupom: *"
 msgstr "Coupon value: *"
 
-#: inc/Admin/Components.php:241
+#: inc/Admin/Components.php:263
 msgid "Valor fixo"
 msgstr "Fixed amount"
 
-#: inc/Core/Assets.php:133
+#: inc/Core/Assets.php:134
 msgid "Valor recuperado"
 msgstr ""
 
@@ -1017,15 +1340,15 @@ msgstr ""
 msgid "Valor total do carrinho"
 msgstr ""
 
-#: inc/Admin/Components.php:171
+#: inc/Admin/Components.php:193
 msgid "Variáveis de texto:"
 msgstr "Text variables:"
 
-#: inc/Admin/Admin.php:324
+#: inc/Admin/Admin.php:342
 msgid "Ver carrinho"
 msgstr "View cart"
 
-#: inc/Views/Carts_Table.php:274 inc/Views/Queue_Table.php:174
+#: inc/Views/Carts_Table.php:297 inc/Views/Queue_Table.php:208
 msgid "Ver usuário"
 msgstr "View user"
 
@@ -1033,22 +1356,30 @@ msgstr "View user"
 msgid "Verificar atualizações"
 msgstr "Check for updates"
 
-#: inc/Core/Assets.php:101
+#: inc/Core/Assets.php:102
 msgid "Viajens e Lugares"
 msgstr "Travel & Places"
 
-#: inc/Views/Carts_Table.php:244 inc/Views/Queue_Table.php:144
+#: inc/Views/Carts_Table.php:267 inc/Views/Queue_Table.php:178
 msgid "Visitante"
 msgstr "Visitor"
 
-#: inc/Admin/Components.php:422
+#: inc/Admin/Components.php:444
 msgid "Visitantes capturados"
 msgstr ""
 
-#: inc/Core/Helpers.php:433
+#: inc/Admin/Components.php:54 inc/Views/Settings/Tabs/Webhooks.php:25
+msgid "Webhooks"
+msgstr ""
+
+#: inc/Core/Helpers.php:464
 msgid "WhatsApp"
 msgstr ""
 
-#: inc/Admin/Components.php:111 inc/Views/Settings/Tabs/FollowUp.php:54
+#: inc/Admin/Components.php:117 inc/Views/Settings/Tabs/FollowUp.php:54
 msgid "WhatsApp (Joinotify)"
 msgstr "WhatsApp (Joinotify)"
+
+#: inc/Views/Settings/Tabs/General.php:28
+msgid "WP-Cron (padrão)"
+msgstr ""

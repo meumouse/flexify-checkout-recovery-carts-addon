@@ -223,7 +223,7 @@ class Init {
             return;
         }
         
-        $base_file = __FILE__;
+        $base_file = dirname( __DIR__, 2 ) . '/flexify-checkout-recovery-carts-addon.php';
         $base_dir = plugin_dir_path( $base_file );
         $base_url = plugin_dir_url( $base_file );
         
