@@ -1,3 +1,8 @@
+Versão 1.3.6 (17/12/2025)
+* Correção de bugs
+    - Cancelamento de eventos de follow up agendados após receber um pedido
+    - Notificação de atualização disponível
+
 Versão 1.3.5 (14/12/2025)
 * Correção de bugs
     - Prevenir restauração do carrinho após ciclo ter finalizado (Recuperado, Comprou, Concluído, Pedido abandonado, Perdido)
