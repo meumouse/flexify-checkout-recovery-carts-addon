@@ -7,7 +7,7 @@
  * Requires Plugins: 		flexify-checkout-for-woocommerce, woocommerce
  * Author:                  MeuMouse.com
  * Author URI:              https://meumouse.com/
- * Version:                 1.3.5
+ * Version:                 1.3.6
  * Requires PHP:            7.4
  * Tested up to:            6.9
  * WC requires at least:    6.0.0

@@ -19,7 +19,8 @@ if ( ! class_exists('WP_List_Table') ) {
  * 
  * @since 1.0.0
  * @version 1.3.5
- * @package MeuMouse.com
+ * @package MeuMouse\Flexify_Checkout\Recovery_Carts\Views
+ * @author MeuMouse.com
  */
 class Carts_Table extends WP_List_Table {
 

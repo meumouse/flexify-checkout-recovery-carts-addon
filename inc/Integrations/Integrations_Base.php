@@ -9,7 +9,8 @@ defined('ABSPATH') || exit;
  * Abstract base class for integrations
  * 
  * @since 1.0.0
- * @package MeuMouse.com
+ * @package MeuMouse\Flexify_Checkout\Recovery_Carts\Integrations
+ * @author MeuMouse.com
  */
 abstract class Integrations_Base {
 

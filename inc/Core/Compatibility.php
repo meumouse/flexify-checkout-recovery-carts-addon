@@ -6,11 +6,12 @@ namespace MeuMouse\Flexify_Checkout\Recovery_Carts\Core;
  * Class for compatibility with other plugins
  * 
  * @since 1.1.0
- * @package MeuMouse.com
+ * @package MeuMouse\Flexify_Checkout\Recovery_Carts\Core
+ * @author MeuMouse.com
  */
 class Compatibility {
 
-   /**
+   	/**
      * Construct function
      *
      * @since 1.0.0
@@ -23,11 +24,11 @@ class Compatibility {
 
 
 	/**
-    * Setup WooCommerce High-Performance Order Storage (HPOS) compatibility
-    * 
-    * @since 1.0.0
-    * @return void
-    */
+     * Setup WooCommerce High-Performance Order Storage (HPOS) compatibility
+     * 
+     * @since 1.0.0
+     * @return void
+     */
 	public static function hpos_compatibility() {
 		if ( defined('WC_VERSION') && version_compare( WC_VERSION, '7.1', '>' ) ) {
 			if ( class_exists( \Automattic\WooCommerce\Utilities\FeaturesUtil::class ) ) {

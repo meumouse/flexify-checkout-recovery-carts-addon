@@ -23,6 +23,8 @@ defined('ABSPATH') || exit;
  * Registers WP-CLI commands to execute the PHP scheduler.
  *
  * @since 1.3.2
+ * @package MeuMouse\Flexify_Checkout\Recovery_Carts\Cron
+ * @author MeuMouse.com
  */
 class WP_CLI_Command {
 

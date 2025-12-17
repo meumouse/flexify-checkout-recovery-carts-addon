@@ -8,7 +8,8 @@ use MeuMouse\Flexify_Checkout\Recovery_Carts\Admin\Components;
  * Analytics dashboard template
  * 
  * @since 1.3.0
- * @package MeuMouse.com
+ * @package MeuMouse\Flexify_Checkout\Recovery_Carts\Views
+ * @author MeuMouse.com
  */
 
 // Exit if accessed directly.

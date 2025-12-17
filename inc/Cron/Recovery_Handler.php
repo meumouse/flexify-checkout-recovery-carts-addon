@@ -17,7 +17,8 @@ defined('ABSPATH') || exit;
  * 
  * @since 1.0.0
  * @version 1.3.5
- * @package MeuMouse.com
+ * @package MeuMouse\Flexify_Checkout\Recovery_Carts\Cron
+ * @author MeuMouse.com
  */
 class Recovery_Handler {
 

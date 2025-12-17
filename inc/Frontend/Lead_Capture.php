@@ -12,7 +12,8 @@ defined('ABSPATH') || exit;
  * Responsible for managing lead data collection
  * 
  * @since 1.0.0
- * @package MeuMouse.com
+ * @package MeuMouse\Flexify_Checkout\Recovery_Carts\Frontend
+ * @author MeuMouse.com
  */
 class Lead_Capture {
 

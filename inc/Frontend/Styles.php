@@ -12,7 +12,8 @@ defined('ABSPATH') || exit;
  * Render frontend styles
  * 
  * @since 1.0.0
- * @package MeuMouse.com
+ * @package MeuMouse\Flexify_Checkout\Recovery_Carts\Frontend
+ * @author MeuMouse.com
  */
 class Styles {
 

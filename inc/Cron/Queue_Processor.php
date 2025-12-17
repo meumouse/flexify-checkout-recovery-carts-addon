@@ -9,7 +9,8 @@ defined('ABSPATH') || exit;
  * Processes queued cron events when PHP Cron is enabled.
  *
  * @since 1.3.2
- * @package MeuMouse.com
+ * @package MeuMouse\Flexify_Checkout\Recovery_Carts\Cron
+ * @author MeuMouse.com
  */
 class Queue_Processor {
 
