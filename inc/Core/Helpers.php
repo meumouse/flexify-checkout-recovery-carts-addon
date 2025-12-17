@@ -3,6 +3,7 @@
 namespace MeuMouse\Flexify_Checkout\Recovery_Carts\Core;
 
 use MeuMouse\Flexify_Checkout\Recovery_Carts\Admin\Admin;
+use MeuMouse\Flexify_Checkout\Recovery_Carts\Cron\Scheduler_Manager;
 
 // Exit if accessed directly.
 defined('ABSPATH') || exit;
@@ -11,7 +12,7 @@ defined('ABSPATH') || exit;
  * Helpers class
  * 
  * @since 1.0.0
- * @version 1.3.5
+ * @version 1.3.6
  * @package MeuMouse\Flexify_Checkout\Recovery_Carts\Core
  * @author MeuMouse.com
  */
@@ -475,7 +476,7 @@ class Helpers {
      * Cancel all scheduled follow-up events (hook 'fcrc_send_follow_up_message') for a given cart ID
      *
      * @since 1.3.0
-     * @version 1.3.2
+     * @version 1.3.6
      * @param int $cart_id | The recovery cart post ID
      * @return void
      */
@@ -483,7 +484,7 @@ class Helpers {
         // Query all cron-event posts for this cart and the follow-up hook
         $events = get_posts( array(
             'post_type' => 'fcrc-cron-event',
-            'post_status' => 'publish',
+            'post_status' => array( 'publish', 'draft' ),
             'meta_query' => array(
                 array(
                     'key' => '_fcrc_cart_id',
@@ -506,10 +507,13 @@ class Helpers {
                 );
             }
 
-            \MeuMouse\Flexify_Checkout\Recovery_Carts\Cron\Scheduler_Manager::unschedule_event( 'fcrc_send_follow_up_message', $args );
+            Scheduler_Manager::unschedule_event( 'fcrc_send_follow_up_message', $args );
+
+            // Ensure queue entry is removed even if it was already moved to draft by the processor
+            wp_delete_post( $event->ID, true );
 
             // Log the cancellation if debug mode is enabled
-            if ( defined( 'FC_RECOVERY_CARTS_DEBUG_MODE' ) && FC_RECOVERY_CARTS_DEBUG_MODE ) {
+            if ( self::$debug_mode ) {
                 error_log( sprintf( 'Cancelled follow-up event for cart %d, cron_post_id %d', $cart_id, $event->ID ) );
             }
         }

@@ -239,7 +239,7 @@ class Order_Events {
         update_post_meta( $cart_id, '_fcrc_payment_method', $payment_method );
         update_post_meta( $cart_id, '_fcrc_payment_method_title', $payment_method_title );
 
-        if ( FC_RECOVERY_CARTS_DEBUG_MODE ) {
+        if ( defined('FC_RECOVERY_CARTS_DEBUG_MODE') && FC_RECOVERY_CARTS_DEBUG_MODE ) {
             error_log( "Cart ID {$cart_id} updated with billing & location info for order {$order_id}" );
         }
 
