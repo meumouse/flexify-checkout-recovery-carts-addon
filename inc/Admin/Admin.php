@@ -13,7 +13,8 @@ defined('ABSPATH') || exit;
  * 
  * @since 1.0.0
  * @version 1.3.4
- * @package MeuMouse.com
+ * @package MeuMouse\Flexify_Checkout\Recovery_Carts\Admin
+ * @author MeuMouse.com
  */
 class Admin {
 

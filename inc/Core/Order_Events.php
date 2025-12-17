@@ -12,8 +12,9 @@ defined('ABSPATH') || exit;
  * Handles with orders events
  *
  * @since 1.0.0
- * @version 1.3.2
- * @package MeuMouse.com
+ * @version 1.3.6
+ * @package MeuMouse\Flexify_Checkout\Recovery_Carts\Core
+ * @author MeuMouse.com
  */
 class Order_Events {
 
@@ -238,7 +239,7 @@ class Order_Events {
         update_post_meta( $cart_id, '_fcrc_payment_method', $payment_method );
         update_post_meta( $cart_id, '_fcrc_payment_method_title', $payment_method_title );
 
-        if ( FC_RECOVERY_CARTS_DEBUG_MODE ) {
+        if ( defined('FC_RECOVERY_CARTS_DEBUG_MODE') && FC_RECOVERY_CARTS_DEBUG_MODE ) {
             error_log( "Cart ID {$cart_id} updated with billing & location info for order {$order_id}" );
         }
 
@@ -257,6 +258,7 @@ class Order_Events {
      * Marks the cart as recovered when the order is paid (processing or completed)
      *
      * @since 1.0.0
+     * @version 1.3.6
      * @param int $order_id | The WooCommerce order ID
      * @param string $old_status | The previous order status
      * @param string $new_status | The new order status
@@ -273,6 +275,9 @@ class Order_Events {
         if ( ! $cart_id ) {
             return;
         }
+
+        // Cancel any scheduled follow-up notifications for this cart
+        Helpers::cancel_scheduled_follow_up_events( $cart_id );
 
         // Update the cart status to recovered
         wp_update_post( array(
@@ -338,6 +343,7 @@ class Order_Events {
      * Triggers cart recovery when payment is marked complete
      *
      * @since 1.2.0
+     * @version 1.3.6
      * @param int $order_id | The WooCommerce order ID
      * @return void
      */
@@ -370,6 +376,9 @@ class Order_Events {
         if ( $already_recovered ) {
             return;
         }
+
+        // Cancel any scheduled follow-up notifications for this cart
+        Helpers::cancel_scheduled_follow_up_events( $cart_id );
 
         wp_update_post( array(
             'ID' => $cart_id,

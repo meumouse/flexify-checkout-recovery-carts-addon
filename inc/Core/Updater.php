@@ -17,8 +17,9 @@ defined('ABSPATH') || exit;
  * Class for handling plugin updates
  *
  * @since 1.0.0
- * @version 1.3.3
- * @package MeuMouse.com
+ * @version 1.3.6
+ * @package MeuMouse\Flexify_Checkout\Recovery_Carts\Core
+ * @author MeuMouse.com
  */
 class Updater {
 
@@ -448,17 +449,35 @@ class Updater {
      * Display update notice in the admin panel
      *
      * @since 1.0.2
+     * @version 1.3.6
      * @return void
      */
     public function admin_update_notice() {
         $latest_version = get_option('fc_recovery_carts_update_available');
+        $current_version = $this->version;
 
-        if ( ! $latest_version ) {
+        // check if update is available
+        if ( ! $latest_version || version_compare( $current_version, $latest_version, '>=' ) ) {
             return;
         }
 
-        $update_url = admin_url('plugins.php');
-        $message = sprintf( __( 'Uma nova versão do plugin <strong>Flexify Checkout - Recuperação de carrinhos abandonados</strong> (%s) está disponível. <a href="%s">Atualize agora</a>.', 'fc-recovery-carts' ), esc_html( $latest_version ), esc_url( $update_url ) );
+        $plugin_file = 'flexify-checkout-recovery-carts-addon/flexify-checkout-recovery-carts-addon.php';
+        $nonce = wp_create_nonce( 'upgrade-plugin_' . $plugin_file );
+
+        $update_url = add_query_arg(
+            array(
+                'action' => 'upgrade-plugin',
+                'plugin' => $plugin_file,
+                '_wpnonce' => $nonce,
+            ),
+            admin_url('update.php')
+        );
+
+        $message = sprintf(
+            __( 'Uma nova versão do plugin <strong>Flexify Checkout: Recuperação de carrinhos abandonados</strong> (%s) está disponível. <a href="%s">Atualize agora</a>.', 'fc-recovery-carts' ),
+            esc_html( $latest_version ),
+            esc_url( $update_url )
+        );
 
         echo '<div class="notice notice-success is-dismissible"><p>' . $message . '</p></div>';
     }

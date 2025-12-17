@@ -15,7 +15,8 @@ require_once FC_RECOVERY_CARTS_INC . 'Cron/Scheduler_Fallback.php';
  * Centralises the interaction with the selected task scheduler
  *
  * @since 1.3.2
- * @package MeuMouse.com
+ * @package MeuMouse\Flexify_Checkout\Recovery_Carts\Cron
+ * @author MeuMouse.com
  */
 class Scheduler_Manager {
     

@@ -17,7 +17,7 @@ defined('ABSPATH') || exit;
  * 
  * @since 1.0.0
  * @version 1.3.5
- * @package MeuMouse\Flexify_Checkout\Recovery_Carts
+ * @package MeuMouse\Flexify_Checkout\Recovery_Carts\Core
  * @author MeuMouse.com
  */
 class Init {
@@ -29,7 +29,7 @@ class Init {
      * @version 1.3.5
      * @return string
      */
-    private static $version = '1.3.5';
+    private static $version = '1.3.6';
 
     /**
      * Plugin basename
