@@ -29,7 +29,7 @@ class Init {
      * @version 1.3.5
      * @return string
      */
-    private static $version = '1.3.6';
+    private static $version = '1.3.7';
 
     /**
      * Plugin basename
