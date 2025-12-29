@@ -192,7 +192,7 @@ class Helpers {
             return;
         }
 
-        if ( ! function_exists( 'WC' ) || ! WC()->session || ! WC()->cart ) {
+        if ( ! function_exists('WC') || ! WC()->session || ! WC()->cart ) {
             if ( self::$debug_mode ) {
                 error_log( "Error: WooCommerce session/cart unavailable while restoring cart {$cart_id}." );
             }
