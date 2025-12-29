@@ -12,7 +12,7 @@ defined('ABSPATH') || exit;
  * Helpers class
  * 
  * @since 1.0.0
- * @version 1.3.6
+ * @version 1.3.7
  * @package MeuMouse\Flexify_Checkout\Recovery_Carts\Core
  * @author MeuMouse.com
  */
@@ -152,7 +152,7 @@ class Helpers {
      * Restores the cart from the recovery link
      *
      * @since 1.0.0
-     * @version 1.3.5
+     * @version 1.3.7
      * @return void
      */
     public static function maybe_restore_cart() {
@@ -189,6 +189,14 @@ class Helpers {
                 error_log( "Error: Any product found for the cart: {$cart_id}." );
             }
             
+            return;
+        }
+
+        if ( ! function_exists('WC') || ! WC()->session || ! WC()->cart ) {
+            if ( self::$debug_mode ) {
+                error_log( "Error: WooCommerce session/cart unavailable while restoring cart {$cart_id}." );
+            }
+
             return;
         }
 

@@ -49,6 +49,10 @@ Você pode instalar um plugin WordPress de duas maneiras: via o painel de admini
 
 ### Registro de alterações (Changelogs):
 
+Versão 1.3.7 (29/12/2025)
+* Correção de bugs:
+    - Prevenção contra erro fatal ao tentar recuperar carrinho
+
 Versão 1.3.6 (17/12/2025)
 * Correção de bugs
     - Cancelamento de eventos de follow up agendados após receber um pedido
