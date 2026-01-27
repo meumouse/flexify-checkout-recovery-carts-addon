@@ -190,7 +190,7 @@ class Recovery_Handler {
      * Schedules follow-up messages based on admin settings
      *
      * @since 1.0.0
-     * @version 1.3.5
+     * @version 1.4.0
      * @param int $cart_id | The abandoned cart ID
      * @return void
      */
@@ -211,6 +211,14 @@ class Recovery_Handler {
         }
 
         $current_time = current_time( 'timestamp', true );
+
+        if ( $this->should_block_follow_up_for_recent_purchase( $cart_id ) ) {
+            if ( self::$debug_mode ) {
+                error_log( '[Recovery_Handler] Follow-up blocked due to recent purchase for cart ID: ' . $cart_id );
+            }
+
+            return;
+        }
 
         // iterate for each follow up event
         foreach ( $follow_up_events as $event_key => $event_data ) {
@@ -288,6 +296,21 @@ class Recovery_Handler {
         }
 
         $event = $settings[ $event_key ];
+
+        if ( $this->should_block_follow_up_for_recent_purchase( $cart_id ) ) {
+            Helpers::cancel_scheduled_follow_up_events( $cart_id );
+
+            if ( self::$debug_mode ) {
+                error_log( '[Recovery_Handler] Follow-up cancelled due to recent purchase for cart ID: ' . $cart_id );
+            }
+
+            if ( $cron_post_id ) {
+                wp_delete_post( intval( $cron_post_id ), true );
+            }
+
+            return;
+        }
+
         $current_timestamp = current_time('timestamp');
 
         if ( Helpers::maybe_cancel_followups_after_late_purchase( $cart_id ) ) {
@@ -381,6 +404,59 @@ class Recovery_Handler {
         if ( $cron_post_id ) {
             wp_delete_post( intval( $cron_post_id ), true );
         }
+    }
+
+
+    /**
+     * Check if follow-ups should be blocked for a cart due to recent purchases.
+     *
+     * @since 1.4.0
+     * @param int $cart_id | The abandoned cart ID
+     * @return bool
+     */
+    private function should_block_follow_up_for_recent_purchase( $cart_id ) {
+        $days = absint( Admin::get_setting('follow_up_purchase_block_days') );
+
+        if ( $days <= 0 ) {
+            return false;
+        }
+
+        if ( ! function_exists('wc_get_orders') ) {
+            return false;
+        }
+
+        $email = sanitize_email( get_post_meta( $cart_id, '_fcrc_cart_email', true ) );
+        $phone = trim( (string) get_post_meta( $cart_id, '_fcrc_cart_phone', true ) );
+
+        if ( empty( $email ) && empty( $phone ) ) {
+            return false;
+        }
+
+        $after_timestamp = current_time( 'timestamp', true ) - ( $days * DAY_IN_SECONDS );
+        $order_query = array(
+            'limit' => 1,
+            'return' => 'ids',
+            'status' => apply_filters( 'Flexify_Checkout/Should_Block_Purchases/Statuses', array( 'wc-processing', 'wc-completed' ) ),
+            'date_created' => '>' . $after_timestamp,
+        );
+
+        if ( ! empty( $email ) ) {
+            $orders_by_email = wc_get_orders( array_merge( $order_query, array( 'billing_email' => $email ) ) );
+
+            if ( ! empty( $orders_by_email ) ) {
+                return true;
+            }
+        }
+
+        if ( ! empty( $phone ) ) {
+            $orders_by_phone = wc_get_orders( array_merge( $order_query, array( 'billing_phone' => $phone ) ) );
+
+            if ( ! empty( $orders_by_phone ) ) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
 
