@@ -12,7 +12,7 @@ defined('ABSPATH') || exit;
  * Helpers class
  * 
  * @since 1.0.0
- * @version 1.3.8
+ * @version 1.4.0
  * @package MeuMouse\Flexify_Checkout\Recovery_Carts\Core
  * @author MeuMouse.com
  */

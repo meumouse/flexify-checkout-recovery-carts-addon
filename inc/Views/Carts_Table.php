@@ -637,7 +637,7 @@ class Carts_Table extends WP_List_Table {
      * Prepare items for display in the table
      * 
      * @since 1.0.0
-     * @version 1.3.8
+     * @version 1.4.0
      * @return void
      */
     public function prepare_items() {

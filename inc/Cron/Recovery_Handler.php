@@ -16,7 +16,7 @@ defined('ABSPATH') || exit;
  * Handle Cron jobs
  * 
  * @since 1.0.0
- * @version 1.3.8
+ * @version 1.4.0
  * @package MeuMouse\Flexify_Checkout\Recovery_Carts\Cron
  * @author MeuMouse.com
  */
@@ -257,7 +257,7 @@ class Recovery_Handler {
      * Sends a follow-up message based on the event
      *
      * @since 1.0.0
-     * @version 1.3.5
+     * @version 1.4.0
      * @param int $cart_id | The abandoned cart ID
      * @param string $event_key | The follow-up event key
      * @param int $cron_post_id | The cron post ID
@@ -336,9 +336,11 @@ class Recovery_Handler {
         // send via WhatsApp if enabled
         if ( isset( $event['channels']['whatsapp'] ) && $event['channels']['whatsapp'] === 'yes' ) {
             // send message
-            self::send_whatsapp_message( $receiver, $message );
+            $response_code = self::send_whatsapp_message( $receiver, $message );
 
-            $sent_channels[] = 'whatsapp';
+            if ( 201 === $response_code ) {
+                $sent_channels[] = 'whatsapp';
+            }
         }
 
         if ( empty( $sent_channels ) ) {
@@ -537,6 +539,7 @@ class Recovery_Handler {
      * Sends a WhatsApp message with Joinotify
      *
      * @since 1.0.0
+     * @version 1.4.0
      * @param string $receiver | The recipient's phone number
      * @param string $message | The message to send
      */
@@ -544,8 +547,10 @@ class Recovery_Handler {
         if ( function_exists('joinotify_send_whatsapp_message_text') ) {
             $sender = Admin::get_setting('joinotify_sender_phone');
 
-            joinotify_send_whatsapp_message_text( $sender, $receiver, $message );
+            return joinotify_send_whatsapp_message_text( $sender, $receiver, $message );
         }
+
+        return null;
     }
 
 

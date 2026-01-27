@@ -7,7 +7,7 @@
  * Requires Plugins: 		flexify-checkout-for-woocommerce, woocommerce
  * Author:                  MeuMouse.com
  * Author URI:              https://meumouse.com/
- * Version:                 1.3.8
+ * Version:                 1.4.0
  * Requires PHP:            7.4
  * Tested up to:            6.9
  * WC requires at least:    6.0.0
@@ -29,7 +29,7 @@ if ( file_exists( $autoload ) ) {
     require_once $autoload;
 }
 
-$plugin_version = '1.3.8';
+$plugin_version = '1.4.0';
 
 // Initialize the plugin
 $plugin = new Init( __FILE__, $plugin_version );
