@@ -16,20 +16,28 @@ defined('ABSPATH') || exit;
  * Handles all initialization logic previously in the main plugin file
  * 
  * @since 1.0.0
- * @version 1.3.5
+ * @version 1.3.8
  * @package MeuMouse\Flexify_Checkout\Recovery_Carts\Core
  * @author MeuMouse.com
  */
 class Init {
 
     /**
-     * Plugin version
-     * 
-     * @since 1.0.0
-     * @version 1.3.5
-     * @return string
-     */
-    private static $version = '1.3.8';
+	 * Plugin main file path.
+	 *
+	 * @since 1.3.8
+	 * @var string
+	 */
+	private $plugin_file;
+
+    /**
+	 * Plugin version
+	 *
+	 * @since 1.0.0
+     * @version 1.3.8
+	 * @var string
+	 */
+	private $plugin_version;
 
     /**
      * Plugin basename
@@ -84,10 +92,15 @@ class Init {
      * Constructor
      * 
      * @since 1.0.0
-     * @version 1.3.5
+     * @version 1.3.8
+     * @param string $plugin_file | Plugin main file path.
+     * @param string $plugin_version | Plugin version
      * @return void
      */
-    public function __construct() {
+    public function __construct( $plugin_file, $plugin_version ) {
+        $this->plugin_file = $plugin_file;
+        $this->plugin_version = $plugin_version;
+
         // Hook before initialization
         do_action('before_fc_recovery_carts_init');
         
@@ -236,7 +249,7 @@ class Init {
             'FC_RECOVERY_CARTS_ASSETS'      => $base_url . 'assets/',
             'FC_RECOVERY_CARTS_ABSPATH'     => dirname( $base_file ) . '/',
             'FC_RECOVERY_CARTS_SLUG'        => 'flexify-checkout-recovery-carts-addon',
-            'FC_RECOVERY_CARTS_VERSION'     => self::$version,
+            'FC_RECOVERY_CARTS_VERSION'     => $this->plugin_version,
             'FC_RECOVERY_CARTS_ADMIN_EMAIL' => get_option( 'admin_email' ),
             'FC_RECOVERY_CARTS_DOCS_URL'    => 'https://ajuda.meumouse.com/docs/fc-recovery-carts/overview',
             'FC_RECOVERY_CARTS_DEBUG_MODE'  => false,

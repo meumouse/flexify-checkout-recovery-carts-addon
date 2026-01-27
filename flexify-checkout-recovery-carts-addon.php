@@ -29,5 +29,7 @@ if ( file_exists( $autoload ) ) {
     require_once $autoload;
 }
 
+$plugin_version = '1.3.8';
+
 // Initialize the plugin
-$plugin = new Init();
+$plugin = new Init( __FILE__, $plugin_version );
