@@ -12,7 +12,7 @@ defined('ABSPATH') || exit;
  * Helpers class
  * 
  * @since 1.0.0
- * @version 1.3.7
+ * @version 1.3.8
  * @package MeuMouse\Flexify_Checkout\Recovery_Carts\Core
  * @author MeuMouse.com
  */
@@ -670,5 +670,130 @@ class Helpers {
                 error_log( '[Cart_Events] Cleaned up old lost cart ID: ' . $cart_id . ' for IP: ' . $client_ip );
             }
         }
+    }
+
+
+    /**
+     * Cancel scheduled follow-up events if an order was placed 24 hours after abandonment
+     * matching the cart contact info and at least one product.
+     *
+     * @since 1.3.8
+     * @param int $cart_id | The recovery cart post ID
+     * @return bool True when follow-ups were canceled.
+     */
+    public static function maybe_cancel_followups_after_late_purchase( $cart_id ) {
+        $abandoned_time = get_post_meta( $cart_id, '_fcrc_abandoned_time', true );
+
+        if ( empty( $abandoned_time ) ) {
+            return false;
+        }
+
+        $abandoned_time = is_numeric( $abandoned_time ) ? (int) $abandoned_time : strtotime( $abandoned_time );
+
+        if ( ! $abandoned_time ) {
+            return false;
+        }
+
+        $threshold_time = $abandoned_time + DAY_IN_SECONDS;
+        $current_time = current_time( 'timestamp', true );
+
+        if ( $current_time < $threshold_time ) {
+            return false;
+        }
+
+        $cart_email = get_post_meta( $cart_id, '_fcrc_cart_email', true );
+        $cart_phone = get_post_meta( $cart_id, '_fcrc_cart_phone', true );
+
+        if ( empty( $cart_email ) && empty( $cart_phone ) ) {
+            return false;
+        }
+
+        $cart_items = get_post_meta( $cart_id, '_fcrc_cart_items', true );
+
+        if ( empty( $cart_items ) || ! is_array( $cart_items ) ) {
+            return false;
+        }
+
+        $cart_product_ids = array();
+
+        foreach ( $cart_items as $item ) {
+            if ( isset( $item['product_id'] ) ) {
+                $cart_product_ids[] = (int) $item['product_id'];
+            }
+        }
+
+        $cart_product_ids = array_filter( array_unique( $cart_product_ids ) );
+
+        if ( empty( $cart_product_ids ) ) {
+            return false;
+        }
+
+        $meta_query = array();
+
+        if ( $cart_email ) {
+            $meta_query[] = array(
+                'key' => '_billing_email',
+                'value' => $cart_email,
+                'compare' => '=',
+            );
+        }
+
+        if ( $cart_phone ) {
+            $meta_query[] = array(
+                'key' => '_billing_phone',
+                'value' => $cart_phone,
+                'compare' => '=',
+            );
+        }
+
+        if ( empty( $meta_query ) ) {
+            return false;
+        }
+
+        if ( count( $meta_query ) > 1 ) {
+            $meta_query = array_merge( array( 'relation' => 'OR' ), $meta_query );
+        }
+
+        $order_ids = get_posts( array(
+            'post_type' => 'shop_order',
+            'post_status' => array_keys( wc_get_order_statuses() ),
+            'fields' => 'ids',
+            'posts_per_page' => 20,
+            'date_query' => array(
+                array(
+                    'after' => gmdate( 'Y-m-d H:i:s', $threshold_time ),
+                    'inclusive' => true,
+                ),
+            ),
+            'meta_query' => $meta_query,
+        ));
+
+        if ( empty( $order_ids ) ) {
+            return false;
+        }
+
+        foreach ( $order_ids as $order_id ) {
+            $order = wc_get_order( $order_id );
+
+            if ( ! $order ) {
+                continue;
+            }
+
+            foreach ( $order->get_items() as $item ) {
+                $product_id = (int) $item->get_product_id();
+
+                if ( $product_id && in_array( $product_id, $cart_product_ids, true ) ) {
+                    self::cancel_scheduled_follow_up_events( $cart_id );
+
+                    if ( self::$debug_mode ) {
+                        error_log( sprintf( 'Follow-ups canceled for cart %d due to order %d after 24h.', $cart_id, $order_id ) );
+                    }
+
+                    return true;
+                }
+            }
+        }
+
+        return false;
     }
 }

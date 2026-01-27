@@ -16,7 +16,7 @@ defined('ABSPATH') || exit;
  * Handle Cron jobs
  * 
  * @since 1.0.0
- * @version 1.3.5
+ * @version 1.3.8
  * @package MeuMouse\Flexify_Checkout\Recovery_Carts\Cron
  * @author MeuMouse.com
  */
@@ -288,7 +288,16 @@ class Recovery_Handler {
         }
 
         $event = $settings[ $event_key ];
-        $current_timestamp = current_time( 'timestamp' );
+        $current_timestamp = current_time('timestamp');
+
+        if ( Helpers::maybe_cancel_followups_after_late_purchase( $cart_id ) ) {
+            if ( $cron_post_id ) {
+                wp_delete_post( intval( $cron_post_id ), true );
+            }
+
+            return;
+        }
+
         $send_window_time = $this->get_next_available_window_time( $event, $current_timestamp );
 
         if ( ! empty( $send_window_time['next_window'] ) && $send_window_time['next_window'] > $current_timestamp ) {

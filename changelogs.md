@@ -1,3 +1,6 @@
+Versão 1.3.8 (27/01/2026)
+* Recurso adicionado: Prevenir notificação para clientes vinculados ao telefone ou e-mail do carrinho
+
 Versão 1.3.7 (29/12/2025)
 * Correção de bugs:
     - Prevenção contra erro fatal ao tentar recuperar carrinho
