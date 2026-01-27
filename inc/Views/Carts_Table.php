@@ -6,6 +6,7 @@ use MeuMouse\Flexify_Checkout\Recovery_Carts\Admin\Admin;
 use MeuMouse\Flexify_Checkout\Recovery_Carts\Core\Helpers;
 
 use WP_List_Table;
+use WP_Query;
 
 // Exit if accessed directly.
 defined('ABSPATH') || exit;
@@ -636,7 +637,7 @@ class Carts_Table extends WP_List_Table {
      * Prepare items for display in the table
      * 
      * @since 1.0.0
-     * @version 1.1.0
+     * @version 1.3.8
      * @return void
      */
     public function prepare_items() {
@@ -689,19 +690,31 @@ class Carts_Table extends WP_List_Table {
 
             // if is numeric, also search by post ID and order ID
             if ( is_numeric( $search ) ) {
-                $args['post__in'] = array( intval( $search ) );
-
                 $meta_query[] = array(
                     'key' => '_fcrc_order_id',
                     'value' => $search,
                     'compare' => '=',
                 );
-            }
+                
+                $id_query_args = array(
+                    'post_type' => 'fc-recovery-carts',
+                    'post_status' => $args['post_status'],
+                    'fields' => 'ids',
+                    'posts_per_page' => -1,
+                    'meta_query' => $meta_query,
+                );
 
-            $args['meta_query'] = $meta_query;
+                $matched_ids = ( new WP_Query( $id_query_args ) )->posts;
+                $matched_ids[] = absint( $search );
+
+                $matched_ids = array_values( array_unique( array_filter( $matched_ids ) ) );
+                $args['post__in'] = $matched_ids ? $matched_ids : array( 0 );
+            } else {
+                $args['meta_query'] = $meta_query;
+            }
         }
 
-        $query = new \WP_Query( $args );
+        $query = new WP_Query( $args );
         $total_items = $query->found_posts;
         $this->items = $query->posts;
         $this->_column_headers = array( $this->get_columns(), array(), $this->get_sortable_columns() );
