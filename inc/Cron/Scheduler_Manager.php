@@ -146,7 +146,7 @@ class Scheduler_Manager {
      * @return void
      */
     protected static function cleanup_wp_cron_duplicates( $hook, array $base_args, array $queue_args ) {
-        if ( ! function_exists( '_get_cron_array' ) ) {
+        if ( ! function_exists('_get_cron_array') ) {
             return;
         }
 

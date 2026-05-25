@@ -9,9 +9,9 @@
  * Author URI:              https://meumouse.com/
  * Version:                 1.4.0
  * Requires PHP:            7.4
- * Tested up to:            6.9
+ * Tested up to:            7.0
  * WC requires at least:    6.0.0
- * WC tested up to: 		10.4.3
+ * WC tested up to: 		10.7.0
  * Text Domain:             fc-recovery-carts
  * Domain Path:             /languages
  * License:                 GPL2
