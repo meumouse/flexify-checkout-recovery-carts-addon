@@ -208,7 +208,17 @@ class Helpers {
 
         // add products to cart
         foreach ( $cart_items as $item ) {
-            WC()->cart->add_to_cart( $item['product_id'], $item['quantity'] );
+            $product_id = isset( $item['product_id'] ) ? (int) $item['product_id'] : 0;
+
+            if ( ! $product_id ) {
+                continue;
+            }
+
+            $quantity = isset( $item['quantity'] ) ? (int) $item['quantity'] : 1;
+            $variation_id = isset( $item['variation_id'] ) ? (int) $item['variation_id'] : 0;
+            $variation = isset( $item['variation'] ) && is_array( $item['variation'] ) ? $item['variation'] : array();
+
+            WC()->cart->add_to_cart( $product_id, $quantity, $variation_id, $variation );
         }
 
         // store cart ID in session and cookie

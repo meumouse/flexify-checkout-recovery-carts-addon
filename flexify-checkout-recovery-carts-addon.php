@@ -33,3 +33,8 @@ $plugin_version = '1.4.0';
 
 // Initialize the plugin
 $plugin = new Init( __FILE__, $plugin_version );
+
+// Expose a global class alias so integrations (e.g. Joinotify) can detect the plugin via class_exists('Flexify_Checkout_Recovery_Carts').
+if ( ! class_exists( 'Flexify_Checkout_Recovery_Carts', false ) ) {
+    class_alias( Init::class, 'Flexify_Checkout_Recovery_Carts' );
+}

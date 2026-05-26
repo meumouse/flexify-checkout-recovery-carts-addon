@@ -14,7 +14,7 @@ defined('ABSPATH') || exit;
  * Handles cart recovery events, such as tracking and updating cart data
  *
  * @since 1.0.0
- * @version 1.3.2
+ * @version 1.4.0
  * @package MeuMouse\Flexify_Checkout\Recovery_Carts\Core
  * @author MeuMouse.com
  */
@@ -117,7 +117,7 @@ class Cart_Events {
      * Creates a new cart post if none exists
      * 
      * @since 1.1.0
-     * @version 1.3.5
+     * @version 1.4.0
      * @return int $cart_id | The cart ID
      */
     public static function create_cart_post() {
@@ -271,14 +271,19 @@ class Cart_Events {
                 continue;
             }
 
-            $product_id = $cart_item['product_id'];
-            $quantity = $cart_item['quantity'];
+            $product_id = (int) $cart_item['product_id'];
+            $variation_id = isset( $cart_item['variation_id'] ) ? (int) $cart_item['variation_id'] : 0;
+            $quantity = (int) $cart_item['quantity'];
             $price = floatval( $product->get_price() );
             $total_price = $quantity * $price;
             $cart_total += $total_price;
 
-            $cart_items[$product_id] = array(
+            $cart_item_identifier = ! empty( $cart_item_key ) ? $cart_item_key : sprintf( '%d_%d', $product_id, $variation_id );
+
+            $cart_items[ $cart_item_identifier ] = array(
                 'product_id' => $product_id,
+				'variation_id' => $variation_id,
+                'variation' => isset( $cart_item['variation'] ) && is_array( $cart_item['variation'] ) ? $cart_item['variation'] : array(),
                 'quantity' => $quantity,
                 'price' => $price,
                 'total' => $total_price,
@@ -370,7 +375,7 @@ class Cart_Events {
      * Synchronizes WooCommerce cart data with the recovery cart post
      *
      * @since 1.0.0
-     * @version 1.3.2
+     * @version 1.4.0
      * @param string $cart_id | The cart ID
      * @return void
      */
@@ -499,14 +504,19 @@ class Cart_Events {
                 continue;
             }
 
-            $product_id = $cart_item['product_id'];
-            $quantity = $cart_item['quantity'];
+            $product_id = (int) $cart_item['product_id'];
+            $variation_id = isset( $cart_item['variation_id'] ) ? (int) $cart_item['variation_id'] : 0;
+            $quantity = (int) $cart_item['quantity'];
             $price = floatval( $product->get_price() );
             $total_price = $quantity * $price;
             $cart_total += $total_price;
 
-            $cart_items[$product_id] = array(
+            $cart_item_identifier = ! empty( $cart_item_key ) ? $cart_item_key : sprintf( '%d_%d', $product_id, $variation_id );
+
+            $cart_items[ $cart_item_identifier ] = array(
                 'product_id' => $product_id,
+				'variation_id' => $variation_id,
+                'variation' => isset( $cart_item['variation'] ) && is_array( $cart_item['variation'] ) ? $cart_item['variation'] : array(),
                 'quantity' => $quantity,
                 'price' => $price,
                 'total' => $total_price,
