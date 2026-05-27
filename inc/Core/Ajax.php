@@ -564,7 +564,7 @@ class Ajax {
                 '{{ recovery_link }}' => home_url( '/?fcrc_recovery=teste123' ),
                 '{{ coupon_code }}' => 'TESTE10',
                 '{{ products_list }}' => esc_html__( 'Produto de exemplo 1, Produto de exemplo 2', 'fc-recovery-carts' ),
-                '{{ cart_total }}' => function_exists('wc_price') ? wp_strip_all_tags( wc_price( 199.90 ) ) : '199.90',
+                '{{ cart_total }}' => function_exists('wc_price') ? html_entity_decode( wp_strip_all_tags( wc_price( 199.90 ) ), ENT_QUOTES | ENT_HTML5, 'UTF-8' ) : '199.90',
             );
 
             /**

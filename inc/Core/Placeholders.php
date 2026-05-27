@@ -104,7 +104,10 @@ class Placeholders {
                         return '';
                     }
 
-                    // format price
+                    if ( function_exists('wc_price') ) {
+                        return html_entity_decode( wp_strip_all_tags( wc_price( $total ) ), ENT_QUOTES | ENT_HTML5, 'UTF-8' );
+                    }
+
                     return $total;
                 },
             ),
