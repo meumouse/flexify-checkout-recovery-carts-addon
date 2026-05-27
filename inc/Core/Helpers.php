@@ -156,15 +156,23 @@ class Helpers {
      * @return void
      */
     public static function maybe_restore_cart() {
-        if ( is_admin() || ! isset( $_GET['recovery_cart'] ) ) {
+        if ( is_admin() ) {
             return;
+        }
+
+        if ( ! isset( $_GET['recovery_cart'] ) ) {
+            return;
+        }
+
+        if ( self::$debug_mode ) {
+            error_log( '[FCRC][Restore] maybe_restore_cart triggered. URL: ' . ( $_SERVER['REQUEST_URI'] ?? '' ) );
         }
 
         $cart_id = intval( $_GET['recovery_cart'] );
 
         if ( ! $cart_id || get_post_type( $cart_id ) !== 'fc-recovery-carts' ) {
             if ( self::$debug_mode ) {
-                error_log( "Error: Cart ID {$cart_id} invalid or not found." );
+                error_log( "[FCRC][Restore] Cart ID {$cart_id} invalid or not a recovery cart post." );
             }
 
             return;
@@ -173,7 +181,7 @@ class Helpers {
         // Do not restore carts that already completed the recovery cycle
         if ( self::is_cart_cycle_finished( $cart_id ) ) {
             if ( self::$debug_mode ) {
-                error_log( "Cart ID {$cart_id} already completed. Skipping restore." );
+                error_log( "[FCRC][Restore] Cart ID {$cart_id} already completed. Skipping restore." );
             }
 
             wp_safe_redirect( wc_get_checkout_url() );
@@ -184,17 +192,21 @@ class Helpers {
         // get products from cart
         $cart_items = get_post_meta( $cart_id, '_fcrc_cart_items', true );
 
+        if ( self::$debug_mode ) {
+            error_log( "[FCRC][Restore] Cart {$cart_id} items meta: " . print_r( $cart_items, true ) );
+        }
+
         if ( empty( $cart_items ) || ! is_array( $cart_items ) ) {
             if ( self::$debug_mode ) {
-                error_log( "Error: Any product found for the cart: {$cart_id}." );
+                error_log( "[FCRC][Restore] No products found in meta for cart {$cart_id}." );
             }
-            
+
             return;
         }
 
         if ( ! function_exists('WC') || ! WC()->session || ! WC()->cart ) {
             if ( self::$debug_mode ) {
-                error_log( "Error: WooCommerce session/cart unavailable while restoring cart {$cart_id}." );
+                error_log( "[FCRC][Restore] WooCommerce session/cart unavailable while restoring cart {$cart_id}." );
             }
 
             return;
@@ -202,6 +214,10 @@ class Helpers {
 
         // Set recovery mode
         WC()->session->set( 'fcrc_cart_recovery_mode', true );
+
+        if ( self::$debug_mode ) {
+            error_log( "[FCRC][Restore] Recovery mode flag set. Emptying current cart and restoring " . count( $cart_items ) . " item(s)." );
+        }
 
         // clear cart before restoring cart
         WC()->cart->empty_cart();
@@ -231,16 +247,24 @@ class Helpers {
 
             $added = WC()->cart->add_to_cart( $product_id, $quantity, $variation_id, $variation );
 
-            if ( ! $added && self::$debug_mode ) {
+            if ( self::$debug_mode ) {
                 error_log( sprintf(
-                    '[FCRC] Failed to restore product %d (variation %d, qty %d) on cart %d. WC notices: %s',
+                    '[FCRC][Restore] add_to_cart(product=%d, variation=%d, qty=%d, variation_attrs=%s) => %s',
                     $product_id,
                     $variation_id,
                     $quantity,
-                    $cart_id,
-                    function_exists('wc_get_notices') ? wp_json_encode( wc_get_notices('error') ) : 'unavailable'
+                    wp_json_encode( $variation ),
+                    $added ? 'OK (' . $added . ')' : 'FAILED'
                 ));
+
+                if ( ! $added && function_exists('wc_get_notices') ) {
+                    error_log( '[FCRC][Restore] WC notices after failure: ' . wp_json_encode( wc_get_notices('error') ) );
+                }
             }
+        }
+
+        if ( self::$debug_mode ) {
+            error_log( '[FCRC][Restore] Cart contents after restore: ' . wp_json_encode( array_keys( WC()->cart->get_cart() ) ) );
         }
 
         // do not show WC error notices accumulated during silent restoration
@@ -253,12 +277,12 @@ class Helpers {
         setcookie( 'fcrc_cart_id', $cart_id, strtotime( current_time('mysql') ) + ( 7 * 24 * 60 * 60 ), COOKIEPATH, COOKIE_DOMAIN );
 
         if ( self::$debug_mode ) {
-            error_log( "Cart {$cart_id} restored and redirecting to checkout." );
+            error_log( "[FCRC][Restore] Cart {$cart_id} restored. Redirecting to: " . wc_get_checkout_url() );
         }
 
         // redirect to checkout
         wp_safe_redirect( wc_get_checkout_url() );
-        
+
         exit;
     }
 
