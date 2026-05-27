@@ -48,8 +48,10 @@ class Recovery_Handler {
         // start recovery carts
         add_action( 'Flexify_Checkout/Recovery_Carts/Cart_Abandoned', array( $this, 'init_follow_up_events' ), 10, 1 );
 
-        // Hook into WordPress to check for cart recovery link on page load
-        add_action( 'template_redirect', array( '\MeuMouse\Flexify_Checkout\Recovery_Carts\Core\Helpers', 'maybe_restore_cart' ) );
+        // Hook into WordPress to check for cart recovery link on page load.
+        // Priority 1 ensures we run before WooCommerce/Flexify Checkout redirects
+        // an empty /checkout/ to /cart/, which would drop the recovery_cart query arg.
+        add_action( 'template_redirect', array( '\MeuMouse\Flexify_Checkout\Recovery_Carts\Core\Helpers', 'maybe_restore_cart' ), 1 );
 
         // Hook to handle the scheduled follow-up messages
         add_action( 'fcrc_send_follow_up_message', array( $this, 'send_follow_up_message_callback' ), 10, 4 );
