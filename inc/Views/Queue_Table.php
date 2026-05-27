@@ -476,7 +476,12 @@ class Queue_Table extends WP_List_Table {
         }
         
         $args['cron_post_id'] = $event_id;
-        
+
+        // signal downstream handlers (follow up sender, status check) that this
+        // dispatch was triggered manually by the admin and must bypass
+        // send window / recent purchase / late purchase guards
+        $args['force'] = true;
+
         // Execute the hook immediately
         do_action_ref_array( $hook, array_values( $args ) );
         

@@ -52,7 +52,7 @@ class Recovery_Handler {
         add_action( 'template_redirect', array( '\MeuMouse\Flexify_Checkout\Recovery_Carts\Core\Helpers', 'maybe_restore_cart' ) );
 
         // Hook to handle the scheduled follow-up messages
-        add_action( 'fcrc_send_follow_up_message', array( $this, 'send_follow_up_message_callback' ), 10, 3 );
+        add_action( 'fcrc_send_follow_up_message', array( $this, 'send_follow_up_message_callback' ), 10, 4 );
 
         // Hook to handle the scheduled final cart status check
         add_action( 'fcrc_check_final_cart_status', array( $this, 'check_final_cart_status_callback' ), 10, 2 );
@@ -291,12 +291,14 @@ class Recovery_Handler {
                 'cart_id' => 0,
                 'event_key' => '',
                 'cron_post_id' => null,
+                'force' => false,
             )
         );
 
         $cart_id = absint( $args['cart_id'] );
         $event_key = sanitize_key( $args['event_key'] );
         $cron_post_id = $args['cron_post_id'] ? absint( $args['cron_post_id'] ) : null;
+        $force = ! empty( $args['force'] );
 
         if ( ! $cart_id || ! $event_key ) {
             return;
@@ -310,7 +312,7 @@ class Recovery_Handler {
 
         $event = $settings[ $event_key ];
 
-        if ( $this->should_block_follow_up_for_recent_purchase( $cart_id ) ) {
+        if ( ! $force && $this->should_block_follow_up_for_recent_purchase( $cart_id ) ) {
             Helpers::cancel_scheduled_follow_up_events( $cart_id );
 
             if ( self::$debug_mode ) {
@@ -326,7 +328,7 @@ class Recovery_Handler {
 
         $current_timestamp = current_time('timestamp');
 
-        if ( Helpers::maybe_cancel_followups_after_late_purchase( $cart_id ) ) {
+        if ( ! $force && Helpers::maybe_cancel_followups_after_late_purchase( $cart_id ) ) {
             if ( $cron_post_id ) {
                 wp_delete_post( intval( $cron_post_id ), true );
             }
@@ -336,7 +338,7 @@ class Recovery_Handler {
 
         $send_window_time = $this->get_next_available_window_time( $event, $current_timestamp );
 
-        if ( ! empty( $send_window_time['next_window'] ) && $send_window_time['next_window'] > $current_timestamp ) {
+        if ( ! $force && ! empty( $send_window_time['next_window'] ) && $send_window_time['next_window'] > $current_timestamp ) {
             Scheduler_Manager::schedule_single_event(
                 $send_window_time['next_window'],
                 'fcrc_send_follow_up_message',
