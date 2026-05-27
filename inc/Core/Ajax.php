@@ -58,6 +58,8 @@ class Ajax {
             'fcrc_add_new_follow_up' => 'fcrc_add_new_follow_up_callback',
             'fcrc_delete_follow_up' => 'fcrc_delete_follow_up_callback',
             'fcrc_send_test_follow_up' => 'fcrc_send_test_follow_up_callback',
+            'fcrc_get_carts_table_changes' => 'fcrc_get_carts_table_changes_callback',
+            'fcrc_refresh_carts_table' => 'fcrc_refresh_carts_table_callback',
             'fcrc_get_analytics_data' => 'get_analytics_data_callback',
         );
 
@@ -603,6 +605,83 @@ class Ajax {
                 'status' => 'error',
                 'toast_header_title' => esc_html__( 'Falha ao enviar', 'fc-recovery-carts' ),
                 'toast_body_title' => esc_html__( 'Não foi possível enviar a mensagem de teste. Verifique a configuração do Joinotify.', 'fc-recovery-carts' ),
+            ) );
+        } catch ( \Exception $e ) {
+            $this->handle_ajax_exception( __FUNCTION__, $e );
+        }
+    }
+
+
+    /**
+     * Lightweight endpoint that returns the timestamp of the last new cart
+     * created with status shopping/lead. Used by the admin carts table JS
+     * to detect changes and trigger a refresh.
+     *
+     * @since 1.4.0
+     * @return void
+     */
+    public function fcrc_get_carts_table_changes_callback() {
+        try {
+            $this->validate_ajax_request();
+
+            if ( ! current_user_can( 'manage_options' ) ) {
+                wp_send_json_error( array(
+                    'message' => esc_html__( 'Permissão negada.', 'fc-recovery-carts' )
+                ) );
+            }
+
+            wp_send_json( array(
+                'status' => 'success',
+                'last_change' => (int) get_option( 'fcrc_carts_table_last_change', 0 ),
+            ) );
+        } catch ( \Exception $e ) {
+            $this->handle_ajax_exception( __FUNCTION__, $e );
+        }
+    }
+
+
+    /**
+     * Re-render the carts list table preserving current filters
+     * (post_status, paged, orderby, order, search) and return the HTML.
+     *
+     * @since 1.4.0
+     * @return void
+     */
+    public function fcrc_refresh_carts_table_callback() {
+        try {
+            $this->validate_ajax_request();
+
+            if ( ! current_user_can( 'manage_options' ) ) {
+                wp_send_json_error( array(
+                    'message' => esc_html__( 'Permissão negada.', 'fc-recovery-carts' )
+                ) );
+            }
+
+            // forward filter params so the table renders with the current view
+            $forwarded = array( 'page', 'post_status', 'paged', 'orderby', 'order', 's', 'fcrc_cart_search' );
+
+            foreach ( $forwarded as $key ) {
+                if ( isset( $_POST[ $key ] ) ) {
+                    $_REQUEST[ $key ] = sanitize_text_field( wp_unslash( $_POST[ $key ] ) );
+                    $_GET[ $key ] = $_REQUEST[ $key ];
+                }
+            }
+
+            if ( ! class_exists('WP_List_Table') ) {
+                require_once ABSPATH . 'wp-admin/includes/class-wp-list-table.php';
+            }
+
+            $table = new \MeuMouse\Flexify_Checkout\Recovery_Carts\Views\Carts_Table();
+            $table->prepare_items();
+
+            ob_start();
+            $table->render_table_inner();
+            $html = ob_get_clean();
+
+            wp_send_json( array(
+                'status' => 'success',
+                'last_change' => (int) get_option( 'fcrc_carts_table_last_change', 0 ),
+                'html' => $html,
             ) );
         } catch ( \Exception $e ) {
             $this->handle_ajax_exception( __FUNCTION__, $e );

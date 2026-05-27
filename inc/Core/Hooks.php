@@ -51,6 +51,37 @@ class Hooks {
 
         // set cart abandoned manually
         add_action( 'Flexify_Checkout/Recovery_Carts/Cart_Abandoned_Manually', array( $this, 'fire_abandoned_cart' ), 10, 1 );
+
+        // track new carts (shopping/lead) so the admin carts table can auto-refresh
+        add_action( 'wp_insert_post', array( __CLASS__, 'track_new_cart_for_table' ), 10, 3 );
+    }
+
+
+    /**
+     * Update the carts-table change marker whenever a new cart is created
+     * with status 'shopping' or 'lead'. Used by the admin carts table JS to
+     * detect newly created carts and refresh itself via AJAX without a reload.
+     *
+     * @since 1.4.0
+     * @param int      $post_id | Inserted post ID
+     * @param \WP_Post $post    | Inserted post object
+     * @param bool     $update  | True if updating an existing post, false on insert
+     * @return void
+     */
+    public static function track_new_cart_for_table( $post_id, $post, $update ) {
+        if ( $update ) {
+            return;
+        }
+
+        if ( ! $post instanceof \WP_Post || $post->post_type !== 'fc-recovery-carts' ) {
+            return;
+        }
+
+        if ( ! in_array( $post->post_status, array( 'shopping', 'lead' ), true ) ) {
+            return;
+        }
+
+        update_option( 'fcrc_carts_table_last_change', (int) current_time( 'timestamp', true ), false );
     }
 
 

@@ -48,14 +48,30 @@ class Carts_Table extends WP_List_Table {
      */
     public function display_page() {
         echo '<div class="wrap"><h1 class="wp-heading-inline">' . __( 'Gerenciar carrinhos', 'fc-recovery-carts' ) . '</h1>';
-       
+
+        $last_change = (int) get_option( 'fcrc_carts_table_last_change', 0 );
+
+        printf( '<div id="fcrc-carts-table-wrapper" data-last-change="%d">', $last_change );
+        $this->render_table_inner();
+        echo '</div></div>';
+    }
+
+
+    /**
+     * Render the inner table markup (form + search + list).
+     * Extracted so it can be reused by the AJAX refresh endpoint.
+     *
+     * @since 1.4.0
+     * @return void
+     */
+    public function render_table_inner() {
         echo '<form method="post">';
             echo '<input type="hidden" name="page" value="' . esc_attr( $_REQUEST['page'] ?? '' ) . '" />';
             echo '<input type="hidden" name="post_status" value="' . esc_attr( $_REQUEST['post_status'] ?? '' ) . '" />';
 
             $this->search_box( __( 'Buscar carrinhos', 'fc-recovery-carts' ), 'fcrc_cart_search' );
             $this->display();
-        echo '</form></div>';
+        echo '</form>';
     }
 
 
