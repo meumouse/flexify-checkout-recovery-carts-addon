@@ -156,16 +156,22 @@ class Helpers {
      * @return void
      */
     public static function maybe_restore_cart() {
+        if ( self::$debug_mode ) {
+            error_log( sprintf(
+                '[FCRC][Restore] maybe_restore_cart entered. URL=%s is_admin=%s recovery_cart_param=%s GET=%s',
+                $_SERVER['REQUEST_URI'] ?? '(none)',
+                is_admin() ? 'yes' : 'no',
+                isset( $_GET['recovery_cart'] ) ? var_export( $_GET['recovery_cart'], true ) : '(unset)',
+                wp_json_encode( $_GET )
+            ));
+        }
+
         if ( is_admin() ) {
             return;
         }
 
         if ( ! isset( $_GET['recovery_cart'] ) ) {
             return;
-        }
-
-        if ( self::$debug_mode ) {
-            error_log( '[FCRC][Restore] maybe_restore_cart triggered. URL: ' . ( $_SERVER['REQUEST_URI'] ?? '' ) );
         }
 
         $cart_id = intval( $_GET['recovery_cart'] );
