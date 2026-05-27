@@ -220,10 +220,23 @@ class Recovery_Handler {
             return;
         }
 
+        // collect event keys already delivered to this cart, so we don't resend
+        // them when the cart is re-abandoned after the user resumed it.
+        $already_sent_events = $this->get_already_sent_event_keys( $cart_id );
+
         // iterate for each follow up event
         foreach ( $follow_up_events as $event_key => $event_data ) {
             // check if follow up event is enabled
             if ( ! isset( $event_data['enabled'] ) || $event_data['enabled'] !== 'yes' ) {
+                continue;
+            }
+
+            // skip events that were already sent to this cart in a previous abandonment cycle
+            if ( in_array( $event_key, $already_sent_events, true ) ) {
+                if ( self::$debug_mode ) {
+                    error_log( '[Recovery_Handler] Skipping follow-up event "' . $event_key . '" for cart ID ' . $cart_id . ' — already sent previously.' );
+                }
+
                 continue;
             }
 
@@ -404,6 +417,35 @@ class Recovery_Handler {
         if ( $cron_post_id ) {
             wp_delete_post( intval( $cron_post_id ), true );
         }
+    }
+
+
+    /**
+     * Get the list of follow-up event keys already sent for a cart.
+     *
+     * Used to avoid re-sending the same follow-up when a cart is re-abandoned
+     * after the lead resumed it (cart returns to 'shopping' then back to 'abandoned').
+     *
+     * @since 1.4.0
+     * @param int $cart_id | The cart ID.
+     * @return array<string>
+     */
+    private function get_already_sent_event_keys( $cart_id ) {
+        $notifications = get_post_meta( $cart_id, '_fcrc_notifications_sent', true );
+
+        if ( ! is_array( $notifications ) || empty( $notifications ) ) {
+            return array();
+        }
+
+        $keys = array();
+
+        foreach ( $notifications as $notification ) {
+            if ( ! empty( $notification['event_key'] ) ) {
+                $keys[] = (string) $notification['event_key'];
+            }
+        }
+
+        return array_values( array_unique( $keys ) );
     }
 
 
