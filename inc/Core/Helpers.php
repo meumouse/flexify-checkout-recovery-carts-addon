@@ -218,7 +218,34 @@ class Helpers {
             $variation_id = isset( $item['variation_id'] ) ? (int) $item['variation_id'] : 0;
             $variation = isset( $item['variation'] ) && is_array( $item['variation'] ) ? $item['variation'] : array();
 
-            WC()->cart->add_to_cart( $product_id, $quantity, $variation_id, $variation );
+            // when restoring a variable product, the saved variation attributes
+            // may be missing (legacy data saved before variation persistence).
+            // rebuild them from the variation post itself so add_to_cart accepts.
+            if ( $variation_id > 0 && empty( $variation ) && function_exists('wc_get_product') ) {
+                $variation_product = wc_get_product( $variation_id );
+
+                if ( $variation_product && is_callable( array( $variation_product, 'get_variation_attributes' ) ) ) {
+                    $variation = $variation_product->get_variation_attributes();
+                }
+            }
+
+            $added = WC()->cart->add_to_cart( $product_id, $quantity, $variation_id, $variation );
+
+            if ( ! $added && self::$debug_mode ) {
+                error_log( sprintf(
+                    '[FCRC] Failed to restore product %d (variation %d, qty %d) on cart %d. WC notices: %s',
+                    $product_id,
+                    $variation_id,
+                    $quantity,
+                    $cart_id,
+                    function_exists('wc_get_notices') ? wp_json_encode( wc_get_notices('error') ) : 'unavailable'
+                ));
+            }
+        }
+
+        // do not show WC error notices accumulated during silent restoration
+        if ( function_exists('wc_clear_notices') ) {
+            wc_clear_notices();
         }
 
         // store cart ID in session and cookie
@@ -311,7 +338,7 @@ class Helpers {
      * @return string|null
      */
     public static function get_current_cart_id() {
-        if ( function_exists('WC') && WC()->session instanceof WC_Session && WC()->session->get('fcrc_cart_id') !== null ) {
+        if ( function_exists('WC') && WC()->session instanceof \WC_Session && WC()->session->get('fcrc_cart_id') !== null ) {
             $cart_id = WC()->session->get('fcrc_cart_id');
         } else {
             $cart_id = $_COOKIE['fcrc_cart_id'] ?? null;

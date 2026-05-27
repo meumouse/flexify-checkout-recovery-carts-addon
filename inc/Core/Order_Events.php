@@ -145,7 +145,7 @@ class Order_Events {
             return;
         }
 
-        if ( function_exists('WC') && WC()->session instanceof WC_Session ) {
+        if ( function_exists('WC') && WC()->session instanceof \WC_Session ) {
             $cart_id = WC()->session->get('fcrc_cart_id') ?: ( $_COOKIE['fcrc_cart_id'] ?? null );
         } else {
             $cart_id = $_COOKIE['fcrc_cart_id'] ?? null;
