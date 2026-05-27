@@ -160,6 +160,17 @@ class Helpers {
             return;
         }
 
+        // temporary tracer: log WC cart state on the redirect target so we can
+        // see whether items survived the redirect
+        if ( self::$debug_mode && function_exists('WC') && WC()->cart ) {
+            $uri = $_SERVER['REQUEST_URI'] ?? '';
+
+            if ( strpos( $uri, 'recovery_cart' ) === false ) {
+                $cart_keys = array_keys( WC()->cart->get_cart() );
+                error_log( '[FCRC][Trace] front-end request URL=' . $uri . ' wc_cart_keys=' . wp_json_encode( $cart_keys ) . ' session_fcrc_cart_id=' . var_export( WC()->session ? WC()->session->get('fcrc_cart_id') : null, true ) );
+            }
+        }
+
         if ( ! isset( $_GET['recovery_cart'] ) ) {
             return;
         }
