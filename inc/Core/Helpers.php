@@ -274,6 +274,9 @@ class Helpers {
             }
         }
 
+        // Clear recovery mode flag now that the loop is complete
+        WC()->session->__unset('fcrc_cart_recovery_mode');
+
         if ( self::$debug_mode ) {
             error_log( '[FCRC][Restore] Cart contents after restore: ' . wp_json_encode( array_keys( WC()->cart->get_cart() ) ) );
         }
@@ -287,8 +290,35 @@ class Helpers {
         WC()->session->set( 'fcrc_cart_id', $cart_id );
         setcookie( 'fcrc_cart_id', $cart_id, strtotime( current_time('mysql') ) + ( 7 * 24 * 60 * 60 ), COOKIEPATH, COOKIE_DOMAIN );
 
+        // Persist WC cart session immediately so the redirected request can
+        // read the restored items (instead of relying on the shutdown hook,
+        // which may not commit before the browser fires the next request).
+        if ( is_callable( array( WC()->cart, 'set_session' ) ) ) {
+            WC()->cart->set_session();
+        }
+
+        // Force WC to issue the `wp_woocommerce_session_xxx` cookie. In a
+        // brand-new browser session (e.g. anonymous tab) the visitor has no
+        // WC session cookie yet — without this call, the redirected request
+        // receives a fresh empty session and our restored cart is lost.
+        if ( is_callable( array( WC()->session, 'set_customer_session_cookie' ) ) ) {
+            WC()->session->set_customer_session_cookie( true );
+        }
+
+        if ( is_callable( array( WC()->session, 'save_data' ) ) ) {
+            WC()->session->save_data();
+        }
+
         if ( self::$debug_mode ) {
-            error_log( "[FCRC][Restore] Cart {$cart_id} restored. Redirecting to: " . wc_get_checkout_url() );
+            $headers_sent = headers_sent( $hs_file, $hs_line );
+
+            error_log( sprintf(
+                '[FCRC][Restore] Cart %d restored. headers_sent=%s%s. Redirecting to: %s',
+                $cart_id,
+                $headers_sent ? 'YES' : 'no',
+                $headers_sent ? ' (at ' . $hs_file . ':' . $hs_line . ')' : '',
+                wc_get_checkout_url()
+            ));
         }
 
         // redirect to checkout

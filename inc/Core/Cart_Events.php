@@ -64,14 +64,14 @@ class Cart_Events {
      * @return void
      */
     public function update_cart_post( $cart_id, $product_id, $request_quantity, $variation_id, $variation, $cart_item_data ) {
-        // Check if we're in recovery mode
+        // Check if we're in recovery mode — keep the flag set so it covers
+        // all items in the restore loop. Helpers::maybe_restore_cart clears
+        // the flag after finishing the loop.
         if ( function_exists('WC') && WC()->session instanceof \WC_Session && WC()->session->get('fcrc_cart_recovery_mode') ) {
-            WC()->session->__unset('fcrc_cart_recovery_mode'); // Clear recovery mode flag
-
             if ( self::$debug_mode ) {
-                error_log( '[Cart_Events] Recovery mode detected. Skipping cart update.' );
+                error_log( '[Cart_Events] Recovery mode detected on add_to_cart (product=' . $product_id . '). Skipping cart update.' );
             }
-            
+
             return;
         }
 
@@ -540,6 +540,17 @@ class Cart_Events {
      * @return void
      */
     public function update_last_modified_cart_time() {
+        // Skip while we are restoring a recovery cart — otherwise the
+        // woocommerce_cart_updated hook (fired after each add_to_cart)
+        // would create a brand new cart post for the partial cart.
+        if ( function_exists('WC') && WC()->session instanceof \WC_Session && WC()->session->get('fcrc_cart_recovery_mode') ) {
+            if ( self::$debug_mode ) {
+                error_log( '[Cart_Events] Recovery mode detected on cart_updated. Skipping sync.' );
+            }
+
+            return;
+        }
+
         self::sync_cart_with_post();
     }
 

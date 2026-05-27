@@ -49,6 +49,46 @@ Você pode instalar um plugin WordPress de duas maneiras: via o painel de admini
 
 ### Registro de alterações (Changelogs):
 
+Versão 1.4.0 (27/05/2026)
+* Correção de bugs
+    - Pesquisa de carrinhos
+    - Recuperação de produtos variáveis (atributos da variação eram perdidos em dados legados)
+    - Link de recuperação sendo descartado pelo redirecionamento de carrinho vazio do WooCommerce
+    - Persistência da sessão WooCommerce ao restaurar carrinho em guia anônima
+    - Verificação `instanceof WC_Session` não totalmente qualificada (namespace) em Cart_Events, Order_Events e Helpers
+    - Placeholder `{{ cart_total }}` enviava HTML em vez de texto formatado
+    - Substituição de placeholders no construtor de mensagens do Joinotify
+    - Loop de follow up ao reabandonar um carrinho (eventos já enviados eram reagendados)
+    - Ação "Disparar evento agora" na fila de processamentos não enviava a mensagem (bypass das verificações de janela de envio e de compra)
+    - Exclusão de itens de follow up
+    - Recriação indevida de itens de follow up após exclusão
+    - Falta da chave do evento em colunas de notificações
+    - Links das abas de navegação
+    - Restauração de carrinho com ciclo já finalizado
+    - Criação de novo carrinho quando o existente já estava finalizado
+    - Data e hora incorretas na tabela de carrinhos
+    - Erro fatal por argumentos insuficientes em `Recovery_Handler::send_follow_up_message_callback`
+    - Notificação de atualização disponível não era ocultada após atualizar o plugin
+    - Cancelamento de eventos agendados ao receber pedido e ao recuperar carrinho
+    - Exclusão do post `fcrc-cron-event` ao cancelar evento agendado
+    - Validações adicionais para função `WC()` e método de sessão
+* Recurso adicionado: Agendador de tarefas PHP-Cron (opção para escolher entre WP-Cron e PHP-Cron nas configurações)
+* Recurso adicionado: Sistema de Webhooks para envio de dados de eventos
+* Recurso adicionado: Comandos WP-CLI (`wp fcrc scheduler` com flag `--print-cron`, `wp fcrc cart-list`)
+* Recurso adicionado: Fila de processamentos (Queue Table) com ações
+* Recurso adicionado: Limpeza de eventos vencidos e órfãos da fila de processamentos (botão manual e cron diário, com tolerância de 1 hora)
+* Recurso adicionado: Limpeza de duplicatas do WP-Cron
+* Recurso adicionado: Enviar mensagem de teste de follow up por evento, com campo de telefone de teste nas configurações do Joinotify
+* Recurso adicionado: Atualização automática da tabela de carrinhos via AJAX quando um novo carrinho é criado
+* Recurso adicionado: Bloquear envio de follow ups após X dias da compra
+* Recurso adicionado: Cancelar follow ups após compra tardia
+* Recurso adicionado: Intervalo de tempo entre envios de follow up
+* Recurso adicionado: Prevenir notificação para clientes vinculados ao telefone ou e-mail do carrinho
+* Recurso adicionado: Bloquear follow ups após compra
+* Recurso adicionado: Verificação de envio bem-sucedido de mensagem do WhatsApp
+* Recurso adicionado: Definir automaticamente o primeiro remetente do Joinotify quando vazio
+* Recurso adicionado: Comando WP-CLI `wp fcrc cart-list` para listar carrinhos por status com limite
+
 Versão 1.3.7 (29/12/2025)
 * Correção de bugs:
     - Prevenção contra erro fatal ao tentar recuperar carrinho
