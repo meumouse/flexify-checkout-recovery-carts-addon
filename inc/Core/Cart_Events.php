@@ -14,7 +14,7 @@ defined('ABSPATH') || exit;
  * Handles cart recovery events, such as tracking and updating cart data
  *
  * @since 1.0.0
- * @version 1.3.2
+ * @version 1.4.0
  * @package MeuMouse\Flexify_Checkout\Recovery_Carts\Core
  * @author MeuMouse.com
  */
@@ -64,14 +64,14 @@ class Cart_Events {
      * @return void
      */
     public function update_cart_post( $cart_id, $product_id, $request_quantity, $variation_id, $variation, $cart_item_data ) {
-        // Check if we're in recovery mode
-        if ( function_exists('WC') && WC()->session instanceof WC_Session && WC()->session->get('fcrc_cart_recovery_mode') ) {
-            WC()->session->__unset('fcrc_cart_recovery_mode'); // Clear recovery mode flag
-
+        // Check if we're in recovery mode — keep the flag set so it covers
+        // all items in the restore loop. Helpers::maybe_restore_cart clears
+        // the flag after finishing the loop.
+        if ( function_exists('WC') && WC()->session instanceof \WC_Session && WC()->session->get('fcrc_cart_recovery_mode') ) {
             if ( self::$debug_mode ) {
-                error_log( '[Cart_Events] Recovery mode detected. Skipping cart update.' );
+                error_log( '[Cart_Events] Recovery mode detected on add_to_cart (product=' . $product_id . '). Skipping cart update.' );
             }
-            
+
             return;
         }
 
@@ -117,7 +117,7 @@ class Cart_Events {
      * Creates a new cart post if none exists
      * 
      * @since 1.1.0
-     * @version 1.3.5
+     * @version 1.4.0
      * @return int $cart_id | The cart ID
      */
     public static function create_cart_post() {
@@ -271,14 +271,19 @@ class Cart_Events {
                 continue;
             }
 
-            $product_id = $cart_item['product_id'];
-            $quantity = $cart_item['quantity'];
+            $product_id = (int) $cart_item['product_id'];
+            $variation_id = isset( $cart_item['variation_id'] ) ? (int) $cart_item['variation_id'] : 0;
+            $quantity = (int) $cart_item['quantity'];
             $price = floatval( $product->get_price() );
             $total_price = $quantity * $price;
             $cart_total += $total_price;
 
-            $cart_items[$product_id] = array(
+            $cart_item_identifier = ! empty( $cart_item_key ) ? $cart_item_key : sprintf( '%d_%d', $product_id, $variation_id );
+
+            $cart_items[ $cart_item_identifier ] = array(
                 'product_id' => $product_id,
+				'variation_id' => $variation_id,
+                'variation' => isset( $cart_item['variation'] ) && is_array( $cart_item['variation'] ) ? $cart_item['variation'] : array(),
                 'quantity' => $quantity,
                 'price' => $price,
                 'total' => $total_price,
@@ -370,7 +375,7 @@ class Cart_Events {
      * Synchronizes WooCommerce cart data with the recovery cart post
      *
      * @since 1.0.0
-     * @version 1.3.2
+     * @version 1.4.0
      * @param string $cart_id | The cart ID
      * @return void
      */
@@ -499,14 +504,19 @@ class Cart_Events {
                 continue;
             }
 
-            $product_id = $cart_item['product_id'];
-            $quantity = $cart_item['quantity'];
+            $product_id = (int) $cart_item['product_id'];
+            $variation_id = isset( $cart_item['variation_id'] ) ? (int) $cart_item['variation_id'] : 0;
+            $quantity = (int) $cart_item['quantity'];
             $price = floatval( $product->get_price() );
             $total_price = $quantity * $price;
             $cart_total += $total_price;
 
-            $cart_items[$product_id] = array(
+            $cart_item_identifier = ! empty( $cart_item_key ) ? $cart_item_key : sprintf( '%d_%d', $product_id, $variation_id );
+
+            $cart_items[ $cart_item_identifier ] = array(
                 'product_id' => $product_id,
+				'variation_id' => $variation_id,
+                'variation' => isset( $cart_item['variation'] ) && is_array( $cart_item['variation'] ) ? $cart_item['variation'] : array(),
                 'quantity' => $quantity,
                 'price' => $price,
                 'total' => $total_price,
@@ -530,6 +540,17 @@ class Cart_Events {
      * @return void
      */
     public function update_last_modified_cart_time() {
+        // Skip while we are restoring a recovery cart — otherwise the
+        // woocommerce_cart_updated hook (fired after each add_to_cart)
+        // would create a brand new cart post for the partial cart.
+        if ( function_exists('WC') && WC()->session instanceof \WC_Session && WC()->session->get('fcrc_cart_recovery_mode') ) {
+            if ( self::$debug_mode ) {
+                error_log( '[Cart_Events] Recovery mode detected on cart_updated. Skipping sync.' );
+            }
+
+            return;
+        }
+
         self::sync_cart_with_post();
     }
 

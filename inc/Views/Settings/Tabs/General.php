@@ -246,6 +246,19 @@ defined('ABSPATH') || exit; ?>
                     </div>
                 </td>
             </tr>
+
+            <tr>
+                <th>
+                    <?php esc_html_e( 'Bloquear follow ups após compra', 'fc-recovery-carts' ); ?>
+                    <span class="fc-recovery-carts-description"><?php esc_html_e( 'Impede o envio de follow ups para contatos que já fizeram uma compra recente com o mesmo e-mail ou telefone durante um período de dias.', 'fc-recovery-carts' ); ?></span>
+                </th>
+                <td>
+                    <div class="input-group">
+                        <input type="number" id="follow_up_purchase_block_days" class="form-control" name="follow_up_purchase_block_days" min="0" value="<?php echo esc_attr( Admin::get_setting('follow_up_purchase_block_days') ); ?>" />
+                        <span class="input-group-text"><?php esc_html_e( 'Dias', 'fc-recovery-carts' ); ?></span>
+                    </div>
+                </td>
+            </tr>
         </tbody>
     </table>
 </div>

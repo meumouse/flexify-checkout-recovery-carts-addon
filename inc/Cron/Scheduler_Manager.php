@@ -15,6 +15,7 @@ require_once FC_RECOVERY_CARTS_INC . 'Cron/Scheduler_Fallback.php';
  * Centralises the interaction with the selected task scheduler
  *
  * @since 1.3.2
+ * @version 1.4.0
  * @package MeuMouse\Flexify_Checkout\Recovery_Carts\Cron
  * @author MeuMouse.com
  */
@@ -66,6 +67,7 @@ class Scheduler_Manager {
      * Schedule a single event.
      *
      * @since 1.3.2
+     * @version 1.4.0
      * @param int $timestamp | Unix timestamp
      * @param string $hook | Action hook name
      * @param array  $args | Arguments passed to the action hook
@@ -121,6 +123,8 @@ class Scheduler_Manager {
         }
 
         if ( self::is_wp_cron_enabled() ) {
+            self::cleanup_wp_cron_duplicates( $hook, $args, $queue_args );
+
             if ( ! wp_next_scheduled( $hook, $queue_args ) ) {
                 wp_schedule_single_event( $timestamp, $hook, $queue_args );
             }
@@ -129,6 +133,48 @@ class Scheduler_Manager {
         self::schedule_queue_runner();
 
         return $post_id;
+    }
+
+
+    /**
+     * Remove WP-Cron events that match the same logical args but carry a different cron_post_id.
+     *
+     * @since 1.4.0
+     * @param string $hook | Action hook name.
+     * @param array  $base_args | Args without cron_post_id.
+     * @param array  $queue_args | Args with the current cron_post_id.
+     * @return void
+     */
+    protected static function cleanup_wp_cron_duplicates( $hook, array $base_args, array $queue_args ) {
+        if ( ! function_exists('_get_cron_array') ) {
+            return;
+        }
+
+        $cron = _get_cron_array();
+
+        if ( empty( $cron ) || ! is_array( $cron ) ) {
+            return;
+        }
+
+        foreach ( $cron as $timestamp => $hooks ) {
+            if ( empty( $hooks[ $hook ] ) || ! is_array( $hooks[ $hook ] ) ) {
+                continue;
+            }
+
+            foreach ( $hooks[ $hook ] as $event ) {
+                if ( empty( $event['args'] ) || ! is_array( $event['args'] ) ) {
+                    continue;
+                }
+
+                $event_args = $event['args'];
+                $compare_args = $event_args;
+                unset( $compare_args['cron_post_id'] );
+
+                if ( $compare_args === $base_args && $event_args !== $queue_args ) {
+                    wp_unschedule_event( $timestamp, $hook, $event_args );
+                }
+            }
+        }
     }
 
 

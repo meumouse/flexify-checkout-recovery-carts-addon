@@ -115,6 +115,14 @@ class Assets {
         if ( Helpers::check_admin_page('fc-recovery-carts-list') ) {
             // carts table scripts
 			wp_enqueue_style( 'fc-recovery-carts-table-styles', $this->assets_url . 'admin/css/carts-table'. $min_file .'.css', array(), $this->version );
+            wp_enqueue_script( 'fc-recovery-carts-table-scripts', $this->assets_url . 'admin/js/carts-table'. $min_file .'.js', array('jquery'), $this->version, true );
+
+            wp_localize_script( 'fc-recovery-carts-table-scripts', 'fcrc_carts_table_params', array(
+                'debug_mode' => self::$debug_mode,
+                'ajax_url' => admin_url('admin-ajax.php'),
+                'ajax_nonce' => wp_create_nonce('fcrc_ajax_nonce'),
+                'poll_interval' => (int) apply_filters( 'Flexify_Checkout/Recovery_Carts/Carts_Table/Poll_Interval', 10000 ),
+            ));
         }
 
         // analytics scripts

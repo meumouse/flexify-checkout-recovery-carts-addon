@@ -16,7 +16,7 @@ defined('ABSPATH') || exit;
  * Handle Cron jobs
  * 
  * @since 1.0.0
- * @version 1.3.5
+ * @version 1.4.0
  * @package MeuMouse\Flexify_Checkout\Recovery_Carts\Cron
  * @author MeuMouse.com
  */
@@ -48,11 +48,13 @@ class Recovery_Handler {
         // start recovery carts
         add_action( 'Flexify_Checkout/Recovery_Carts/Cart_Abandoned', array( $this, 'init_follow_up_events' ), 10, 1 );
 
-        // Hook into WordPress to check for cart recovery link on page load
-        add_action( 'template_redirect', array( '\MeuMouse\Flexify_Checkout\Recovery_Carts\Core\Helpers', 'maybe_restore_cart' ) );
+        // Hook into WordPress to check for cart recovery link on page load.
+        // Priority 1 ensures we run before WooCommerce/Flexify Checkout redirects
+        // an empty /checkout/ to /cart/, which would drop the recovery_cart query arg.
+        add_action( 'template_redirect', array( '\MeuMouse\Flexify_Checkout\Recovery_Carts\Core\Helpers', 'maybe_restore_cart' ), 1 );
 
         // Hook to handle the scheduled follow-up messages
-        add_action( 'fcrc_send_follow_up_message', array( $this, 'send_follow_up_message_callback' ), 10, 3 );
+        add_action( 'fcrc_send_follow_up_message', array( $this, 'send_follow_up_message_callback' ), 10, 4 );
 
         // Hook to handle the scheduled final cart status check
         add_action( 'fcrc_check_final_cart_status', array( $this, 'check_final_cart_status_callback' ), 10, 2 );
@@ -190,7 +192,7 @@ class Recovery_Handler {
      * Schedules follow-up messages based on admin settings
      *
      * @since 1.0.0
-     * @version 1.3.5
+     * @version 1.4.0
      * @param int $cart_id | The abandoned cart ID
      * @return void
      */
@@ -212,10 +214,31 @@ class Recovery_Handler {
 
         $current_time = current_time( 'timestamp', true );
 
+        if ( $this->should_block_follow_up_for_recent_purchase( $cart_id ) ) {
+            if ( self::$debug_mode ) {
+                error_log( '[Recovery_Handler] Follow-up blocked due to recent purchase for cart ID: ' . $cart_id );
+            }
+
+            return;
+        }
+
+        // collect event keys already delivered to this cart, so we don't resend
+        // them when the cart is re-abandoned after the user resumed it.
+        $already_sent_events = $this->get_already_sent_event_keys( $cart_id );
+
         // iterate for each follow up event
         foreach ( $follow_up_events as $event_key => $event_data ) {
             // check if follow up event is enabled
             if ( ! isset( $event_data['enabled'] ) || $event_data['enabled'] !== 'yes' ) {
+                continue;
+            }
+
+            // skip events that were already sent to this cart in a previous abandonment cycle
+            if ( in_array( $event_key, $already_sent_events, true ) ) {
+                if ( self::$debug_mode ) {
+                    error_log( '[Recovery_Handler] Skipping follow-up event "' . $event_key . '" for cart ID ' . $cart_id . ' — already sent previously.' );
+                }
+
                 continue;
             }
 
@@ -257,7 +280,7 @@ class Recovery_Handler {
      * Sends a follow-up message based on the event
      *
      * @since 1.0.0
-     * @version 1.3.5
+     * @version 1.4.0
      * @param int $cart_id | The abandoned cart ID
      * @param string $event_key | The follow-up event key
      * @param int $cron_post_id | The cron post ID
@@ -270,12 +293,14 @@ class Recovery_Handler {
                 'cart_id' => 0,
                 'event_key' => '',
                 'cron_post_id' => null,
+                'force' => false,
             )
         );
 
         $cart_id = absint( $args['cart_id'] );
         $event_key = sanitize_key( $args['event_key'] );
         $cron_post_id = $args['cron_post_id'] ? absint( $args['cron_post_id'] ) : null;
+        $force = ! empty( $args['force'] );
 
         if ( ! $cart_id || ! $event_key ) {
             return;
@@ -288,10 +313,34 @@ class Recovery_Handler {
         }
 
         $event = $settings[ $event_key ];
-        $current_timestamp = current_time( 'timestamp' );
+
+        if ( ! $force && $this->should_block_follow_up_for_recent_purchase( $cart_id ) ) {
+            Helpers::cancel_scheduled_follow_up_events( $cart_id );
+
+            if ( self::$debug_mode ) {
+                error_log( '[Recovery_Handler] Follow-up cancelled due to recent purchase for cart ID: ' . $cart_id );
+            }
+
+            if ( $cron_post_id ) {
+                wp_delete_post( intval( $cron_post_id ), true );
+            }
+
+            return;
+        }
+
+        $current_timestamp = current_time('timestamp');
+
+        if ( ! $force && Helpers::maybe_cancel_followups_after_late_purchase( $cart_id ) ) {
+            if ( $cron_post_id ) {
+                wp_delete_post( intval( $cron_post_id ), true );
+            }
+
+            return;
+        }
+
         $send_window_time = $this->get_next_available_window_time( $event, $current_timestamp );
 
-        if ( ! empty( $send_window_time['next_window'] ) && $send_window_time['next_window'] > $current_timestamp ) {
+        if ( ! $force && ! empty( $send_window_time['next_window'] ) && $send_window_time['next_window'] > $current_timestamp ) {
             Scheduler_Manager::schedule_single_event(
                 $send_window_time['next_window'],
                 'fcrc_send_follow_up_message',
@@ -327,9 +376,11 @@ class Recovery_Handler {
         // send via WhatsApp if enabled
         if ( isset( $event['channels']['whatsapp'] ) && $event['channels']['whatsapp'] === 'yes' ) {
             // send message
-            self::send_whatsapp_message( $receiver, $message );
+            $response_code = self::send_whatsapp_message( $receiver, $message );
 
-            $sent_channels[] = 'whatsapp';
+            if ( 201 === $response_code ) {
+                $sent_channels[] = 'whatsapp';
+            }
         }
 
         if ( empty( $sent_channels ) ) {
@@ -370,6 +421,88 @@ class Recovery_Handler {
         if ( $cron_post_id ) {
             wp_delete_post( intval( $cron_post_id ), true );
         }
+    }
+
+
+    /**
+     * Get the list of follow-up event keys already sent for a cart.
+     *
+     * Used to avoid re-sending the same follow-up when a cart is re-abandoned
+     * after the lead resumed it (cart returns to 'shopping' then back to 'abandoned').
+     *
+     * @since 1.4.0
+     * @param int $cart_id | The cart ID.
+     * @return array<string>
+     */
+    private function get_already_sent_event_keys( $cart_id ) {
+        $notifications = get_post_meta( $cart_id, '_fcrc_notifications_sent', true );
+
+        if ( ! is_array( $notifications ) || empty( $notifications ) ) {
+            return array();
+        }
+
+        $keys = array();
+
+        foreach ( $notifications as $notification ) {
+            if ( ! empty( $notification['event_key'] ) ) {
+                $keys[] = (string) $notification['event_key'];
+            }
+        }
+
+        return array_values( array_unique( $keys ) );
+    }
+
+
+    /**
+     * Check if follow-ups should be blocked for a cart due to recent purchases.
+     *
+     * @since 1.4.0
+     * @param int $cart_id | The abandoned cart ID
+     * @return bool
+     */
+    private function should_block_follow_up_for_recent_purchase( $cart_id ) {
+        $days = absint( Admin::get_setting('follow_up_purchase_block_days') );
+
+        if ( $days <= 0 ) {
+            return false;
+        }
+
+        if ( ! function_exists('wc_get_orders') ) {
+            return false;
+        }
+
+        $email = sanitize_email( get_post_meta( $cart_id, '_fcrc_cart_email', true ) );
+        $phone = trim( (string) get_post_meta( $cart_id, '_fcrc_cart_phone', true ) );
+
+        if ( empty( $email ) && empty( $phone ) ) {
+            return false;
+        }
+
+        $after_timestamp = current_time( 'timestamp', true ) - ( $days * DAY_IN_SECONDS );
+        $order_query = array(
+            'limit' => 1,
+            'return' => 'ids',
+            'status' => apply_filters( 'Flexify_Checkout/Should_Block_Purchases/Statuses', array( 'wc-processing', 'wc-completed' ) ),
+            'date_created' => '>' . $after_timestamp,
+        );
+
+        if ( ! empty( $email ) ) {
+            $orders_by_email = wc_get_orders( array_merge( $order_query, array( 'billing_email' => $email ) ) );
+
+            if ( ! empty( $orders_by_email ) ) {
+                return true;
+            }
+        }
+
+        if ( ! empty( $phone ) ) {
+            $orders_by_phone = wc_get_orders( array_merge( $order_query, array( 'billing_phone' => $phone ) ) );
+
+            if ( ! empty( $orders_by_phone ) ) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
 
@@ -528,6 +661,7 @@ class Recovery_Handler {
      * Sends a WhatsApp message with Joinotify
      *
      * @since 1.0.0
+     * @version 1.4.0
      * @param string $receiver | The recipient's phone number
      * @param string $message | The message to send
      */
@@ -535,8 +669,10 @@ class Recovery_Handler {
         if ( function_exists('joinotify_send_whatsapp_message_text') ) {
             $sender = Admin::get_setting('joinotify_sender_phone');
 
-            joinotify_send_whatsapp_message_text( $sender, $receiver, $message );
+            return joinotify_send_whatsapp_message_text( $sender, $receiver, $message );
         }
+
+        return null;
     }
 
 

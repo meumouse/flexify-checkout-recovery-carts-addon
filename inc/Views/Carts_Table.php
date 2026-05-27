@@ -6,6 +6,7 @@ use MeuMouse\Flexify_Checkout\Recovery_Carts\Admin\Admin;
 use MeuMouse\Flexify_Checkout\Recovery_Carts\Core\Helpers;
 
 use WP_List_Table;
+use WP_Query;
 
 // Exit if accessed directly.
 defined('ABSPATH') || exit;
@@ -47,14 +48,30 @@ class Carts_Table extends WP_List_Table {
      */
     public function display_page() {
         echo '<div class="wrap"><h1 class="wp-heading-inline">' . __( 'Gerenciar carrinhos', 'fc-recovery-carts' ) . '</h1>';
-       
+
+        $last_change = (int) get_option( 'fcrc_carts_table_last_change', 0 );
+
+        printf( '<div id="fcrc-carts-table-wrapper" data-last-change="%d">', $last_change );
+        $this->render_table_inner();
+        echo '</div></div>';
+    }
+
+
+    /**
+     * Render the inner table markup (form + search + list).
+     * Extracted so it can be reused by the AJAX refresh endpoint.
+     *
+     * @since 1.4.0
+     * @return void
+     */
+    public function render_table_inner() {
         echo '<form method="post">';
             echo '<input type="hidden" name="page" value="' . esc_attr( $_REQUEST['page'] ?? '' ) . '" />';
             echo '<input type="hidden" name="post_status" value="' . esc_attr( $_REQUEST['post_status'] ?? '' ) . '" />';
 
             $this->search_box( __( 'Buscar carrinhos', 'fc-recovery-carts' ), 'fcrc_cart_search' );
             $this->display();
-        echo '</form></div>';
+        echo '</form>';
     }
 
 
@@ -636,7 +653,7 @@ class Carts_Table extends WP_List_Table {
      * Prepare items for display in the table
      * 
      * @since 1.0.0
-     * @version 1.1.0
+     * @version 1.4.0
      * @return void
      */
     public function prepare_items() {
@@ -689,19 +706,31 @@ class Carts_Table extends WP_List_Table {
 
             // if is numeric, also search by post ID and order ID
             if ( is_numeric( $search ) ) {
-                $args['post__in'] = array( intval( $search ) );
-
                 $meta_query[] = array(
                     'key' => '_fcrc_order_id',
                     'value' => $search,
                     'compare' => '=',
                 );
-            }
+                
+                $id_query_args = array(
+                    'post_type' => 'fc-recovery-carts',
+                    'post_status' => $args['post_status'],
+                    'fields' => 'ids',
+                    'posts_per_page' => -1,
+                    'meta_query' => $meta_query,
+                );
 
-            $args['meta_query'] = $meta_query;
+                $matched_ids = ( new WP_Query( $id_query_args ) )->posts;
+                $matched_ids[] = absint( $search );
+
+                $matched_ids = array_values( array_unique( array_filter( $matched_ids ) ) );
+                $args['post__in'] = $matched_ids ? $matched_ids : array( 0 );
+            } else {
+                $args['meta_query'] = $meta_query;
+            }
         }
 
-        $query = new \WP_Query( $args );
+        $query = new WP_Query( $args );
         $total_items = $query->found_posts;
         $this->items = $query->posts;
         $this->_column_headers = array( $this->get_columns(), array(), $this->get_sortable_columns() );

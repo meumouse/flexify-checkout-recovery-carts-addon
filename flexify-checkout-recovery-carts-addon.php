@@ -7,11 +7,11 @@
  * Requires Plugins: 		flexify-checkout-for-woocommerce, woocommerce
  * Author:                  MeuMouse.com
  * Author URI:              https://meumouse.com/
- * Version:                 1.3.7
+ * Version:                 1.4.0
  * Requires PHP:            7.4
- * Tested up to:            6.9
+ * Tested up to:            7.0
  * WC requires at least:    6.0.0
- * WC tested up to: 		10.4.2
+ * WC tested up to: 		10.7.0
  * Text Domain:             fc-recovery-carts
  * Domain Path:             /languages
  * License:                 GPL2
@@ -29,5 +29,12 @@ if ( file_exists( $autoload ) ) {
     require_once $autoload;
 }
 
+$plugin_version = '1.4.0';
+
 // Initialize the plugin
-$plugin = new Init();
+$plugin = new Init( __FILE__, $plugin_version );
+
+// Expose a global class alias so integrations (e.g. Joinotify) can detect the plugin via class_exists('Flexify_Checkout_Recovery_Carts').
+if ( ! class_exists( 'Flexify_Checkout_Recovery_Carts', false ) ) {
+    class_alias( Init::class, 'Flexify_Checkout_Recovery_Carts' );
+}

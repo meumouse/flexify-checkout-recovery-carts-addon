@@ -32,6 +32,7 @@
 }
 
 .fcrc-popup-container.show {
+    display: flex !important;
     opacity: 1;
     visibility: visible;
     transform: none;

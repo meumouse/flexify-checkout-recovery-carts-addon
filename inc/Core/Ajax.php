@@ -57,6 +57,9 @@ class Ajax {
             'fc_recovery_carts_save_options' => 'admin_save_options_callback',
             'fcrc_add_new_follow_up' => 'fcrc_add_new_follow_up_callback',
             'fcrc_delete_follow_up' => 'fcrc_delete_follow_up_callback',
+            'fcrc_send_test_follow_up' => 'fcrc_send_test_follow_up_callback',
+            'fcrc_get_carts_table_changes' => 'fcrc_get_carts_table_changes_callback',
+            'fcrc_refresh_carts_table' => 'fcrc_refresh_carts_table_callback',
             'fcrc_get_analytics_data' => 'get_analytics_data_callback',
         );
 
@@ -504,8 +507,191 @@ class Ajax {
 
 
     /**
+     * Send a test follow up message via Joinotify using dummy placeholder data
+     *
+     * @since 1.4.0
+     * @return void
+     */
+    public function fcrc_send_test_follow_up_callback() {
+        try {
+            $this->validate_ajax_request( array( 'event_key' ) );
+
+            if ( ! current_user_can( 'manage_options' ) ) {
+                wp_send_json_error( array(
+                    'message' => esc_html__( 'Permissão negada.', 'fc-recovery-carts' )
+                ) );
+            }
+
+            $event_key = sanitize_text_field( $_POST['event_key'] );
+            $settings = $this->get_settings();
+            $event = $settings['follow_up_events'][ $event_key ] ?? null;
+
+            if ( ! $event ) {
+                wp_send_json( array(
+                    'status' => 'error',
+                    'toast_header_title' => esc_html__( 'Ops! Ocorreu um erro', 'fc-recovery-carts' ),
+                    'toast_body_title' => esc_html__( 'Evento de follow up não encontrado.', 'fc-recovery-carts' ),
+                ) );
+            }
+
+            if ( empty( $event['channels']['whatsapp'] ) || $event['channels']['whatsapp'] !== 'yes' ) {
+                wp_send_json( array(
+                    'status' => 'error',
+                    'toast_header_title' => esc_html__( 'Canal desativado', 'fc-recovery-carts' ),
+                    'toast_body_title' => esc_html__( 'O canal WhatsApp não está ativo para este follow up.', 'fc-recovery-carts' ),
+                ) );
+            }
+
+            $test_phone = trim( (string) ( $settings['joinotify_test_phone'] ?? '' ) );
+
+            if ( empty( $test_phone ) ) {
+                wp_send_json( array(
+                    'status' => 'error',
+                    'toast_header_title' => esc_html__( 'Telefone não configurado', 'fc-recovery-carts' ),
+                    'toast_body_title' => esc_html__( 'Configure o telefone de teste nas opções da integração Joinotify.', 'fc-recovery-carts' ),
+                ) );
+            }
+
+            if ( ! function_exists('joinotify_send_whatsapp_message_text') ) {
+                wp_send_json( array(
+                    'status' => 'error',
+                    'toast_header_title' => esc_html__( 'Joinotify indisponível', 'fc-recovery-carts' ),
+                    'toast_body_title' => esc_html__( 'A integração Joinotify não está ativa.', 'fc-recovery-carts' ),
+                ) );
+            }
+
+            $dummy_values = array(
+                '{{ first_name }}' => esc_html__( 'João', 'fc-recovery-carts' ),
+                '{{ last_name }}' => esc_html__( 'da Silva', 'fc-recovery-carts' ),
+                '{{ recovery_link }}' => home_url( '/?fcrc_recovery=teste123' ),
+                '{{ coupon_code }}' => 'TESTE10',
+                '{{ products_list }}' => esc_html__( 'Produto de exemplo 1, Produto de exemplo 2', 'fc-recovery-carts' ),
+                '{{ cart_total }}' => function_exists('wc_price') ? html_entity_decode( wp_strip_all_tags( wc_price( 199.90 ) ), ENT_QUOTES | ENT_HTML5, 'UTF-8' ) : '199.90',
+            );
+
+            /**
+             * Filter dummy placeholder values used on test follow up messages
+             *
+             * @since 1.4.0
+             * @param array  $dummy_values | Map of placeholder => sample value
+             * @param string $event_key    | Follow up event key
+             * @param array  $event        | Follow up event settings
+             */
+            $dummy_values = apply_filters( 'Flexify_Checkout/Recovery_Carts/Test_Follow_Up/Dummy_Values', $dummy_values, $event_key, $event );
+
+            $message = strtr( (string) ( $event['message'] ?? '' ), $dummy_values );
+            $sender = Admin::get_setting('joinotify_sender_phone');
+            $receiver = function_exists('joinotify_prepare_receiver') ? joinotify_prepare_receiver( $test_phone ) : $test_phone;
+
+            if ( empty( $sender ) || $sender === 'none' ) {
+                wp_send_json( array(
+                    'status' => 'error',
+                    'toast_header_title' => esc_html__( 'Remetente não configurado', 'fc-recovery-carts' ),
+                    'toast_body_title' => esc_html__( 'Selecione um remetente nas opções da integração Joinotify.', 'fc-recovery-carts' ),
+                ) );
+            }
+
+            $sent = joinotify_send_whatsapp_message_text( $sender, $receiver, $message );
+
+            if ( $sent ) {
+                wp_send_json( array(
+                    'status' => 'success',
+                    'toast_header_title' => esc_html__( 'Mensagem enviada', 'fc-recovery-carts' ),
+                    'toast_body_title' => sprintf( esc_html__( 'Teste enviado para %s.', 'fc-recovery-carts' ), esc_html( $receiver ) ),
+                ) );
+            }
+
+            wp_send_json( array(
+                'status' => 'error',
+                'toast_header_title' => esc_html__( 'Falha ao enviar', 'fc-recovery-carts' ),
+                'toast_body_title' => esc_html__( 'Não foi possível enviar a mensagem de teste. Verifique a configuração do Joinotify.', 'fc-recovery-carts' ),
+            ) );
+        } catch ( \Exception $e ) {
+            $this->handle_ajax_exception( __FUNCTION__, $e );
+        }
+    }
+
+
+    /**
+     * Lightweight endpoint that returns the timestamp of the last new cart
+     * created with status shopping/lead. Used by the admin carts table JS
+     * to detect changes and trigger a refresh.
+     *
+     * @since 1.4.0
+     * @return void
+     */
+    public function fcrc_get_carts_table_changes_callback() {
+        try {
+            $this->validate_ajax_request();
+
+            if ( ! current_user_can( 'manage_options' ) ) {
+                wp_send_json_error( array(
+                    'message' => esc_html__( 'Permissão negada.', 'fc-recovery-carts' )
+                ) );
+            }
+
+            wp_send_json( array(
+                'status' => 'success',
+                'last_change' => (int) get_option( 'fcrc_carts_table_last_change', 0 ),
+            ) );
+        } catch ( \Exception $e ) {
+            $this->handle_ajax_exception( __FUNCTION__, $e );
+        }
+    }
+
+
+    /**
+     * Re-render the carts list table preserving current filters
+     * (post_status, paged, orderby, order, search) and return the HTML.
+     *
+     * @since 1.4.0
+     * @return void
+     */
+    public function fcrc_refresh_carts_table_callback() {
+        try {
+            $this->validate_ajax_request();
+
+            if ( ! current_user_can( 'manage_options' ) ) {
+                wp_send_json_error( array(
+                    'message' => esc_html__( 'Permissão negada.', 'fc-recovery-carts' )
+                ) );
+            }
+
+            // forward filter params so the table renders with the current view
+            $forwarded = array( 'page', 'post_status', 'paged', 'orderby', 'order', 's', 'fcrc_cart_search' );
+
+            foreach ( $forwarded as $key ) {
+                if ( isset( $_POST[ $key ] ) ) {
+                    $_REQUEST[ $key ] = sanitize_text_field( wp_unslash( $_POST[ $key ] ) );
+                    $_GET[ $key ] = $_REQUEST[ $key ];
+                }
+            }
+
+            if ( ! class_exists('WP_List_Table') ) {
+                require_once ABSPATH . 'wp-admin/includes/class-wp-list-table.php';
+            }
+
+            $table = new \MeuMouse\Flexify_Checkout\Recovery_Carts\Views\Carts_Table();
+            $table->prepare_items();
+
+            ob_start();
+            $table->render_table_inner();
+            $html = ob_get_clean();
+
+            wp_send_json( array(
+                'status' => 'success',
+                'last_change' => (int) get_option( 'fcrc_carts_table_last_change', 0 ),
+                'html' => $html,
+            ) );
+        } catch ( \Exception $e ) {
+            $this->handle_ajax_exception( __FUNCTION__, $e );
+        }
+    }
+
+
+    /**
      * Get lead collected
-     * 
+     *
      * @since 1.0.0
      * @version 1.3.5
      * @return void

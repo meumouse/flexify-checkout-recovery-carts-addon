@@ -12,7 +12,7 @@ defined('ABSPATH') || exit;
  * Helpers class
  * 
  * @since 1.0.0
- * @version 1.3.7
+ * @version 1.4.0
  * @package MeuMouse\Flexify_Checkout\Recovery_Carts\Core
  * @author MeuMouse.com
  */
@@ -156,15 +156,34 @@ class Helpers {
      * @return void
      */
     public static function maybe_restore_cart() {
-        if ( is_admin() || ! isset( $_GET['recovery_cart'] ) ) {
+        if ( is_admin() ) {
             return;
+        }
+
+        // temporary tracer: log WC cart state on the redirect target so we can
+        // see whether items survived the redirect
+        if ( self::$debug_mode && function_exists('WC') && WC()->cart ) {
+            $uri = $_SERVER['REQUEST_URI'] ?? '';
+
+            if ( strpos( $uri, 'recovery_cart' ) === false ) {
+                $cart_keys = array_keys( WC()->cart->get_cart() );
+                error_log( '[FCRC][Trace] front-end request URL=' . $uri . ' wc_cart_keys=' . wp_json_encode( $cart_keys ) . ' session_fcrc_cart_id=' . var_export( WC()->session ? WC()->session->get('fcrc_cart_id') : null, true ) );
+            }
+        }
+
+        if ( ! isset( $_GET['recovery_cart'] ) ) {
+            return;
+        }
+
+        if ( self::$debug_mode ) {
+            error_log( '[FCRC][Restore] maybe_restore_cart triggered. URL: ' . ( $_SERVER['REQUEST_URI'] ?? '' ) );
         }
 
         $cart_id = intval( $_GET['recovery_cart'] );
 
         if ( ! $cart_id || get_post_type( $cart_id ) !== 'fc-recovery-carts' ) {
             if ( self::$debug_mode ) {
-                error_log( "Error: Cart ID {$cart_id} invalid or not found." );
+                error_log( "[FCRC][Restore] Cart ID {$cart_id} invalid or not a recovery cart post." );
             }
 
             return;
@@ -173,7 +192,7 @@ class Helpers {
         // Do not restore carts that already completed the recovery cycle
         if ( self::is_cart_cycle_finished( $cart_id ) ) {
             if ( self::$debug_mode ) {
-                error_log( "Cart ID {$cart_id} already completed. Skipping restore." );
+                error_log( "[FCRC][Restore] Cart ID {$cart_id} already completed. Skipping restore." );
             }
 
             wp_safe_redirect( wc_get_checkout_url() );
@@ -184,17 +203,21 @@ class Helpers {
         // get products from cart
         $cart_items = get_post_meta( $cart_id, '_fcrc_cart_items', true );
 
+        if ( self::$debug_mode ) {
+            error_log( "[FCRC][Restore] Cart {$cart_id} items meta: " . print_r( $cart_items, true ) );
+        }
+
         if ( empty( $cart_items ) || ! is_array( $cart_items ) ) {
             if ( self::$debug_mode ) {
-                error_log( "Error: Any product found for the cart: {$cart_id}." );
+                error_log( "[FCRC][Restore] No products found in meta for cart {$cart_id}." );
             }
-            
+
             return;
         }
 
         if ( ! function_exists('WC') || ! WC()->session || ! WC()->cart ) {
             if ( self::$debug_mode ) {
-                error_log( "Error: WooCommerce session/cart unavailable while restoring cart {$cart_id}." );
+                error_log( "[FCRC][Restore] WooCommerce session/cart unavailable while restoring cart {$cart_id}." );
             }
 
             return;
@@ -203,25 +226,104 @@ class Helpers {
         // Set recovery mode
         WC()->session->set( 'fcrc_cart_recovery_mode', true );
 
+        if ( self::$debug_mode ) {
+            error_log( "[FCRC][Restore] Recovery mode flag set. Emptying current cart and restoring " . count( $cart_items ) . " item(s)." );
+        }
+
         // clear cart before restoring cart
         WC()->cart->empty_cart();
 
         // add products to cart
         foreach ( $cart_items as $item ) {
-            WC()->cart->add_to_cart( $item['product_id'], $item['quantity'] );
+            $product_id = isset( $item['product_id'] ) ? (int) $item['product_id'] : 0;
+
+            if ( ! $product_id ) {
+                continue;
+            }
+
+            $quantity = isset( $item['quantity'] ) ? (int) $item['quantity'] : 1;
+            $variation_id = isset( $item['variation_id'] ) ? (int) $item['variation_id'] : 0;
+            $variation = isset( $item['variation'] ) && is_array( $item['variation'] ) ? $item['variation'] : array();
+
+            // when restoring a variable product, the saved variation attributes
+            // may be missing (legacy data saved before variation persistence).
+            // rebuild them from the variation post itself so add_to_cart accepts.
+            if ( $variation_id > 0 && empty( $variation ) && function_exists('wc_get_product') ) {
+                $variation_product = wc_get_product( $variation_id );
+
+                if ( $variation_product && is_callable( array( $variation_product, 'get_variation_attributes' ) ) ) {
+                    $variation = $variation_product->get_variation_attributes();
+                }
+            }
+
+            $added = WC()->cart->add_to_cart( $product_id, $quantity, $variation_id, $variation );
+
+            if ( self::$debug_mode ) {
+                error_log( sprintf(
+                    '[FCRC][Restore] add_to_cart(product=%d, variation=%d, qty=%d, variation_attrs=%s) => %s',
+                    $product_id,
+                    $variation_id,
+                    $quantity,
+                    wp_json_encode( $variation ),
+                    $added ? 'OK (' . $added . ')' : 'FAILED'
+                ));
+
+                if ( ! $added && function_exists('wc_get_notices') ) {
+                    error_log( '[FCRC][Restore] WC notices after failure: ' . wp_json_encode( wc_get_notices('error') ) );
+                }
+            }
+        }
+
+        // Clear recovery mode flag now that the loop is complete
+        WC()->session->__unset('fcrc_cart_recovery_mode');
+
+        if ( self::$debug_mode ) {
+            error_log( '[FCRC][Restore] Cart contents after restore: ' . wp_json_encode( array_keys( WC()->cart->get_cart() ) ) );
+        }
+
+        // do not show WC error notices accumulated during silent restoration
+        if ( function_exists('wc_clear_notices') ) {
+            wc_clear_notices();
         }
 
         // store cart ID in session and cookie
         WC()->session->set( 'fcrc_cart_id', $cart_id );
         setcookie( 'fcrc_cart_id', $cart_id, strtotime( current_time('mysql') ) + ( 7 * 24 * 60 * 60 ), COOKIEPATH, COOKIE_DOMAIN );
 
+        // Persist WC cart session immediately so the redirected request can
+        // read the restored items (instead of relying on the shutdown hook,
+        // which may not commit before the browser fires the next request).
+        if ( is_callable( array( WC()->cart, 'set_session' ) ) ) {
+            WC()->cart->set_session();
+        }
+
+        // Force WC to issue the `wp_woocommerce_session_xxx` cookie. In a
+        // brand-new browser session (e.g. anonymous tab) the visitor has no
+        // WC session cookie yet — without this call, the redirected request
+        // receives a fresh empty session and our restored cart is lost.
+        if ( is_callable( array( WC()->session, 'set_customer_session_cookie' ) ) ) {
+            WC()->session->set_customer_session_cookie( true );
+        }
+
+        if ( is_callable( array( WC()->session, 'save_data' ) ) ) {
+            WC()->session->save_data();
+        }
+
         if ( self::$debug_mode ) {
-            error_log( "Cart {$cart_id} restored and redirecting to checkout." );
+            $headers_sent = headers_sent( $hs_file, $hs_line );
+
+            error_log( sprintf(
+                '[FCRC][Restore] Cart %d restored. headers_sent=%s%s. Redirecting to: %s',
+                $cart_id,
+                $headers_sent ? 'YES' : 'no',
+                $headers_sent ? ' (at ' . $hs_file . ':' . $hs_line . ')' : '',
+                wc_get_checkout_url()
+            ));
         }
 
         // redirect to checkout
         wp_safe_redirect( wc_get_checkout_url() );
-        
+
         exit;
     }
 
@@ -301,7 +403,7 @@ class Helpers {
      * @return string|null
      */
     public static function get_current_cart_id() {
-        if ( function_exists('WC') && WC()->session instanceof WC_Session && WC()->session->get('fcrc_cart_id') !== null ) {
+        if ( function_exists('WC') && WC()->session instanceof \WC_Session && WC()->session->get('fcrc_cart_id') !== null ) {
             $cart_id = WC()->session->get('fcrc_cart_id');
         } else {
             $cart_id = $_COOKIE['fcrc_cart_id'] ?? null;
@@ -670,5 +772,130 @@ class Helpers {
                 error_log( '[Cart_Events] Cleaned up old lost cart ID: ' . $cart_id . ' for IP: ' . $client_ip );
             }
         }
+    }
+
+
+    /**
+     * Cancel scheduled follow-up events if an order was placed 24 hours after abandonment
+     * matching the cart contact info and at least one product.
+     *
+     * @since 1.3.8
+     * @param int $cart_id | The recovery cart post ID
+     * @return bool True when follow-ups were canceled.
+     */
+    public static function maybe_cancel_followups_after_late_purchase( $cart_id ) {
+        $abandoned_time = get_post_meta( $cart_id, '_fcrc_abandoned_time', true );
+
+        if ( empty( $abandoned_time ) ) {
+            return false;
+        }
+
+        $abandoned_time = is_numeric( $abandoned_time ) ? (int) $abandoned_time : strtotime( $abandoned_time );
+
+        if ( ! $abandoned_time ) {
+            return false;
+        }
+
+        $threshold_time = $abandoned_time + DAY_IN_SECONDS;
+        $current_time = current_time( 'timestamp', true );
+
+        if ( $current_time < $threshold_time ) {
+            return false;
+        }
+
+        $cart_email = get_post_meta( $cart_id, '_fcrc_cart_email', true );
+        $cart_phone = get_post_meta( $cart_id, '_fcrc_cart_phone', true );
+
+        if ( empty( $cart_email ) && empty( $cart_phone ) ) {
+            return false;
+        }
+
+        $cart_items = get_post_meta( $cart_id, '_fcrc_cart_items', true );
+
+        if ( empty( $cart_items ) || ! is_array( $cart_items ) ) {
+            return false;
+        }
+
+        $cart_product_ids = array();
+
+        foreach ( $cart_items as $item ) {
+            if ( isset( $item['product_id'] ) ) {
+                $cart_product_ids[] = (int) $item['product_id'];
+            }
+        }
+
+        $cart_product_ids = array_filter( array_unique( $cart_product_ids ) );
+
+        if ( empty( $cart_product_ids ) ) {
+            return false;
+        }
+
+        $meta_query = array();
+
+        if ( $cart_email ) {
+            $meta_query[] = array(
+                'key' => '_billing_email',
+                'value' => $cart_email,
+                'compare' => '=',
+            );
+        }
+
+        if ( $cart_phone ) {
+            $meta_query[] = array(
+                'key' => '_billing_phone',
+                'value' => $cart_phone,
+                'compare' => '=',
+            );
+        }
+
+        if ( empty( $meta_query ) ) {
+            return false;
+        }
+
+        if ( count( $meta_query ) > 1 ) {
+            $meta_query = array_merge( array( 'relation' => 'OR' ), $meta_query );
+        }
+
+        $order_ids = get_posts( array(
+            'post_type' => 'shop_order',
+            'post_status' => array_keys( wc_get_order_statuses() ),
+            'fields' => 'ids',
+            'posts_per_page' => 20,
+            'date_query' => array(
+                array(
+                    'after' => gmdate( 'Y-m-d H:i:s', $threshold_time ),
+                    'inclusive' => true,
+                ),
+            ),
+            'meta_query' => $meta_query,
+        ));
+
+        if ( empty( $order_ids ) ) {
+            return false;
+        }
+
+        foreach ( $order_ids as $order_id ) {
+            $order = wc_get_order( $order_id );
+
+            if ( ! $order ) {
+                continue;
+            }
+
+            foreach ( $order->get_items() as $item ) {
+                $product_id = (int) $item->get_product_id();
+
+                if ( $product_id && in_array( $product_id, $cart_product_ids, true ) ) {
+                    self::cancel_scheduled_follow_up_events( $cart_id );
+
+                    if ( self::$debug_mode ) {
+                        error_log( sprintf( 'Follow-ups canceled for cart %d due to order %d after 24h.', $cart_id, $order_id ) );
+                    }
+
+                    return true;
+                }
+            }
+        }
+
+        return false;
     }
 }

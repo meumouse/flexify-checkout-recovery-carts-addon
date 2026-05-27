@@ -90,6 +90,16 @@ class Joinotify extends Integrations_Base {
                                     </select>
                                 </td>
                             </tr>
+
+                            <tr>
+                                <th class="w-50">
+                                    <?php esc_html_e( 'Telefone para teste de follow up', 'fc-recovery-carts' ); ?>
+                                    <span class="fc-recovery-carts-description"><?php esc_html_e( 'Número que receberá as mensagens enviadas pelo botão "Testar" de cada follow up. Informe com DDI + DDD + número (ex: 5511999999999).', 'fc-recovery-carts' ); ?></span>
+                                </th>
+                                <td class="w-50">
+                                    <input type="text" class="form-control" id="joinotify_test_phone" name="joinotify_test_phone" value="<?php echo esc_attr( Admin::get_setting('joinotify_test_phone') ); ?>" placeholder="5511999999999">
+                                </td>
+                            </tr>
                         </tbody>
                     </table>
                 </div>
