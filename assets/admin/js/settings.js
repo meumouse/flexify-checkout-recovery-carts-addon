@@ -467,6 +467,51 @@
 		},
 
 		/**
+		 * Send a test follow up message
+		 *
+		 * @since 1.4.0
+		 */
+		testFollowUp: function() {
+			$(document).on('click', '.test-follow-up-item', function(e) {
+				e.preventDefault();
+
+				var btn = $(this);
+				var btn_state = Settings.keepButtonState(btn);
+				var get_item = btn.data('follow-up-item');
+
+				$.ajax({
+					url: params.ajax_url,
+					type: 'POST',
+					data: {
+						action: 'fcrc_send_test_follow_up',
+						nonce: params.ajax_nonce,
+						event_key: get_item,
+					},
+					beforeSend: function() {
+						btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm"></span>');
+					},
+					success: function(response) {
+						try {
+							if (response.status === 'success') {
+								Settings.displayToast('success', response.toast_header_title, response.toast_body_title);
+							} else {
+								Settings.displayToast('error', response.toast_header_title, response.toast_body_title);
+							}
+						} catch (error) {
+							console.log(error);
+						}
+					},
+					error: function(xhr, status, error) {
+						console.error('Error on AJAX request:', xhr.responseText);
+					},
+					complete: function() {
+						btn.prop('disabled', false).html(btn_state.html);
+					},
+				});
+			});
+		},
+
+		/**
 		 * Initialize webhook handlers
 		 *
 		 * @since 1.3.2
@@ -1040,6 +1085,7 @@
 			this.addNewFollowUp();
 			this.editFollowUp();
 			this.deleteFollowUp();
+			this.testFollowUp();
 			this.initWebhooks();
 			this.collectLeadSettings();
 			this.selectColor();

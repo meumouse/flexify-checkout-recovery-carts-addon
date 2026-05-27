@@ -193,6 +193,7 @@ class Default_Options {
             'select_coupon' => 'none',
             'payment_methods' => $payment_methods,
             'joinotify_sender_phone' => 'none',
+            'joinotify_test_phone' => '',
             'fallback_first_name' => 'Cliente',
             'collect_lead_modal' => array(
                 'title' => 'Registre-se para receber um cupom de desconto e ficar por dentro das melhores ofertas!',
