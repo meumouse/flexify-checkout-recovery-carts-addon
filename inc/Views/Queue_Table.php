@@ -57,7 +57,22 @@ class Queue_Table extends WP_List_Table {
         }
         
         echo '<div class="wrap"><h1 class="wp-heading-inline">' . __( 'Gerenciar fila de processamentos', 'fc-recovery-carts' ) . '</h1>';
-    
+
+        $cleanup_url = wp_nonce_url(
+            add_query_arg( array(
+                'action' => 'cleanup_expired',
+                'page' => $_REQUEST['page'] ?? '',
+            ), admin_url('admin.php') ),
+            'fcrc_cleanup_expired_queue'
+        );
+
+        printf(
+            ' <a href="%s" class="page-title-action" onclick="return confirm(\'%s\');">%s</a>',
+            esc_url( $cleanup_url ),
+            esc_js( __( 'Remover eventos vencidos e órfãos da fila?', 'fc-recovery-carts' ) ),
+            esc_html__( 'Limpar eventos vencidos', 'fc-recovery-carts' )
+        );
+
         echo '<form method="post">';
             wp_nonce_field( 'bulk-' . $this->_args['plural'], '_wpnonce' );
             echo '<input type="hidden" name="page" value="' . esc_attr( $_REQUEST['page'] ?? '' ) . '" />';
@@ -516,6 +531,25 @@ class Queue_Table extends WP_List_Table {
      * @return void
      */
     public function process_single_action() {
+        // cleanup_expired does not target a single event_id; handle it separately first
+        if ( isset( $_GET['action'] ) && $_GET['action'] === 'cleanup_expired' && isset( $_GET['_wpnonce'] ) ) {
+            if ( ! wp_verify_nonce( sanitize_text_field( $_GET['_wpnonce'] ), 'fcrc_cleanup_expired_queue' ) ) {
+                wp_die( __( 'Não autorizado.', 'fc-recovery-carts' ) );
+            }
+
+            $removed = \MeuMouse\Flexify_Checkout\Recovery_Carts\Cron\Queue_Processor::cleanup_expired_events();
+            $message = sprintf(
+                _n( '%d evento vencido removido da fila.', '%d eventos vencidos removidos da fila.', $removed, 'fc-recovery-carts' ),
+                $removed
+            );
+
+            $redirect_url = remove_query_arg( array( 'action', '_wpnonce' ) );
+            $redirect_url = add_query_arg( 'message', urlencode( $message ), $redirect_url );
+
+            wp_safe_redirect( $redirect_url );
+            exit;
+        }
+
         if ( ! isset( $_GET['action'] ) || ! isset( $_GET['event_id'] ) || ! isset( $_GET['_wpnonce'] ) ) {
             return;
         }

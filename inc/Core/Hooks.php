@@ -49,6 +49,13 @@ class Hooks {
             wp_schedule_event( strtotime( current_time('mysql') ), 'hourly', 'fcrc_delete_old_anonymous_carts' );
         }
 
+        // cleanup expired queue events daily
+        add_action( 'fcrc_cleanup_expired_queue', array( '\MeuMouse\Flexify_Checkout\Recovery_Carts\Cron\Queue_Processor', 'cleanup_expired_events' ) );
+
+        if ( ! wp_next_scheduled('fcrc_cleanup_expired_queue') ) {
+            wp_schedule_event( strtotime( current_time('mysql') ), 'daily', 'fcrc_cleanup_expired_queue' );
+        }
+
         // set cart abandoned manually
         add_action( 'Flexify_Checkout/Recovery_Carts/Cart_Abandoned_Manually', array( $this, 'fire_abandoned_cart' ), 10, 1 );
 
